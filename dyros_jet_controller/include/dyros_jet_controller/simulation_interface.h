@@ -16,11 +16,11 @@ extern const int JOINT_ID[40];
 class SimulationInterface : public controlBase{
  public:   
    SimulationInterface(ros::NodeHandle &nh, double Hz); // constructor for initialize node
-   virtual ~SimulationInterface() { vrep_stop(); }
-   void vrep_start();
-   void vrep_stop();
-   void vrep_stepDone();
-   void vrep_enableSyncMode();
+   virtual ~SimulationInterface() { vrepStop(); }
+   void vrepStart();
+   void vrepStop();
+   void vrepStepDone();
+   void vrepEnableSyncMode();
 
    void update(); // update controller based on readdevice
    void compute(); // compute algorithm and update all class object
@@ -36,27 +36,26 @@ private:  // CALLBACK
 
  private:
 
-   ros::Publisher vrepJointSetPub_;
-   ros::Publisher vrepSimStartPub_;
-   ros::Publisher vrepSimStopPub_;
-   ros::Publisher vrepSimStepDonePub_;
-   ros::Publisher vrepSimEnableSyncModePub_;
+   ros::Publisher vrep_joint_set_pub_;
+   ros::Publisher vrep_sim_start_pub_;
+   ros::Publisher vrep_sim_stop_pub_;
+   ros::Publisher vrep_sim_step_done_pub_;
+   ros::Publisher vrep_sim_enable_syncmode_pub_;
 
-   sensor_msgs::JointState jointSetMsg_;
+   sensor_msgs::JointState joint_set_msg_;
 
 
-   bool simulationRunning_;
-   float simulationTime_; // current simulation time
+   bool simulation_running_;
+   float simulation_time_; // from v-rep simulation time
 
    ros::Rate rate_;
 
-   ros::Subscriber vrepSimStateSub_;
+   ros::Subscriber vrep_sim_state_sub_;
 
-   ros::Subscriber imuSub_;
-   ros::Subscriber jointSub_;
-   ros::Subscriber leftFTSub_;
-   ros::Subscriber rightFTSub_;
-
+   ros::Subscriber imu_sub_;
+   ros::Subscriber joint_sub_;
+   ros::Subscriber left_ft_sub_;
+   ros::Subscriber right_ft_sub_;
 
 
 };

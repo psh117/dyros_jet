@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
     std::string mode;
     nh.param<std::string>("run_mode", mode, "simulation");
-    controlBase *ctrObj;
+    controlBase *ctr_obj;
 
     double Hz;
     nh.param<double>("control_frequency", Hz, 200.0);
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     if(mode == "simulation")
     {
         ROS_INFO("DYROS JET MAIN CONTROLLER - !!! SIMULATION MODE !!!");
-        ctrObj = new SimulationInterface(nh, Hz);
+        ctr_obj = new SimulationInterface(nh, Hz);
     }
     else if(mode == "real")
     {
@@ -42,15 +42,15 @@ int main(int argc, char **argv)
 
     while(ros::ok())
     {
-        ctrObj->readdevice();
-        ctrObj->update();
-        ctrObj->compute();
-        ctrObj->reflect();
-        ctrObj->writedevice();
-        ctrObj->wait();
+        ctr_obj->readDevice();
+        ctr_obj->update();
+        ctr_obj->compute();
+        ctr_obj->reflect();
+        ctr_obj->writeDevice();
+        ctr_obj->wait();
     }
 
-    delete ctrObj;
+    delete ctr_obj;
 
     return 0;
 }

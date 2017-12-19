@@ -1,6 +1,6 @@
 #pragma once
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 #define Gravity	9.81
 #define DEGREE	(0.01745329251994329576923690768489)

@@ -28,26 +28,26 @@ int jointOccupancy[40] = {WAIST, WAIST,
 
 // Constructor
 controlBase::controlBase(ros::NodeHandle &nh, double Hz) :
-  uiUpdateCount(0), isFirstBoot(true), Hz_(Hz), total_dof(32)
+  ui_update_count_(0), is_first_boot_(true), Hz_(Hz), total_dof_(32)
 {
-  parameter_initialize();
+  parameterInitialize();
 }
 
 
-void controlBase::make_id_inverse_list()
+void controlBase::makeIDInverseList()
 {
-  jointInvID.resize(50);
-  for(int i=0;i<total_dof; i++)
+  joint_id_inversed_.resize(50);
+  for(int i=0;i<total_dof_; i++)
   {
-    jointID.push_back(JOINT_ID[i]);
-    jointInvID[JOINT_ID[i]] = i;
+    joint_id_.push_back(JOINT_ID[i]);
+    joint_id_inversed_[JOINT_ID[i]] = i;
   }
 }
 
 
 void controlBase::updateDesired(body_select body, VectorXd &update_q)
 {
-  for(int i=0; i<total_dof; i++)
+  for(int i=0; i<total_dof_; i++)
   {
     if(jointOccupancy[i] == body)
     {
@@ -70,17 +70,17 @@ void controlBase::reflect()
 {
 }
 
-void controlBase::parameter_initialize()
+void controlBase::parameterInitialize()
 {
-  q_.resize(total_dof); q_.setZero();
-  q_dot_.resize(total_dof); q_dot_.setZero();
-  torque_.resize(total_dof); torque_.setZero();
-  leftFootFT_.setZero();  leftFootFT_.setZero();
-  desired_q_.resize(total_dof); desired_q_.setZero();
-  target_q_.resize(total_dof); target_q_.setZero();
+  q_.resize(total_dof_); q_.setZero();
+  q_dot_.resize(total_dof_); q_dot_.setZero();
+  torque_.resize(total_dof_); torque_.setZero();
+  left_foot_ft_.setZero();  left_foot_ft_.setZero();
+  desired_q_.resize(total_dof_); desired_q_.setZero();
+  target_q_.resize(total_dof_); target_q_.setZero();
 
 }
-void controlBase::readdevice()
+void controlBase::readDevice()
 {
   ros::spinOnce();
 }

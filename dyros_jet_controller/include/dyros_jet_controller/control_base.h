@@ -53,34 +53,41 @@ public:
     controlBase(ros::NodeHandle &nh, double Hz);
     virtual ~controlBase(){}
     // Default User Call function
-    void parameter_initialize(); // initialize all parameter function(q,qdot,force else...)
-    virtual void readdevice(); // read device means update all subscribed sensor data and user command
+    void parameterInitialize(); // initialize all parameter function(q,qdot,force else...)
+    virtual void readDevice(); // read device means update all subscribed sensor data and user command
     virtual void update(); // update controller based on readdevice
     virtual void compute(); // compute algorithm and update all class object
     virtual void reflect(); // reflect next step actuation such as motor angle else
-    virtual void writedevice()=0; // publish to actuate devices
+    virtual void writeDevice()=0; // publish to actuate devices
     virtual void wait()=0;  // wait
+
+    bool checkStateChanged();
+
+
+
+
+/// ???
     double Rounding( double x, int digit );
     int getch();
 
-    bool check_state_changed();
+
 
     const double getHz() { return Hz_; }
 protected:
-    ros::Subscriber smachSub;
+    ros::Subscriber smach_sub_;
 
-    vector<int> jointID;
-    vector<int> jointInvID;
+    vector<int> joint_id_;
+    vector<int> joint_id_inversed_;
 
-    int uiUpdateCount;
-    bool isFirstBoot;
+    int ui_update_count_;
+    bool is_first_boot_;
 
     VectorXd q_; // current q
     VectorXd q_dot_; // current qdot
     VectorXd torque_; // current joint toruqe
 
-    Vector6d leftFootFT_; // current left ft sensor values
-    Vector6d rightFootFT_; // current right ft sensor values
+    Vector6d left_foot_ft_; // current left ft sensor values
+    Vector6d right_foot_ft_; // current right ft sensor values
 
     Vector3d gyro_; // current gyro sensor values
     Vector3d accelometer_; // current accelometer values
@@ -89,9 +96,7 @@ protected:
 
     VectorXd desired_q_; // current desired joint values
 
-    int total_dof;
-
-    int         cnt_;
+    int total_dof_;
 
     VectorXd    target_q_;
     MatrixXd    target_x_;
@@ -99,11 +104,14 @@ protected:
     void updateDesired(body_select body, VectorXd &update_q);
 
 private:
-    double Hz_;
+    double Hz_; ///< control
+    unsigned long tick_;
+    double control_time_;
+
 
 private:
 
-    void make_id_inverse_list();
+    void makeIDInverseList();
 
 };
 
