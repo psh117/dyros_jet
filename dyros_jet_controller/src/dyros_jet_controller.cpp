@@ -15,6 +15,8 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "dyros_jet_controller");
     ros::NodeHandle nh("~");
 
+    DyrosJetModel djm;
+    djm.test();
 
     std::string mode;
     nh.param<std::string>("run_mode", mode, "simulation");

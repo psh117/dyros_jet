@@ -20,9 +20,9 @@ SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz): contro
 
   vrep_joint_set_pub_ = nh.advertise<sensor_msgs::JointState>("/vrep_ros_interface/joint_set", 1);
 
-  joint_set_msg_.name.resize(total_dof);
-  joint_set_msg_.position.resize(total_dof);
-  for(int i=0; i<total_dof; i++)
+  joint_set_msg_.name.resize(total_dof_);
+  joint_set_msg_.position.resize(total_dof_);
+  for(int i=0; i<total_dof_; i++)
   {
     joint_set_msg_.name[i] = JOINT_NAME[i];
   }
@@ -30,9 +30,9 @@ SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz): contro
 
   ROS_INFO("Wait for connecting");
 
-  while(vrep_sim_enable_syncmode_pub_.getNumSubscribers() == 0)
+  while(vrep_sim_enable_syncmode_pub_.getNumSubscribers() == 0 || ros::ok())
       poll_rate.sleep();
-  while(vrep_sim_start_pub_.getNumSubscribers() == 0)
+  while(vrep_sim_start_pub_.getNumSubscribers() == 0 || ros::ok())
       poll_rate.sleep();
 
   ROS_INFO("Connected");
@@ -80,10 +80,10 @@ void SimulationInterface::compute()
   controlBase::compute();
 }
 
-void SimulationInterface::writedevice()
+void SimulationInterface::writeDevice()
 {
 
-  for(int i=0;i<total_dof;i++) {
+  for(int i=0;i<total_dof_;i++) {
     joint_set_msg_.position[i] = desired_q_(i);
   }
 
@@ -111,7 +111,7 @@ void SimulationInterface::simulationTimeCallback(const std_msgs::Float32ConstPtr
 
 void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& msg)
 {
-  for(int i=0; i<total_dof; i++)
+  for(int i=0; i<total_dof_; i++)
   {
       for (int j=0; j<msg->name.size(); j++)
       {

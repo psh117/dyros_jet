@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+  <name>dyros_jet_description</name>
+  <version>0.0.0</version>
+  <description>The dyros_jet_description package</description>
+
+  <maintainer email="jmpechem@snu.ac.kr">Jimin Lee</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>gazebo</build_depend>
+  <run_depend>gazebo</run_depend>
+
+  <export>
+  </export>
+</package>

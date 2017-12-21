@@ -1,0 +1,14 @@
+<launch>
+  <!--arg name="model" /-->
+  <!--arg name="gui" default="False" /-->
+  <param name="robot_description"
+    textfile="$(find dyros_jet_description)/robots/dyros_jet_robot.urdf" />
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+    <!--param name="/use_gui" value="true" /-->
+  <!--/node-->
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  <node name="high_noon" pkg="eye_of_dragon" type="high_noon" />
+  <!--node name="rviz" pkg="rviz" type="rviz" args="-d $(find dyros_jet_description)/urdf.rviz" /-->
+</launch>

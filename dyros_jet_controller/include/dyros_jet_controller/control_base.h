@@ -31,6 +31,7 @@
 
 // User Library
 #include "math_type_define.h"
+#include "dyros_jet_controller/dyros_jet_model.h"
 // #include "Walking_Controller.h"
 // #include "Upperbody_Controller.h"
 

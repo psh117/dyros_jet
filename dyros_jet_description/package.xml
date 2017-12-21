@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <name>dyros_jet_description</name>
+  <version>0.0.0</version>
+  <description>The dyros_jet_description package</description>
+
+  <maintainer email="psh117@snu.ac.kr">Suhan Park</maintainer>
+
+  <license>BSD</license>
+
+  <author email="psh117@snu.ac.kr">Suhan Park</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+  </export>
+</package>

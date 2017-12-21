@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   dyros_jet_msgs
   geometry_msgs
   roscpp
+  roslib
   sensor_msgs
   std_msgs
   realtime_tools
@@ -31,8 +32,10 @@ add_custom_target(thormang_ctrl_headers SOURCES ${HeaderFiles})
 
 
 file(GLOB BRIDGE_SRC
+    "src/simulation_interface.cpp"
   "src/control_base.cpp"
-  "src/simulation_interface.cpp"
+  "src/dyros_jet_model.cpp"
+  #"include/dyros_jet_controller/dyros_jet_model.h"
 #  "src/hardware_interface.cpp"
 )
 file(GLOB WALKING_SRC
@@ -53,11 +56,15 @@ add_executable(dyros_jet_controller src/dyros_jet_controller.cpp)
 target_link_libraries(dyros_jet_controller_lib
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
+
+    -L/usr/local/lib
+    -lrbdl
+    -lrbdl_urdfreader
 )
 target_link_libraries(dyros_jet_controller
+    dyros_jet_controller_lib
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
-    dyros_jet_controller_lib
 )
 
 add_dependencies(dyros_jet_controller_lib ${catkin_EXPORTED_TARGETS})

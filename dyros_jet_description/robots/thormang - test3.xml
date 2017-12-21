@@ -1,0 +1,153 @@
+<mujoco model="fullbody.sldasm">
+    <compiler angle="radian" />
+    <size njmax="500" nconmax="100" />
+	
+    
+
+    <visual>
+        <map fogstart="3" fogend="5" force="0.1" znear="0.5"/>
+        <quality shadowsize="2048" offsamples="8"/>
+        <global offwidth="800" offheight="800"/>
+    </visual>
+
+    <option timestep='0.001' iterations="50" solver="PGS">
+        <flag energy="enable" fwdinv="enable"/>
+    </option>
+
+
+    <asset>
+        <mesh name="base_link" file="base_link.stl" />
+        <mesh name="L_HipYaw_Link" file="L_HipYaw_Link.stl" />
+        <mesh name="L_HipRoll_Link" file="L_HipRoll_Link.stl" />
+        <mesh name="L_HipPitch_Link" file="L_HipPitch_Link.stl" />
+        <mesh name="L_KneePItch_Link" file="L_KneePItch_Link.stl" />
+        <mesh name="L_AnklePitch_Link" file="L_AnklePitch_Link.stl" />
+        <mesh name="L_AnckleRoll_Link" file="L_AnckleRoll_Link.stl" />
+        <mesh name="R_HipYaw_Link" file="R_HipYaw_Link.stl" />
+        <mesh name="R_HipRoll_Link" file="R_HipRoll_Link.stl" />
+        <mesh name="R_HipPitch_Link" file="R_HipPitch_Link.stl" />
+        <mesh name="R_KneePitch_Link" file="R_KneePitch_Link.stl" />
+        <mesh name="R_AncklePitch_Link" file="R_AncklePitch_Link.stl" />
+        <mesh name="R_AnckleRoll_Link" file="R_AnckleRoll_Link.stl" />
+        <mesh name="WaistPitch_Link" file="WaistPitch_Link.stl" />
+        <mesh name="WaistYaw_Link" file="WaistYaw_Link.stl" />
+        <mesh name="L_ShoulderPitch_Link" file="L_ShoulderPitch_Link.stl" />
+        <mesh name="L_ShoulderRoll_Link" file="L_ShoulderRoll_Link.stl" />
+        <mesh name="L_ShoulderYaw_Link" file="L_ShoulderYaw_Link.stl" />
+        <mesh name="L_ElbowRoll_Link" file="L_ElbowRoll_Link.stl" />
+        <mesh name="L_WristYaw_Link" file="L_WristYaw_Link.stl" />
+        <mesh name="L_WristRoll_Link" file="L_WristRoll_Link.stl" />
+        <mesh name="L_HandYaw_Link" file="L_HandYaw_Link.stl" />
+        <mesh name="R_ShoulderPitch_Link" file="R_ShoulderPitch_Link.stl" />
+        <mesh name="R_ShoulderRoll_Link" file="R_ShoulderRoll_Link.stl" />
+        <mesh name="R_ShoulderYaw_Link" file="R_ShoulderYaw_Link.stl" />
+        <mesh name="R_ElbowRoll_Link" file="R_ElbowRoll_Link.stl" />
+        <mesh name="R_WristYaw_Link" file="R_WristYaw_Link.stl" />
+        <mesh name="R_WristRoll_Link" file="R_WristRoll_Link.stl" />
+        <mesh name="R_HandYaw_Link" file="R_HandYaw_Link.stl" />
+<texture type="skybox" builtin="gradient" width="128" height="128" rgb1=".4 .6 .8" 
+            rgb2="0 0 0"/>  
+        <texture name="texgeom" type="cube" builtin="flat" mark="cross" width="127" height="1278" 
+            rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01"/>  
+        <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" 
+            width="512" height="512"/>  
+
+        <material name='MatPlane' reflectance='0.5' texture="texplane" texrepeat="1 1" texuniform="true"/>
+        <material name='geom' texture="texgeom" texuniform="true"/>
+    </asset>
+    <worldbody>
+        <geom name='floor' pos='0 0 0' size='5 5 .125' type='plane' material="MatPlane" condim='3'/>
+
+<light mode='targetbodycom' target='base_link' directional='false' diffuse='.8 .8 .8' specular='0.3 0.3 0.3' pos='0 0 4.0' dir='0 0 -1'/>
+
+		<camera name='targeting' pos='1 1 2' mode='targetbodycom' target='base_link'/>
+
+        <body name="base_link" pos="0 0 1">
+<joint name='root' type='free' pos='0 0 0' limited='false' damping='0' armature='0' stiffness='0'/>
+            <inertial pos="-0.00106 0 0.049486" quat="0.707086 0.707086 0.0054423 -0.0054423" mass="1.9994" diaginertia="0.0184026 0.0115804 0.008454" />
+            <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="base_link" />
+            
+           
+            <body name="WaistPitch_Link" pos="0 0 0">
+                <inertial pos="0 0 0.14577" quat="0.707107 0 0 0.707107" mass="0.17684" diaginertia="0.004215 0.003844 0.000457" />
+                <joint name="WaistPitch" pos="0 0 0" axis="0 0 1" />
+                <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="WaistPitch_Link" />
+                <body name="WaistYaw_Link" pos="0 0 0.186">
+                    <inertial pos="-8e-06 0 0.121" mass="10.78" diaginertia="0.262766 0.242504 0.109346" />
+                    <joint name="WaistYaw" pos="0 0 0" axis="-1 0 0" />
+                    <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="WaistYaw_Link" />
+                    <body name="L_ShoulderPitch_Link" pos="0 0.17 0.239" quat="0.965926 0.25882 0 0">
+                        <inertial pos="0.00028444 -0.0013968 0" quat="0 0.707107 0 0.707107" mass="0.92826" diaginertia="0.00156 0.0015422 0.000473" />
+                        <joint name="L_ShoulderPitch" pos="0 0 0" axis="0 1 0" />
+                        <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="L_ShoulderPitch_Link" />
+                        <body name="L_ShoulderRoll_Link" pos="0 0 0">
+                            <inertial pos="0 0.030402 0.033562" quat="0.629924 0.321242 -0.321242 0.629924" mass="0.37361" diaginertia="0.00212121 0.001421 0.00130279" />
+                            <joint name="L_ShoulderRoll" pos="0 0 0" axis="1 0 0" />
+                            <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="L_ShoulderRoll_Link" />
+                            <body name="L_ShoulderYaw_Link" pos="0 0 0.028856">
+                                <inertial pos="-0.00046649 0.21409 0" quat="0.500672 0.499327 -0.500672 0.499327" mass="1.7512" diaginertia="0.090836 0.0904196 0.00125935" />
+                                <joint name="L_ShoulderYaw" pos="0 0 0" axis="0 1 0" />
+                                <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="L_ShoulderYaw_Link" />
+                                <body name="L_ElbowRoll_Link" pos="0 0.294 0">
+                                    <inertial pos="-0.00013156 0.027019 0.070625" quat="0.978431 0.206326 0.00269168 -0.00972432" mass="0.83343" diaginertia="0.00592013 0.00562339 0.00105148" />
+                                    <joint name="L_ElbowRoll" pos="0 0 0" axis="1 0 0" />
+                                    <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="L_ElbowRoll_Link" />
+                                    <body name="L_WristYaw_Link" pos="0 0 0.075">
+                                        <inertial pos="-0.00052833 0.21354 0" quat="0.500738 0.499261 -0.500738 0.499261" mass="0.52387" diaginertia="0.026765 0.0266882 0.00026877" />
+                                        <joint name="L_WristYaw" pos="0 0 0" axis="0 1 0" />
+                                        <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="L_WristYaw_Link" />
+                                        <body name="L_WristRoll_Link" pos="-0.00015 0.3085 0">
+                                            <inertial pos="0 0.029698 0" quat="0 0.707107 0 0.707107" mass="0.0695" diaginertia="0.000153 9.0005e-05 8.3e-05" />
+                                            <joint name="L_WristRoll" pos="0 0 0" axis="1 0 0" />
+                                            <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="L_WristRoll_Link" />
+                                            <body name="L_HandYaw_Link" pos="0 0 0">
+                                                <inertial pos="0 0.20231 0.0031654" quat="0.503933 0.496036 -0.496036 0.503933" mass="1.206" diaginertia="0.0557793 0.05396 0.00258773" />
+                                                <joint name="L_HandYaw" pos="0 0 0" axis="0 1 0" />
+                                                <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="L_HandYaw_Link" />
+                                            </body>
+                                        </body>
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                    <body name="R_ShoulderPitch_Link" pos="0 -0.17 0.239" quat="0.965926 -0.25882 0 0">
+                        <inertial pos="0.00028444 0.0013968 0" quat="0 0.707107 0 0.707107" mass="0.92826" diaginertia="0.00156 0.0015422 0.000473" />
+                        <joint name="R_ShoulderPitch" pos="0 0 0" axis="0 -1 0" />
+                        <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="R_ShoulderPitch_Link" />
+                        <body name="R_ShoulderRoll_Link" pos="0 0 0">
+                            <inertial pos="0 -0.030402 0.033562" quat="0.321242 0.629924 -0.629924 0.321242" mass="0.37361" diaginertia="0.00212121 0.001421 0.00130279" />
+                            <joint name="R_ShoulderRoll" pos="0 0 0" axis="1 0 0" />
+                            <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="R_ShoulderRoll_Link" />
+                            <body name="R_ShoulderYaw_Link" pos="0 0 0.028856">
+                                <inertial pos="-0.00046649 -0.21409 0" quat="0.499327 0.500672 -0.499327 0.500672" mass="1.7512" diaginertia="0.090836 0.0904196 0.00125935" />
+                                <joint name="R_ShoulderYaw" pos="0 0 0" axis="0 -1 0" />
+                                <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="R_ShoulderYaw_Link" />
+                                <body name="R_ElbowRoll_Link" pos="0 -0.294 0">
+                                    <inertial pos="-0.00013156 -0.027019 0.070625" quat="0.978431 -0.206326 0.00269168 0.00972432" mass="0.83343" diaginertia="0.00592013 0.00562339 0.00105148" />
+                                    <joint name="R_ElbowRoll" pos="0 0 0" axis="1 0 0" />
+                                    <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="R_ElbowRoll_Link" />
+                                    <body name="R_WristYaw_Link" pos="0 0 0.075">
+                                        <inertial pos="-0.00052833 -0.21354 0" quat="0.499261 0.500738 -0.499261 0.500738" mass="0.52387" diaginertia="0.026765 0.0266882 0.00026877" />
+                                        <joint name="R_WristYaw" pos="0 0 0" axis="0 -1 0" />
+                                        <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="R_WristYaw_Link" />
+                                        <body name="R_WristRoll_Link" pos="-0.00015 -0.3085 0">
+                                            <inertial pos="0 -0.029698 0" quat="0 0.707107 0 0.707107" mass="0.0695" diaginertia="0.000153 9e-05 8.3e-05" />
+                                            <joint name="R_WristRoll" pos="0 0 0" axis="1 0 0" />
+                                            <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="R_WristRoll_Link" />
+                                            <body name="R_HandYaw_Link" pos="0 0 0">
+                                                <inertial pos="0 -0.20231 -0.0031654" quat="0.503933 0.496036 -0.496036 0.503933" mass="1.206" diaginertia="0.0557793 0.05396 0.00258773" />
+                                                <joint name="R_HandYaw" pos="0 0 0" axis="0 -1 0" />
+                                                <geom type="mesh" rgba="0.59216 0.61961 0.65098 1" mesh="R_HandYaw_Link" />
+                                            </body>
+                                        </body>
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+</mujoco>

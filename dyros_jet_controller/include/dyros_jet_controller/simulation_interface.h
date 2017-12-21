@@ -1,3 +1,5 @@
+#ifndef SIMULATION_INTERFACE_H
+#define SIMULATION_INTERFACE_H
 
 #include "control_base.h"
 #include "math_type_define.h"
@@ -22,10 +24,10 @@ class SimulationInterface : public controlBase{
    void vrepStepDone();
    void vrepEnableSyncMode();
 
-   void update(); // update controller based on readdevice
-   void compute(); // compute algorithm and update all class object
-   void writedevice(); // publish to actuate devices
-   void wait();
+   virtual void update() override; // update controller based on readdevice
+   virtual void compute() override; // compute algorithm and update all class object
+   virtual void writeDevice() override; // publish to actuate devices
+   virtual void wait() override;
 
 private:  // CALLBACK
    void simulationTimeCallback(const std_msgs::Float32ConstPtr& msg);
@@ -61,3 +63,5 @@ private:  // CALLBACK
 };
 
 }
+
+#endif

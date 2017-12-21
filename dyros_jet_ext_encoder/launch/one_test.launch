@@ -1,0 +1,5 @@
+<launch>
+  <node name="dyros_jet_ext_encoder" pkg="dyros_jet_ext_encoder" type="dyros_jet_ext_encoder" respawn="false" output="screen">
+    <param name="L_HipYaw_Port" type="string" value="/dev/ttyACM0" />
+  </node>
+</launch>

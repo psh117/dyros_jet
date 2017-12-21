@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<package>
+  <name>dyros_jet_ext_encoder</name>
+  <version>0.0.1</version>
+  <description>The dyros_jet_ext_encoder package</description>
+
+  <maintainer email="psh117@snu.ac.kr">Suhan Park</maintainer>
+
+
+  <license>BSD</license>
+
+
+  <!-- <url type="website">http://wiki.ros.org/dyros_jet_controller</url> -->
+
+
+  <author email="psh117@snu.ac.kr">Suhan Park</author>
+
+
+  <!-- The *_depend tags are used to specify dependencies -->
+  <!-- Dependencies can be catkin packages or system dependencies -->
+  <!-- Examples: -->
+  <!-- Use build_depend for packages you need at compile time: -->
+  <!--   <build_depend>message_generation</build_depend> -->
+  <!-- Use buildtool_depend for build tool packages: -->
+  <!--   <buildtool_depend>catkin</buildtool_depend> -->
+  <!-- Use run_depend for packages you need at runtime: -->
+  <!--   <run_depend>message_runtime</run_depend> -->
+  <!-- Use test_depend for packages you need only for testing: -->
+  <!--   <test_depend>gtest</test_depend> -->
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>dyros_jet_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <run_depend>dyros_jet_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <build_depend>realtime_tools</build_depend>
+  <run_depend>realtime_tools</run_depend>
+
+  <export>
+  </export>
+</package>
