@@ -4,31 +4,32 @@
 namespace dyros_jet_controller
 {
 
+const string JOINT_NAME[40] = { "L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll",
+                                "R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll",
+                                "WaistPitch","WaistYaw",
+                                "L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw",
+                                "R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw",
+                                "HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"};
+
+/*
 const string JOINT_NAME[40] = {"WaistPitch","WaistYaw",
                                "R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw",
                                "L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw",
                                "R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll",
                                "L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll",
                                "HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"};
+*/
+const int JOINT_ID[40] = { 16,18,20,22,24,26,
+                           15,17,19,21,23,25,
+                           28,27, // waist yaw - roll order
+                           2,4,6,8,10,12,14,
+                           1,3,5,7,9,11,13,
+                           29,30,31,32};
 
-const int JOINT_ID[40] = {28, 27, // waist yaw - roll order
-                          1,3,5,7,9,11,13,
-                          2,4,6,8,10,12,14,
-                          15,17,19,21,23,25,
-                          16,18,20,22,24,26,
-                          29,30,31,32};
-
-
-int jointOccupancy[40] = {WAIST, WAIST,
-                          UPPER, UPPER, UPPER, UPPER, UPPER, UPPER, UPPER,
-                          UPPER, UPPER, UPPER, UPPER, UPPER, UPPER, UPPER,
-                          WALKING, WALKING, WALKING, WALKING, WALKING, WALKING,
-                          WALKING, WALKING, WALKING, WALKING, WALKING, WALKING,
-                          HEAD, HEAD, UPPER, UPPER};
 
 // Constructor
 controlBase::controlBase(ros::NodeHandle &nh, double Hz) :
-  ui_update_count_(0), is_first_boot_(true), Hz_(Hz), total_dof_(32)
+  ui_update_count_(0), is_first_boot_(true), Hz_(Hz), total_dof_(DyrosJetModel::HW_TOTAL_DOF), task_controller_(model_, q_)
 {
   parameterInitialize();
 }
@@ -36,23 +37,10 @@ controlBase::controlBase(ros::NodeHandle &nh, double Hz) :
 
 void controlBase::makeIDInverseList()
 {
-  joint_id_inversed_.resize(50);
   for(int i=0;i<total_dof_; i++)
   {
-    joint_id_.push_back(JOINT_ID[i]);
+    joint_id_[i] = JOINT_ID[i];
     joint_id_inversed_[JOINT_ID[i]] = i;
-  }
-}
-
-
-void controlBase::updateDesired(body_select body, VectorXd &update_q)
-{
-  for(int i=0; i<total_dof_; i++)
-  {
-    if(jointOccupancy[i] == body)
-    {
-      desired_q_(i) = update_q(i);
-    }
   }
 }
 
@@ -72,12 +60,13 @@ void controlBase::reflect()
 
 void controlBase::parameterInitialize()
 {
-  q_.resize(total_dof_); q_.setZero();
-  q_dot_.resize(total_dof_); q_dot_.setZero();
-  torque_.resize(total_dof_); torque_.setZero();
-  left_foot_ft_.setZero();  left_foot_ft_.setZero();
-  desired_q_.resize(total_dof_); desired_q_.setZero();
-  target_q_.resize(total_dof_); target_q_.setZero();
+  q_.setZero();
+  q_dot_.setZero();
+  torque_.setZero();
+  left_foot_ft_.setZero();
+  left_foot_ft_.setZero();
+  desired_q_.setZero();
+  target_q_.setZero();
 
 }
 void controlBase::readDevice()

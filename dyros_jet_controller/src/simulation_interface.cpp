@@ -30,9 +30,9 @@ SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz): contro
 
   ROS_INFO("Wait for connecting");
 
-  while(vrep_sim_enable_syncmode_pub_.getNumSubscribers() == 0 || ros::ok())
+  while(vrep_sim_enable_syncmode_pub_.getNumSubscribers() == 0 && ros::ok())
       poll_rate.sleep();
-  while(vrep_sim_start_pub_.getNumSubscribers() == 0 || ros::ok())
+  while(vrep_sim_start_pub_.getNumSubscribers() == 0 && ros::ok())
       poll_rate.sleep();
 
   ROS_INFO("Connected");

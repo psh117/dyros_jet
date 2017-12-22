@@ -2,6 +2,7 @@
 #define _CONTROL_BASE_H
 
 // STD Library
+#include <array>
 #include <vector>
 
 // System Library
@@ -32,6 +33,7 @@
 // User Library
 #include "math_type_define.h"
 #include "dyros_jet_controller/dyros_jet_model.h"
+#include "task_controller.h"
 // #include "Walking_Controller.h"
 // #include "Upperbody_Controller.h"
 
@@ -44,8 +46,6 @@ using namespace std;
 
 extern const string JOINT_NAME[40];
 extern const int JOINT_ID[40];
-
-enum body_select {UPPER,WAIST, WALKING, HEAD};
 
 class controlBase
 {
@@ -77,15 +77,16 @@ public:
 protected:
     ros::Subscriber smach_sub_;
 
-    vector<int> joint_id_;
-    vector<int> joint_id_inversed_;
+    unsigned int joint_id_[DyrosJetModel::HW_TOTAL_DOF];
+    unsigned int joint_id_inversed_[DyrosJetModel::HW_TOTAL_DOF];
+    unsigned int control_mask_[DyrosJetModel::HW_TOTAL_DOF];
 
     int ui_update_count_;
     bool is_first_boot_;
 
-    VectorXd q_; // current q
-    VectorXd q_dot_; // current qdot
-    VectorXd torque_; // current joint toruqe
+    VectorQd q_; // current q
+    VectorQd q_dot_; // current qdot
+    VectorQd torque_; // current joint toruqe
 
     Vector6d left_foot_ft_; // current left ft sensor values
     Vector6d right_foot_ft_; // current right ft sensor values
@@ -95,14 +96,15 @@ protected:
 
     Matrix3d pelvis_orientation_;
 
-    VectorXd desired_q_; // current desired joint values
+    VectorQd desired_q_; // current desired joint values
 
     int total_dof_;
 
-    VectorXd    target_q_;
+    VectorQd    target_q_;
     MatrixXd    target_x_;
 
-    void updateDesired(body_select body, VectorXd &update_q);
+    DyrosJetModel model_;
+    TaskController task_controller_;
 
 private:
     double Hz_; ///< control
