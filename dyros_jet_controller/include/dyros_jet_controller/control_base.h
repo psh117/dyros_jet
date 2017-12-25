@@ -47,74 +47,81 @@ using namespace std;
 extern const string JOINT_NAME[40];
 extern const int JOINT_ID[40];
 
-class controlBase
+class ControlBase
 {
 
 public:
-    controlBase(ros::NodeHandle &nh, double Hz);
-    virtual ~controlBase(){}
-    // Default User Call function
-    void parameterInitialize(); // initialize all parameter function(q,qdot,force else...)
-    virtual void readDevice(); // read device means update all subscribed sensor data and user command
-    virtual void update(); // update controller based on readdevice
-    virtual void compute(); // compute algorithm and update all class object
-    virtual void reflect(); // reflect next step actuation such as motor angle else
-    virtual void writeDevice()=0; // publish to actuate devices
-    virtual void wait()=0;  // wait
+  ControlBase(ros::NodeHandle &nh, double Hz);
+  virtual ~ControlBase(){}
+  // Default User Call function
+  void parameterInitialize(); // initialize all parameter function(q,qdot,force else...)
+  virtual void readDevice(); // read device means update all subscribed sensor data and user command
+  virtual void update(); // update controller based on readdevice
+  virtual void compute(); // compute algorithm and update all class object
+  virtual void reflect(); // reflect next step actuation such as motor angle else
+  virtual void writeDevice()=0; // publish to actuate devices
+  virtual void wait()=0;  // wait
 
-    bool checkStateChanged();
+  bool checkStateChanged();
 
-
-
-
-/// ???
-    double Rounding( double x, int digit );
-    int getch();
+  void stateChangeEvent();
 
 
 
-    const double getHz() { return Hz_; }
+  const double getHz() { return Hz_; }
 protected:
-    ros::Subscriber smach_sub_;
 
-    unsigned int joint_id_[DyrosJetModel::HW_TOTAL_DOF];
-    unsigned int joint_id_inversed_[DyrosJetModel::HW_TOTAL_DOF];
-    unsigned int control_mask_[DyrosJetModel::HW_TOTAL_DOF];
+  unsigned int joint_id_[DyrosJetModel::HW_TOTAL_DOF];
+  unsigned int joint_id_inversed_[DyrosJetModel::HW_TOTAL_DOF];
+  unsigned int control_mask_[DyrosJetModel::HW_TOTAL_DOF];
 
-    int ui_update_count_;
-    bool is_first_boot_;
+  int ui_update_count_;
+  bool is_first_boot_;
 
-    VectorQd q_; // current q
-    VectorQd q_dot_; // current qdot
-    VectorQd torque_; // current joint toruqe
+  VectorQd q_; // current q
+  VectorQd q_dot_; // current qdot
+  VectorQd torque_; // current joint toruqe
 
-    Vector6d left_foot_ft_; // current left ft sensor values
-    Vector6d right_foot_ft_; // current right ft sensor values
+  Vector6d left_foot_ft_; // current left ft sensor values
+  Vector6d right_foot_ft_; // current right ft sensor values
 
-    Vector3d gyro_; // current gyro sensor values
-    Vector3d accelometer_; // current accelometer values
+  Vector3d gyro_; // current gyro sensor values
+  Vector3d accelometer_; // current accelometer values
 
-    Matrix3d pelvis_orientation_;
+  Matrix3d pelvis_orientation_;
 
-    VectorQd desired_q_; // current desired joint values
+  VectorQd desired_q_; // current desired joint values
 
-    int total_dof_;
+  int total_dof_;
 
-    VectorQd    target_q_;
-    MatrixXd    target_x_;
-
-    DyrosJetModel model_;
-    TaskController task_controller_;
+  DyrosJetModel model_;
+  TaskController task_controller_;
 
 private:
-    double Hz_; ///< control
-    unsigned long tick_;
-    double control_time_;
+  double Hz_; ///< control
+  unsigned long tick_;
+  double control_time_;
 
+  string current_state_;
+  string previous_state_;
+
+
+  // ROS
+  ros::Subscriber walking_cmd_sub_;
+  ros::Subscriber task_cmd_sub_;
+  ros::Subscriber joint_cmd_sub_;
+  //ros::Subscriber recog_point_sub_;
+  // ros::Subscriber recog_cmd_sub_;
+
+  // State Machine (SMACH)
+  realtime_tools::RealtimePublisher<std_msgs::String> smach_pub_;
+  ros::Subscriber smach_sub_;
+
+  // realtime_tools::RealtimePublisher<thormang_ctrl_msgs::JointState> joint_state_pub_-;
 
 private:
 
-    void makeIDInverseList();
+  void makeIDInverseList();
 
 };
 

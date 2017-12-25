@@ -19,7 +19,6 @@ class DyrosJetModel
 {
 public:
   DyrosJetModel();
-  void test();
 
   enum EndEffector : unsigned int {
     EE_LEFT_FOOT, EE_RIGHT_FOOT,
@@ -33,7 +32,7 @@ public:
        "L_HandYaw_Link", "R_HandYaw_Link" };
 
   unsigned int end_effector_id_[4];
-  unsigned int joint_start_index_[4];
+  const unsigned int joint_start_index_[4];
 
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd& q);

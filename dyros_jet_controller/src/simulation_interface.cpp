@@ -3,7 +3,7 @@
 namespace dyros_jet_controller
 {
 
-SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz): controlBase(nh, Hz), rate_(200)
+SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz): ControlBase(nh, Hz), rate_(200)
 {
   simulation_running_= true;
   simulation_time_ = 0.0f; // set initial simulation time
@@ -72,12 +72,12 @@ void SimulationInterface::vrepEnableSyncMode()
 // Function implement
 void SimulationInterface::update()
 {
-  controlBase::update();
+  ControlBase::update();
 
 }
 void SimulationInterface::compute()
 {
-  controlBase::compute();
+  ControlBase::compute();
 }
 
 void SimulationInterface::writeDevice()

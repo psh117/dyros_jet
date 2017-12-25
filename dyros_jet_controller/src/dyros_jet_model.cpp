@@ -11,7 +11,8 @@ constexpr const size_t DyrosJetModel::HW_TOTAL_DOF;
 constexpr const size_t DyrosJetModel::MODEL_DOF;
 
 
-DyrosJetModel::DyrosJetModel()
+DyrosJetModel::DyrosJetModel() :
+  joint_start_index_{0, 6, 14, 21}
 {
   base_position_.setZero();
   q_.setZero();
@@ -32,8 +33,8 @@ DyrosJetModel::DyrosJetModel()
   }
 
   // waist = 12
-  joint_start_index_[EE_LEFT_HAND] = 14;
-  joint_start_index_[EE_RIGHT_HAND] = 21;
+  //joint_start_index_[EE_LEFT_HAND] = 14;
+  //joint_start_index_[EE_RIGHT_HAND] = 21;
 
   for (size_t i=0; i<4; i++)
   {
@@ -155,24 +156,6 @@ void DyrosJetModel::getJacobianMatrix7DoF(EndEffector ee, Eigen::Matrix<double, 
     jacobian->block<3, 7>(3, 0) = full_jacobian.block<3, 7>(0, joint_start_index_[ee]);
     break;
   }
-}
-
-
-void DyrosJetModel::test()
-{
-
-  Eigen::MatrixXd jacobian(6,MODEL_DOF);
-  RigidBodyDynamics::CalcPointJacobian6D(model_, q_, end_effector_id_[EE_RIGHT_HAND],
-                                         Eigen::Vector3d::Zero(),jacobian);
-
-  std::cout << " com " << model_.mBodies[end_effector_id_[EE_LEFT_FOOT]].mCenterOfMass << std::endl;
-
-  std::cout << std::endl << std::endl << std::endl << jacobian << std::endl << std::endl << std::endl;
-  //RigidBodyDynamics::CalcBodyToBaseCoordinates(model_,);
-
-  //model_.GetBodyId()
-  ROS_INFO("URDF LOAD COMPLETE!!");
-
 }
 
 }

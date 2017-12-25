@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 
     std::string mode;
     nh.param<std::string>("run_mode", mode, "simulation");
-    controlBase *ctr_obj;
+    ControlBase *ctr_obj;
 
     double Hz;
     nh.param<double>("control_frequency", Hz, 200.0);

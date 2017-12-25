@@ -15,7 +15,7 @@ namespace dyros_jet_controller
 extern const string JOINT_NAME[40];
 extern const int JOINT_ID[40];
 
-class SimulationInterface : public controlBase{
+class SimulationInterface : public ControlBase{
  public:   
    SimulationInterface(ros::NodeHandle &nh, double Hz); // constructor for initialize node
    virtual ~SimulationInterface() { vrepStop(); }

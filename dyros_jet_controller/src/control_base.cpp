@@ -28,14 +28,25 @@ const int JOINT_ID[40] = { 16,18,20,22,24,26,
 
 
 // Constructor
-controlBase::controlBase(ros::NodeHandle &nh, double Hz) :
-  ui_update_count_(0), is_first_boot_(true), Hz_(Hz), total_dof_(DyrosJetModel::HW_TOTAL_DOF), task_controller_(model_, q_)
+ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
+  ui_update_count_(0), is_first_boot_(true), Hz_(Hz), total_dof_(DyrosJetModel::HW_TOTAL_DOF),
+  task_controller_(model_, q_, Hz, control_time_)
 {
+  //walking_cmd_sub_ = nh.subscribe
+
   parameterInitialize();
 }
 
-
-void controlBase::makeIDInverseList()
+bool ControlBase::checkStateChanged()
+{
+  if(previous_state_ != current_state_)
+  {
+    current_state_ = previous_state_;
+    return true;
+  }
+  return false;
+}
+void ControlBase::makeIDInverseList()
 {
   for(int i=0;i<total_dof_; i++)
   {
@@ -44,21 +55,42 @@ void controlBase::makeIDInverseList()
   }
 }
 
-void controlBase::update()
+void ControlBase::update()
 {
-
+  model_.updateKinematics(q_);  // Update end effector positions and Jacobians
+  stateChangeEvent();
 }
 
-void controlBase::compute()
+void ControlBase::stateChangeEvent()
 {
+  if(checkStateChanged())
+  {
+    if(current_state_ == "move1")
+    {
+      task_controller_.setEnable(DyrosJetModel::EE_LEFT_HAND, true);
+      task_controller_.setEnable(DyrosJetModel::EE_RIGHT_HAND, false);
+      task_controller_.setEnable(DyrosJetModel::EE_LEFT_FOOT, false);
+      task_controller_.setEnable(DyrosJetModel::EE_RIGHT_FOOT, false);
 
+      Eigen::HTransform target;
+      target.linear() = Eigen::Matrix3d::Identity();
+      target.translation() << 1.0, 0.0, 1.0;
+      task_controller_.setTarget(DyrosJetModel::EE_LEFT_HAND, target, 5.0);
+    }
+  }
+}
+void ControlBase::compute()
+{
+  task_controller_.compute();
+  task_controller_.writeDesired(control_mask_, desired_q_);
+  // walking_controller.compute();
 }
 
-void controlBase::reflect()
+void ControlBase::reflect()
 {
 }
 
-void controlBase::parameterInitialize()
+void ControlBase::parameterInitialize()
 {
   q_.setZero();
   q_dot_.setZero();
@@ -66,56 +98,10 @@ void controlBase::parameterInitialize()
   left_foot_ft_.setZero();
   left_foot_ft_.setZero();
   desired_q_.setZero();
-  target_q_.setZero();
-
 }
-void controlBase::readDevice()
+void ControlBase::readDevice()
 {
   ros::spinOnce();
-}
-
-int controlBase::getch()
-{
-  fd_set set;
-  struct timeval timeout;
-  int rv;
-  char buff = 0;
-  int len = 1;
-  int filedesc = 0;
-  FD_ZERO(&set);
-  FD_SET(filedesc, &set);
-
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 100;
-
-  rv = select(filedesc + 1, &set, NULL, NULL, &timeout);
-
-  struct termios old = {0};
-  if (tcgetattr(filedesc, &old) < 0)
-    ROS_ERROR("tcsetattr()");
-  old.c_lflag &= ~ICANON;
-  old.c_lflag &= ~ECHO;
-  old.c_cc[VMIN] = 1;
-  old.c_cc[VTIME] = 0;
-  if (tcsetattr(filedesc, TCSANOW, &old) < 0)
-    ROS_ERROR("tcsetattr ICANON");
-
-  if(rv == -1)
-  { }
-  else if(rv == 0)
-  {}
-  else
-    if(read(filedesc, &buff, len )) {} // just for unused
-
-  old.c_lflag |= ICANON;
-  old.c_lflag |= ECHO;
-  if (tcsetattr(filedesc, TCSADRAIN, &old) < 0)
-    ROS_ERROR ("tcsetattr ~ICANON");
-  return (buff);
-}
-double controlBase::Rounding( double x, int digit )
-{
-  return ( floor( (x) * pow( float(10), digit ) + 0.5f ) / pow( float(10), digit ) );
 }
 
 }

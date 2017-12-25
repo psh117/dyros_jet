@@ -80,6 +80,24 @@ static double cubic(double time,     ///< Current time
   return x_t;
 }
 
+template <int N>
+static Eigen::Matrix<double, N, 1> cubicVector(double time,     ///< Current time
+                                                double time_0,   ///< Start time
+                                                double time_f,   ///< End time
+                                                Eigen::Matrix<double, N, 1> x_0,      ///< Start state
+                                                Eigen::Matrix<double, N, 1> x_f,      ///< End state
+                                                Eigen::Matrix<double, N, 1> x_dot_0,  ///< Start state dot
+                                                Eigen::Matrix<double, N, 1> x_dot_f   ///< End state dot
+    )
+{
+
+  Eigen::Matrix<double, N, 1> res;
+  for (unsigned int i=0; i<N; i++)
+  {
+    res(i) = cubic(time, time_0, time_f, x_0(i), x_f(i), x_dot_0(i), x_dot_f(i));
+  }
+  return res;
+}
 static Eigen::Vector3d getPhi(Eigen::Matrix3d current_rotation,
                        Eigen::Matrix3d desired_rotation)
 {
