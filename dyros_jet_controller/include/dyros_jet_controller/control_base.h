@@ -22,6 +22,7 @@
 #include <geometry_msgs/WrenchStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <smach_msgs/SmachContainerStatus.h>
 
 #include "dyros_jet_msgs/JointSet.h"
 #include "dyros_jet_msgs/JointState.h"
@@ -43,9 +44,6 @@ namespace dyros_jet_controller
 
 using namespace Eigen;
 using namespace std;
-
-extern const string JOINT_NAME[40];
-extern const int JOINT_ID[40];
 
 class ControlBase
 {
@@ -119,6 +117,7 @@ private:
 
   // realtime_tools::RealtimePublisher<thormang_ctrl_msgs::JointState> joint_state_pub_-;
 
+  void smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg);
 private:
 
   void makeIDInverseList();

@@ -104,9 +104,9 @@ void TaskController::computeCLIK()
                                           start_x_dot_,
                                           Eigen::Vector3d::Zero());
       Eigen::Vector6d x_error;
-      x_error.head<3>(0) = x_cubic - x;
-      x_error.tail<3>(0) = - phi_gain * DyrosMath::getPhi(rot, rot_target);
-      x_dot_desired.head<3>(0) = x_cubic - x_prev_;
+      x_error.head<3>() = x_cubic - x;
+      x_error.tail<3>() = - phi_gain * DyrosMath::getPhi(rot, rot_target);
+      x_dot_desired.head<3>() = x_cubic - x_prev_;
 
       if (i < 2)  // Legs
       {

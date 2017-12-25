@@ -24,18 +24,18 @@ SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz): Contro
   joint_set_msg_.position.resize(total_dof_);
   for(int i=0; i<total_dof_; i++)
   {
-    joint_set_msg_.name[i] = JOINT_NAME[i];
+    joint_set_msg_.name[i] = DyrosJetModel::JOINT_NAME[i];
   }
   ros::Rate poll_rate(100);
 
-  ROS_INFO("Wait for connecting");
+  ROS_INFO("Waiting for connection of V-REP ROS Interface");
 
   while(vrep_sim_enable_syncmode_pub_.getNumSubscribers() == 0 && ros::ok())
-      poll_rate.sleep();
+    poll_rate.sleep();
   while(vrep_sim_start_pub_.getNumSubscribers() == 0 && ros::ok())
-      poll_rate.sleep();
+    poll_rate.sleep();
 
-  ROS_INFO("Connected");
+  ROS_INFO(" -- Connected -- ");
   vrepEnableSyncMode();
   vrepStart();
 
@@ -113,15 +113,15 @@ void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& m
 {
   for(int i=0; i<total_dof_; i++)
   {
-      for (int j=0; j<msg->name.size(); j++)
+    for (int j=0; j<msg->name.size(); j++)
+    {
+      if(DyrosJetModel::JOINT_NAME[i] == msg->name[j].data())
       {
-          if(JOINT_NAME[i] == msg->name[j].data())
-          {
-              q_(i) = msg->position[j];
-              q_dot_(i) = msg->velocity[j];
-              torque_(i) = msg->effort[j];
-          }
+        q_(i) = msg->position[j];
+        q_dot_(i) = msg->velocity[j];
+        torque_(i) = msg->effort[j];
       }
+    }
   }
 }
 

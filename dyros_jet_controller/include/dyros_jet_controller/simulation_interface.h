@@ -12,52 +12,49 @@
 namespace dyros_jet_controller
 {
 
-extern const string JOINT_NAME[40];
-extern const int JOINT_ID[40];
-
 class SimulationInterface : public ControlBase{
- public:   
-   SimulationInterface(ros::NodeHandle &nh, double Hz); // constructor for initialize node
-   virtual ~SimulationInterface() { vrepStop(); }
-   void vrepStart();
-   void vrepStop();
-   void vrepStepDone();
-   void vrepEnableSyncMode();
+public:
+  SimulationInterface(ros::NodeHandle &nh, double Hz); // constructor for initialize node
+  virtual ~SimulationInterface() { vrepStop(); }
+  void vrepStart();
+  void vrepStop();
+  void vrepStepDone();
+  void vrepEnableSyncMode();
 
-   virtual void update() override; // update controller based on readdevice
-   virtual void compute() override; // compute algorithm and update all class object
-   virtual void writeDevice() override; // publish to actuate devices
-   virtual void wait() override;
+  virtual void update() override; // update controller based on readdevice
+  virtual void compute() override; // compute algorithm and update all class object
+  virtual void writeDevice() override; // publish to actuate devices
+  virtual void wait() override;
 
 private:  // CALLBACK
-   void simulationTimeCallback(const std_msgs::Float32ConstPtr& msg);
-   void jointCallback(const sensor_msgs::JointStateConstPtr& msg);
-   void leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
-   void rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
-   void imuCallback(const sensor_msgs::ImuConstPtr& msg);
+  void simulationTimeCallback(const std_msgs::Float32ConstPtr& msg);
+  void jointCallback(const sensor_msgs::JointStateConstPtr& msg);
+  void leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
+  void rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
+  void imuCallback(const sensor_msgs::ImuConstPtr& msg);
 
- private:
+private:
 
-   ros::Publisher vrep_joint_set_pub_;
-   ros::Publisher vrep_sim_start_pub_;
-   ros::Publisher vrep_sim_stop_pub_;
-   ros::Publisher vrep_sim_step_done_pub_;
-   ros::Publisher vrep_sim_enable_syncmode_pub_;
+  ros::Publisher vrep_joint_set_pub_;
+  ros::Publisher vrep_sim_start_pub_;
+  ros::Publisher vrep_sim_stop_pub_;
+  ros::Publisher vrep_sim_step_done_pub_;
+  ros::Publisher vrep_sim_enable_syncmode_pub_;
 
-   sensor_msgs::JointState joint_set_msg_;
+  sensor_msgs::JointState joint_set_msg_;
 
 
-   bool simulation_running_;
-   float simulation_time_; // from v-rep simulation time
+  bool simulation_running_;
+  float simulation_time_; // from v-rep simulation time
 
-   ros::Rate rate_;
+  ros::Rate rate_;
 
-   ros::Subscriber vrep_sim_state_sub_;
+  ros::Subscriber vrep_sim_state_sub_;
 
-   ros::Subscriber imu_sub_;
-   ros::Subscriber joint_sub_;
-   ros::Subscriber left_ft_sub_;
-   ros::Subscriber right_ft_sub_;
+  ros::Subscriber imu_sub_;
+  ros::Subscriber joint_sub_;
+  ros::Subscriber left_ft_sub_;
+  ros::Subscriber right_ft_sub_;
 
 
 };

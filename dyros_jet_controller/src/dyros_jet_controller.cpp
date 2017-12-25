@@ -15,6 +15,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "dyros_jet_controller");
     ros::NodeHandle nh("~");
 
+    ROS_WARN("DEBUG MODE - PRESS ANY KEY (for attach)");
+    char g;
+    std::cin >> g;
+
     std::string mode;
     nh.param<std::string>("run_mode", mode, "simulation");
     ControlBase *ctr_obj;

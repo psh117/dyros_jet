@@ -11,6 +11,23 @@ constexpr const size_t DyrosJetModel::HW_TOTAL_DOF;
 constexpr const size_t DyrosJetModel::MODEL_DOF;
 
 
+// These should be replaced by YAML or URDF or something
+const std::string DyrosJetModel::JOINT_NAME[DyrosJetModel::HW_TOTAL_DOF] = {
+  "L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll",
+  "R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll",
+  "WaistPitch","WaistYaw",
+  "L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw",
+  "R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw",
+  "HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"};
+
+const int DyrosJetModel::JOINT_ID[DyrosJetModel::HW_TOTAL_DOF] = {
+  16,18,20,22,24,26,  // 6
+  15,17,19,21,23,25,  // 6
+  28,27, // waist yaw - roll order  2
+  2,4,6,8,10,12,14,   // 7
+  1,3,5,7,9,11,13,    // 7
+  29,30,31,32};       // 4
+
 DyrosJetModel::DyrosJetModel() :
   joint_start_index_{0, 6, 14, 21}
 {
@@ -48,7 +65,7 @@ DyrosJetModel::DyrosJetModel() :
 
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 {
-  RigidBodyDynamics::UpdateKinematicsCustom(model_,&q,NULL,NULL);
+  RigidBodyDynamics::UpdateKinematicsCustom(model_, &q, NULL, NULL);
   q_ = q;
 
   for(unsigned int i=0; i<4; i++)

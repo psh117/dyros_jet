@@ -13,8 +13,6 @@
 namespace dyros_jet_controller
 {
 
-
-
 class DyrosJetModel
 {
 public:
@@ -27,6 +25,9 @@ public:
   static constexpr size_t HW_TOTAL_DOF = 32;
   static constexpr size_t MODEL_DOF = 28;
 
+  static const std::string JOINT_NAME[HW_TOTAL_DOF];
+  static const int JOINT_ID[HW_TOTAL_DOF];
+
   static constexpr const char* EE_NAME[4] =
       {"L_AnckleRoll_Link", "R_AnckleRoll_Link",
        "L_HandYaw_Link", "R_HandYaw_Link" };
@@ -35,7 +36,7 @@ public:
   const unsigned int joint_start_index_[4];
 
   // Calc Jacobian, Transformation
-  void updateKinematics(const Eigen::VectorXd& q);
+  void updateKinematics(const Eigen::VectorXd &q);
 
   void getTransformEndEffector(EndEffector ee, Eigen::HTransform* transform_matrix);
   void getTransformEndEffector(EndEffector ee, Eigen::Vector3d* position, Eigen::Matrix3d* rotation);
