@@ -12,6 +12,7 @@
 #include <ros/ros.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <tf/transform_datatypes.h>
+#include <eigen_conversions/eigen_msg.h>
 
 // ROS Messages
 #include <std_msgs/Bool.h>
@@ -26,9 +27,9 @@
 
 #include "dyros_jet_msgs/JointSet.h"
 #include "dyros_jet_msgs/JointState.h"
+#include <dyros_jet_msgs/TaskCommand.h>
 #include "dyros_jet_msgs/WalkingCmd.h"
 #include "dyros_jet_msgs/RecogCmd.h"
-#include "dyros_jet_msgs/TaskCmd.h"
 #include "dyros_jet_msgs/TaskCmdboth.h"
 
 // User Library
@@ -108,6 +109,8 @@ private:
   ros::Subscriber walking_cmd_sub_;
   ros::Subscriber task_cmd_sub_;
   ros::Subscriber joint_cmd_sub_;
+  ros::Subscriber task_comamnd_sub_;
+  ros::Subscriber joint_command_sub_;
   //ros::Subscriber recog_point_sub_;
   // ros::Subscriber recog_cmd_sub_;
 
@@ -118,6 +121,7 @@ private:
   // realtime_tools::RealtimePublisher<thormang_ctrl_msgs::JointState> joint_state_pub_-;
 
   void smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg);
+  void taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
 private:
 
   void makeIDInverseList();

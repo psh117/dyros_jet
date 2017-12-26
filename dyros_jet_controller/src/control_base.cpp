@@ -6,12 +6,13 @@ namespace dyros_jet_controller
 
 // Constructor
 ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
-  ui_update_count_(0), is_first_boot_(true), Hz_(Hz), total_dof_(DyrosJetModel::HW_TOTAL_DOF),
+  ui_update_count_(0), is_first_boot_(true), Hz_(Hz), control_mask_{}, total_dof_(DyrosJetModel::HW_TOTAL_DOF),
   task_controller_(model_, q_, Hz, control_time_)
 {
   //walking_cmd_sub_ = nh.subscribe
 
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
+  task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   parameterInitialize();
 }
 
@@ -50,7 +51,7 @@ void ControlBase::stateChangeEvent()
       task_controller_.setEnable(DyrosJetModel::EE_LEFT_FOOT, false);
       task_controller_.setEnable(DyrosJetModel::EE_RIGHT_FOOT, false);
 
-      Eigen::HTransform target;
+      Eigen::Isometry3d target;
       target.linear() = Eigen::Matrix3d::Identity();
       target.translation() << 1.0, 0.0, 1.0;
       task_controller_.setTarget(DyrosJetModel::EE_LEFT_HAND, target, 5.0);
@@ -60,6 +61,7 @@ void ControlBase::stateChangeEvent()
 void ControlBase::compute()
 {
   task_controller_.compute();
+  task_controller_.updateControlMask(control_mask_);
   task_controller_.writeDesired(control_mask_, desired_q_);
   // walking_controller.compute();
   tick_ ++;
@@ -87,6 +89,27 @@ void ControlBase::readDevice()
 void ControlBase::smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg)
 {
   current_state_ = msg->active_states[0];
+}
+
+void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg)
+{
+  for(unsigned int i=0; i<4; i++)
+  {
+    if(msg->end_effector[i])
+    {
+      Eigen::Isometry3d target;
+      tf::poseMsgToEigen(msg->pose[i], target);
+
+      if(msg->mode[i] == dyros_jet_msgs::TaskCommand::RELATIVE)
+      {
+        const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
+        target.translation() = target.translation() + current.translation();
+        target.linear() = current.linear() * target.linear();
+      }
+      task_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
+      task_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
+    }
+  }
 }
 
 }

@@ -13,16 +13,13 @@ add_message_files(
   FILES
   JointSet.msg
   JointState.msg
-  RecogCmd.msg
-  TaskCmd.msg
-  TaskCmdboth.msg
-  WalkingCmd.msg
-  Walking_distance.msg
+  JointCommand.msg
+  TaskCommand.msg
 )
 
 
 generate_messages(
-  DEPENDENCIES std_msgs
+  DEPENDENCIES std_msgs geometry_msgs
 )
 
 catkin_package(

@@ -16,11 +16,10 @@ public:
   static constexpr unsigned int PRIORITY = 16;  ///< Joint priority
 
   TaskController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    model_(model), current_q_(current_q), hz_(hz), control_time_(control_time), start_time_{}, end_time_{} {}
-  void plan();
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), control_time_(control_time), start_time_{}, end_time_{} {}
   void compute();
-  void setTarget(DyrosJetModel::EndEffector ee, Eigen::HTransform target, double start_time, double end_time);
-  void setTarget(DyrosJetModel::EndEffector ee, Eigen::HTransform target, double duration);
+  void setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double start_time, double end_time);
+  void setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double duration);
   void setEnable(DyrosJetModel::EndEffector ee, bool enable);
   void updateControlMask(unsigned int *mask);
   void writeDesired(const unsigned int *mask, VectorQd& desired_q);
@@ -34,7 +33,7 @@ private:
 
   bool ee_enabled_[4];
 
-  // Eigen::HTransform current_transform_[4]; // --> Use model_.getCurrentTransform()
+  // Eigen::Isometry3d current_transform_[4]; // --> Use model_.getCurrentTransform()
 
   // motion time
   const double hz_;
@@ -42,13 +41,13 @@ private:
   double start_time_[4];
   double end_time_[4];
 
-  Eigen::HTransform start_transform_[4];
-  Eigen::HTransform previous_transform_[4];
-  Eigen::HTransform desired_transform_[4];
-  Eigen::HTransform target_transform_[4];
+  Eigen::Isometry3d start_transform_[4];
+  Eigen::Isometry3d previous_transform_[4];
+  Eigen::Isometry3d desired_transform_[4];
+  Eigen::Isometry3d target_transform_[4];
 
-  Eigen::Vector3d start_x_dot_;
-  Eigen::Vector3d x_prev_;  //< Previous x
+  Eigen::Vector3d start_x_dot_[4];
+  Eigen::Vector3d x_prev_[4];  //< Previous x
 
   DyrosJetModel &model_;
 

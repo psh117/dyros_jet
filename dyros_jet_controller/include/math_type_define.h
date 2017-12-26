@@ -27,7 +27,8 @@ EIGEN_MAKE_TYPEDEFS(rScalar, d, 12, 12)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 28, 28)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 30, 30)
 
-typedef Transform<rScalar, 3, Eigen::Isometry> HTransform;
+// typedef Transform<rScalar, 3, Eigen::Isometry> HTransform;  // typedef Transform< double, 3, Isometry > 	Eigen::Isometry3d
+
 typedef Matrix<rScalar, 6, 3>	Matrix6x3d;
 typedef Matrix<rScalar, 6, 7>	Matrix6x7d;
 typedef Matrix<rScalar, -1, 1, 0, MAX_DOF, 1> VectorJXd;

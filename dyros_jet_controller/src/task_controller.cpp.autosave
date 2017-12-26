@@ -63,7 +63,7 @@ void TaskController::updateControlMask(unsigned int *mask)
 
 
 void TaskController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
-{
+{   
   for(unsigned int i=0; i<total_dof_; i++)
   {
     if( mask[i] >= PRIORITY && mask[i] < PRIORITY * 2 )

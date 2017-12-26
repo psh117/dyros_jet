@@ -20,6 +20,19 @@ const std::string DyrosJetModel::JOINT_NAME[DyrosJetModel::HW_TOTAL_DOF] = {
   "R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw",
   "HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"};
 
+// TODO: How to get joint map directly from RBDL?
+/*
+const std::map<string, unsigned int> JOINT_MAP = {
+  {"L_HipYaw", 0},
+  {"L_HipRoll", 1},"L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll",
+  "R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll",
+  "WaistPitch","WaistYaw",
+  "L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw",
+  "R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw",
+  "HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"
+};
+*/
+// Dynamixel Hardware ID
 const int DyrosJetModel::JOINT_ID[DyrosJetModel::HW_TOTAL_DOF] = {
   16,18,20,22,24,26,  // 6
   15,17,19,21,23,25,  // 6
@@ -38,7 +51,7 @@ DyrosJetModel::DyrosJetModel() :
   std::string urdf_path = desc_package_path + "/robots/dyros_jet_robot.urdf";
 
   ROS_INFO("Loading DYROS JET description from = %s",urdf_path.c_str());
-  RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true);
+  RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true,true);
   ROS_INFO("Successfully loaded.");
   ROS_INFO("Total DoF = %d", model_.dof_count);
   ROS_INFO("Total DoF = %d", model_.q_size);
@@ -83,7 +96,7 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 }
 
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
-(EndEffector ee, Eigen::HTransform* transform_matrix)
+(EndEffector ee, Eigen::Isometry3d* transform_matrix)
 {
   transform_matrix->translation() = RigidBodyDynamics::CalcBaseToBodyCoordinates
       (model_, q_,end_effector_id_[ee], base_position_, false);

@@ -2,6 +2,7 @@
 #define DYROS_JET_MODEL_H
 
 #include <string>
+#include <map>
 
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -38,7 +39,7 @@ public:
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
 
-  void getTransformEndEffector(EndEffector ee, Eigen::HTransform* transform_matrix);
+  void getTransformEndEffector(EndEffector ee, Eigen::Isometry3d* transform_matrix);
   void getTransformEndEffector(EndEffector ee, Eigen::Vector3d* position, Eigen::Matrix3d* rotation);
 
   void getTransformEndEffector(EndEffector ee, const Eigen::VectorXd& q, bool update_kinematics,
@@ -48,7 +49,7 @@ public:
   void getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 6, 6> *jacobian);
   void getJacobianMatrix7DoF(EndEffector ee, Eigen::Matrix<double, 6, 7> *jacobian);
 
-  const Eigen::HTransform& getCurrentTrasmfrom(EndEffector ee) { return currnet_transform_[ee]; }
+  const Eigen::Isometry3d& getCurrentTrasmfrom(EndEffector ee) { return currnet_transform_[ee]; }
   const Eigen::Matrix<double, 6, 6>& getLegJacobian(EndEffector ee) { return leg_jacobian_[ee]; }
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
 
@@ -58,7 +59,7 @@ private:
   Eigen::Vector28d q_;
   Eigen::Vector3d base_position_;
 
-  Eigen::HTransform currnet_transform_[4];
+  Eigen::Isometry3d currnet_transform_[4];
 
   Eigen::Matrix<double, 6, 6> leg_jacobian_[2];
   Eigen::Matrix<double, 6, 7> arm_jacobian_[2];
