@@ -7,12 +7,13 @@ namespace dyros_jet_controller
 // Constructor
 ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   ui_update_count_(0), is_first_boot_(true), Hz_(Hz), control_mask_{}, total_dof_(DyrosJetModel::HW_TOTAL_DOF),
-  task_controller_(model_, q_, Hz, control_time_)
+  task_controller_(model_, q_, Hz, control_time_), joint_controller_(q_, control_time_)
 {
   //walking_cmd_sub_ = nh.subscribe
 
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
+  joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
   parameterInitialize();
 }
 
@@ -61,9 +62,15 @@ void ControlBase::stateChangeEvent()
 void ControlBase::compute()
 {
   task_controller_.compute();
-  task_controller_.updateControlMask(control_mask_);
-  task_controller_.writeDesired(control_mask_, desired_q_);
+  joint_controller_.compute();
   // walking_controller.compute();
+
+  task_controller_.updateControlMask(control_mask_);
+  joint_controller_.updateControlMask(control_mask_);
+
+  task_controller_.writeDesired(control_mask_, desired_q_);
+  joint_controller_.writeDesired(control_mask_, desired_q_);
+
   tick_ ++;
   control_time_ = tick_ / Hz_;
 }
@@ -108,6 +115,22 @@ void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr&
       }
       task_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
       task_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
+    }
+  }
+}
+
+void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr &msg)
+{
+  for (unsigned int i=0; i<total_dof_; i++)
+  {
+    if (msg->enable[i])
+    {
+      joint_controller_.setEnable(i, true);
+      joint_controller_.setTarget(i, msg->position[i], msg->duration[i]);
+    }
+    else
+    {
+      joint_controller_.setEnable(i, false);
     }
   }
 }

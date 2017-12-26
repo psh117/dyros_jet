@@ -28,14 +28,16 @@
 #include "dyros_jet_msgs/JointSet.h"
 #include "dyros_jet_msgs/JointState.h"
 #include <dyros_jet_msgs/TaskCommand.h>
-#include "dyros_jet_msgs/WalkingCmd.h"
-#include "dyros_jet_msgs/RecogCmd.h"
-#include "dyros_jet_msgs/TaskCmdboth.h"
+#include <dyros_jet_msgs/JointCommand.h>
+//#include "dyros_jet_msgs/WalkingCmd.h"
+//#include "dyros_jet_msgs/RecogCmd.h"
+//#include "dyros_jet_msgs/TaskCmdboth.h"
 
 // User Library
 #include "math_type_define.h"
 #include "dyros_jet_controller/dyros_jet_model.h"
-#include "task_controller.h"
+#include "dyros_jet_controller/task_controller.h"
+#include "dyros_jet_controller/joint_controller.h"
 // #include "Walking_Controller.h"
 // #include "Upperbody_Controller.h"
 
@@ -95,6 +97,7 @@ protected:
 
   DyrosJetModel model_;
   TaskController task_controller_;
+  JointController joint_controller_;
 
 private:
   double Hz_; ///< control
@@ -122,6 +125,7 @@ private:
 
   void smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg);
   void taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
+  void jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg);
 private:
 
   void makeIDInverseList();

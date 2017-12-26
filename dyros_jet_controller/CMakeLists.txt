@@ -44,6 +44,7 @@ file(GLOB WALKING_SRC
 file(GLOB CONTROLLER_SRC
     "src/dyros_jet_model.cpp"
     "src/task_controller.cpp"
+    "src/joint_controller.cpp"
     )
 
 
