@@ -19,3 +19,8 @@ $ cmake -D RBDL_BUILD_ADDON_URDFREADER=ON ..
 $ make all
 $ sudo make install
 ```
+* If an error occurs, open rbdl-rbdl-[commit]/addons/urdfreader/urdfreader.cc
+* and remove this line
+```cpp
+#include <ros.h>
+```
