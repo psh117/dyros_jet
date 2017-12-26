@@ -127,9 +127,15 @@ void TaskController::computeCLIK()
         const auto &J = model_.getArmJacobian((DyrosJetModel::EndEffector)(i));
         const auto &q = current_q_.segment<7>(model_.joint_start_index_[i]);
 
+        std::cout << "Jacobian : ";
+        std::cout << J << std::endl;
+
         auto J_inverse = J.transpose() *
             (inverse_damping * Eigen::Matrix6d::Identity() +
              J * J.transpose()).inverse();
+
+        std::cout << "Jacobian.inv : ";
+        std::cout << J_inverse << std::endl;
 
         desired_q_.segment<7>(model_.joint_start_index_[i]) =
             (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
