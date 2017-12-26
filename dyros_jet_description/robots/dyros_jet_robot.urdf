@@ -320,7 +320,7 @@
       velocity="1" lower="-3.14" upper="3.14" />
   </joint>
   <link
-    name="L_AnckleRoll_Link">
+    name="L_AnkleRoll_Link">
     <inertial>
       <origin
         xyz="-0.0013994 0 -0.086297"
@@ -341,7 +341,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_AnckleRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/L_AnkleRoll_Link.stl" />
       </geometry>
       <material
         name="">
@@ -355,12 +355,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_AnckleRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/L_AnkleRoll_Link.stl" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="L_AnckleRoll"
+    name="L_AnkleRoll"
     type="revolute">
     <origin
       xyz="0 0 0"
@@ -368,7 +368,7 @@
     <parent
       link="L_AnklePitch_Link" />
     <child
-      link="L_AnckleRoll_Link" />
+      link="L_AnkleRoll_Link" />
     <axis
       xyz="1 0 0" />
     <limit
@@ -600,7 +600,7 @@
       velocity="1" lower="-3.14" upper="3.14" />
   </joint>
   <link
-    name="R_AncklePitch_Link">
+    name="R_AnklePitch_Link">
     <inertial>
       <origin
         xyz="-0.01052 0 0"
@@ -621,7 +621,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_AncklePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/R_AnklePitch_Link.stl" />
       </geometry>
       <material
         name="">
@@ -635,12 +635,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_AncklePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/R_AnklePitch_Link.stl" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="R_AncklePitch"
+    name="R_AnklePitch"
     type="revolute">
     <origin
       xyz="0.06 -0.00485 -0.368"
@@ -648,7 +648,7 @@
     <parent
       link="R_KneePitch_Link" />
     <child
-      link="R_AncklePitch_Link" />
+      link="R_AnklePitch_Link" />
     <axis
       xyz="0 -1 0" />
     <limit
@@ -656,7 +656,7 @@
       velocity="1" lower="-3.14" upper="3.14" />
   </joint>
   <link
-    name="R_AnckleRoll_Link">
+    name="R_AnkleRoll_Link">
     <inertial>
       <origin
         xyz="-0.0013994 0.0016143 -0.086282"
@@ -677,7 +677,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_AnckleRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/R_AnkleRoll_Link.stl" />
       </geometry>
       <material
         name="">
@@ -691,20 +691,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_AnckleRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/R_AnkleRoll_Link.stl" />
       </geometry>
     </collision>
   </link>
   <joint
-    name="R_AnckleRoll"
+    name="R_AnkleRoll"
     type="revolute">
     <origin
       xyz="0 0 0"
       rpy="0 9.8608E-32 1.8489E-32" />
     <parent
-      link="R_AncklePitch_Link" />
+      link="R_AnklePitch_Link" />
     <child
-      link="R_AnckleRoll_Link" />
+      link="R_AnkleRoll_Link" />
     <axis
       xyz="1 0 0" />
     <limit

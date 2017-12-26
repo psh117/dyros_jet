@@ -72,12 +72,14 @@ void TaskController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
     }
   }
 }
+
+// Jacobian OK. Translation OK.
 void TaskController::computeCLIK()
 {
 
   const double inverse_damping = 0.03;
   const double phi_gain = 1.0;
-  const double kp = 1000.0;
+  const double kp = 0.01;
 
   // Arm
   for(unsigned int i=0; i<4; i++)
@@ -105,9 +107,12 @@ void TaskController::computeCLIK()
                                           Eigen::Vector3d::Zero());
       Eigen::Vector6d x_error;
       x_error.tail<3>().setZero();
-      x_error.head<3>() = x_cubic - x;
+      x_error.head<3>() = (x_cubic - x) * hz_;
       x_dot_desired.head<3>() = x_cubic - x_prev_[i];
-      x_dot_desired.tail<3>() = - phi_gain * DyrosMath::getPhi(rot, rot_target);
+      x_dot_desired.tail<3>() = + phi_gain * DyrosMath::getPhi(rot, rot_target);
+
+      x_error = x_error * hz_;
+      x_dot_desired = x_dot_desired * hz_;
       x_prev_[i] = x_cubic;
 
       if (i < 2)  // Legs
@@ -127,18 +132,26 @@ void TaskController::computeCLIK()
         const auto &J = model_.getArmJacobian((DyrosJetModel::EndEffector)(i));
         const auto &q = current_q_.segment<7>(model_.joint_start_index_[i]);
 
-        std::cout << "Jacobian : ";
+        std::cout << "Jacobian : " << std::endl;
         std::cout << J << std::endl;
 
         auto J_inverse = J.transpose() *
             (inverse_damping * Eigen::Matrix6d::Identity() +
              J * J.transpose()).inverse();
 
-        std::cout << "Jacobian.inv : ";
+        std::cout << "Jacobian.inv : "<< std::endl;
         std::cout << J_inverse << std::endl;
 
         desired_q_.segment<7>(model_.joint_start_index_[i]) =
             (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
+
+        std::cout << "desired_q_ : " << std::endl << desired_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
+        std::cout << "x : " << std::endl << x << std::endl;
+        std::cout << "q : " << std::endl << current_q_ << std::endl;
+        std::cout << "rot : " << std::endl << rot << std::endl;
+        std::cout << "x_cubic : " << std::endl << x_cubic << std::endl;
+        std::cout << "x_error : " << std::endl << x_error << std::endl;
+        std::cout << "x_dot_desired : " << std::endl << x_dot_desired << std::endl;
       }
     }
   }

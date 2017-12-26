@@ -15,6 +15,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
   parameterInitialize();
+  model_.test();
 }
 
 bool ControlBase::checkStateChanged()

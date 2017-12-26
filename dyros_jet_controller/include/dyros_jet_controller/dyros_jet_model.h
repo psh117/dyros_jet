@@ -30,12 +30,13 @@ public:
   static const int JOINT_ID[HW_TOTAL_DOF];
 
   static constexpr const char* EE_NAME[4] =
-      {"L_AnckleRoll_Link", "R_AnckleRoll_Link",
+      {"L_AnkleRoll_Link", "R_AnkleRoll_Link",
        "L_HandYaw_Link", "R_HandYaw_Link" };
 
   unsigned int end_effector_id_[4];
   const unsigned int joint_start_index_[4];
 
+  void test();
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
 

@@ -75,6 +75,21 @@ DyrosJetModel::DyrosJetModel() :
 }
 
 
+void DyrosJetModel::test()
+{
+  updateKinematics(Eigen::Vector28d::Zero());
+  std::cout << "leg_jacobian_" << std::endl;
+  std::cout << leg_jacobian_[0] << std::endl << std::endl;
+  std::cout << leg_jacobian_[1] << std::endl;
+  std::cout << "arm_jacobian_" << std::endl;
+  std::cout << arm_jacobian_[0] << std::endl << std::endl;
+  std::cout << arm_jacobian_[1] << std::endl;
+  std::cout << "currnet_transform_" << std::endl;
+  std::cout << currnet_transform_[0].translation() << std::endl << std::endl;
+  std::cout << currnet_transform_[1].translation() << std::endl << std::endl;
+  std::cout << currnet_transform_[2].translation() << std::endl << std::endl;
+  std::cout << currnet_transform_[3].translation() << std::endl << std::endl;
+}
 
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 {
@@ -86,6 +101,7 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
     getTransformEndEffector((EndEffector)i, &currnet_transform_[i]);
     if (i < 2)
     {
+
       getJacobianMatrix6DoF((EndEffector)i, &leg_jacobian_[i]);
     }
     else
@@ -98,7 +114,8 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
 (EndEffector ee, Eigen::Isometry3d* transform_matrix)
 {
-  transform_matrix->translation() = RigidBodyDynamics::CalcBaseToBodyCoordinates
+  Eigen::Vector3d gghg = RigidBodyDynamics::CalcBodyToBaseCoordinates(model_, q_,end_effector_id_[ee], base_position_, false);
+  transform_matrix->translation() = RigidBodyDynamics::CalcBodyToBaseCoordinates
       (model_, q_,end_effector_id_[ee], base_position_, false);
   transform_matrix->linear() = RigidBodyDynamics::CalcBodyWorldOrientation(
         model_, q_, end_effector_id_[ee], false);
