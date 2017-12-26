@@ -17,7 +17,7 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
     DEPENDS   dyros_jet_msgs geometry_msgs roscpp sensor_msgs std_msgs realtime_tools
     CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS include
+    INCLUDE_DIRS
     LIBRARIES # TODO
 )
 
