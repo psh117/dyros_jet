@@ -54,8 +54,7 @@
         iyy="0.013976"
         iyz="2.6E-05"
         izz="0.00478" />
-    </inertial>name (required)
-    Specifies a unique name of the joint
+    </inertial>
     <visual>
       <origin
         xyz="0 0 0"

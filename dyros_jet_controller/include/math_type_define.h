@@ -26,6 +26,7 @@ EIGEN_MAKE_TYPEDEFS(rScalar, d, 7, 7)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 12, 12)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 28, 28)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 30, 30)
+EIGEN_MAKE_TYPEDEFS(rScalar, d, 32, 32)
 
 // typedef Transform<rScalar, 3, Eigen::Isometry> HTransform;  // typedef Transform< double, 3, Isometry > 	Eigen::Isometry3d
 
