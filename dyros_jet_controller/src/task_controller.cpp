@@ -41,22 +41,32 @@ void TaskController::updateControlMask(unsigned int *mask)
     {
       index = 1;
     }
-    else if (i < 6 + 6 + 7)
+    else if (i < 6 + 6 + 2)
+    {
+      continue; // waist
+    }
+    else if (i < 6 + 6 + 2 + 7)
     {
       index = 2;
     }
-    else if (i < 6 + 6 + 7 + 7)
+    else if (i < 6 + 6 + 2 + 7 + 7)
     {
       index = 3;
     }
 
     if(ee_enabled_[index])
     {
+      if (mask[i] >= PRIORITY * 2)
+      {
+        // Higher priority task detected
+        setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
+      }
       mask[i] = (mask[i] | PRIORITY);
     }
     else
     {
       mask[i] = (mask[i] & ~PRIORITY);
+      setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
     }
   }
 }
@@ -79,7 +89,7 @@ void TaskController::computeCLIK()
 
   const double inverse_damping = 0.03;
   const double phi_gain = 1.0;
-  const double kp = 0.01;
+  const double kp = 200;
 
   // Arm
   for(unsigned int i=0; i<4; i++)
@@ -96,6 +106,11 @@ void TaskController::computeCLIK()
       const auto &x_target = target_transform_[i].translation();
       const auto &rot_target = target_transform_[i].linear();
 
+      double h_cubic = DyrosMath::cubic(control_time_,
+                                        start_time_[i],
+                                        end_time_[i],
+                                        0, 1, 0, 0);
+
       Eigen::Vector3d x_cubic;
       Eigen::Vector6d x_dot_desired;
       x_cubic = DyrosMath::cubicVector<3>(control_time_,
@@ -106,12 +121,14 @@ void TaskController::computeCLIK()
                                           Eigen::Vector3d::Zero(),//start_x_dot_[i],
                                           Eigen::Vector3d::Zero());
       Eigen::Vector6d x_error;
-      x_error.tail<3>().setZero();
-      x_error.head<3>() = (x_cubic - x) * hz_;
+      x_error.head<3>() = (x_cubic - x);
+      //x_error.tail<3>().setZero();
+      h_cubic = 1.0;
+      x_error.tail<3>() =  - h_cubic * phi_gain * DyrosMath::getPhi(rot, rot_target);
       x_dot_desired.head<3>() = x_cubic - x_prev_[i];
-      x_dot_desired.tail<3>() = + phi_gain * DyrosMath::getPhi(rot, rot_target);
+      x_dot_desired.tail<3>().setZero();
 
-      x_error = x_error * hz_;
+      x_error = x_error; //* hz_;
       x_dot_desired = x_dot_desired * hz_;
       x_prev_[i] = x_cubic;
 
@@ -132,19 +149,20 @@ void TaskController::computeCLIK()
         const auto &J = model_.getArmJacobian((DyrosJetModel::EndEffector)(i));
         const auto &q = current_q_.segment<7>(model_.joint_start_index_[i]);
 
-        std::cout << "Jacobian : " << std::endl;
-        std::cout << J << std::endl;
 
         auto J_inverse = J.transpose() *
             (inverse_damping * Eigen::Matrix6d::Identity() +
              J * J.transpose()).inverse();
 
-        std::cout << "Jacobian.inv : "<< std::endl;
-        std::cout << J_inverse << std::endl;
 
         desired_q_.segment<7>(model_.joint_start_index_[i]) =
             (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
 
+
+        std::cout << "Jacobian : " << std::endl;
+        std::cout << J << std::endl;
+        std::cout << "Jacobian.inv : "<< std::endl;
+        std::cout << J_inverse << std::endl;
         std::cout << "desired_q_ : " << std::endl << desired_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
         std::cout << "x : " << std::endl << x << std::endl;
         std::cout << "q : " << std::endl << current_q_ << std::endl;
@@ -152,6 +170,7 @@ void TaskController::computeCLIK()
         std::cout << "x_cubic : " << std::endl << x_cubic << std::endl;
         std::cout << "x_error : " << std::endl << x_error << std::endl;
         std::cout << "x_dot_desired : " << std::endl << x_dot_desired << std::endl;
+
       }
     }
   }

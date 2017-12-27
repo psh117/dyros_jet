@@ -64,6 +64,8 @@ private:
 
   Eigen::Matrix<double, 6, 6> leg_jacobian_[2];
   Eigen::Matrix<double, 6, 7> arm_jacobian_[2];
+  Eigen::Matrix28d A_;
+  Eigen::MatrixXd A_temp_;
 
 
 };

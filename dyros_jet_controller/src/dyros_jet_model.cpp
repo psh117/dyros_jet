@@ -44,6 +44,7 @@ const int DyrosJetModel::JOINT_ID[DyrosJetModel::HW_TOTAL_DOF] = {
 DyrosJetModel::DyrosJetModel() :
   joint_start_index_{0, 6, 14, 21}
 {
+  A_temp_.resize(MODEL_DOF, MODEL_DOF);
   base_position_.setZero();
   q_.setZero();
 
@@ -94,7 +95,10 @@ void DyrosJetModel::test()
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 {
   RigidBodyDynamics::UpdateKinematicsCustom(model_, &q, NULL, NULL);
+  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, A_temp_, true);
+  A_ = A_temp_;
   q_ = q;
+  // std::cout << A_ << std::endl<< std::endl<< std::endl<< std::endl;
 
   for(unsigned int i=0; i<4; i++)
   {
