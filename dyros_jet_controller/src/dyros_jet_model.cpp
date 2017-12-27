@@ -8,6 +8,7 @@ namespace dyros_jet_controller
 // https://stackoverflow.com/questions/8016780/undefined-reference-to-static-constexpr-char
 constexpr const char* DyrosJetModel::EE_NAME[4];
 constexpr const size_t DyrosJetModel::HW_TOTAL_DOF;
+constexpr size_t DyrosJetModel::MODEL_WITH_VJOINT_DOF;
 constexpr const size_t DyrosJetModel::MODEL_DOF;
 
 
@@ -42,9 +43,9 @@ const int DyrosJetModel::JOINT_ID[DyrosJetModel::HW_TOTAL_DOF] = {
   29,30,31,32};       // 4
 
 DyrosJetModel::DyrosJetModel() :
-  joint_start_index_{0, 6, 14, 21}
+  joint_start_index_{6, 12, 20, 27} // Virtual Joint + 6
 {
-  A_temp_.resize(MODEL_DOF, MODEL_DOF);
+  A_temp_.resize(MODEL_WITH_VJOINT_DOF, MODEL_WITH_VJOINT_DOF);
   base_position_.setZero();
   q_.setZero();
 
@@ -57,10 +58,10 @@ DyrosJetModel::DyrosJetModel() :
   ROS_INFO("Total DoF = %d", model_.dof_count);
   ROS_INFO("Total DoF = %d", model_.q_size);
   //model_.mJoints[0].)
-  if(model_.dof_count != MODEL_DOF)
+  if(model_.dof_count != MODEL_WITH_VJOINT_DOF)
   {
     ROS_WARN("The DoF in the model file and the code do not match.");
-    ROS_WARN("Model file = %d, Code = %d", model_.dof_count, (int)MODEL_DOF);
+    ROS_WARN("Model file = %d, Code = %d", model_.dof_count, (int)MODEL_WITH_VJOINT_DOF);
   }
 
   // waist = 12
@@ -97,7 +98,7 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
   RigidBodyDynamics::UpdateKinematicsCustom(model_, &q, NULL, NULL);
   RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, A_temp_, true);
   A_ = A_temp_;
-  q_ = q;
+  q_.segment<28>(6) = q;
   // std::cout << A_ << std::endl<< std::endl<< std::endl<< std::endl;
 
   for(unsigned int i=0; i<4; i++)
@@ -138,7 +139,7 @@ void DyrosJetModel::getTransformEndEffector
 (EndEffector ee, const Eigen::VectorXd& q, bool update_kinematics,
  Eigen::Vector3d* position, Eigen::Matrix3d* rotation)
 {
-  Eigen::Vector28d q_new;
+  Eigen::Matrix<double, MODEL_WITH_VJOINT_DOF, 1> q_new;
   q_new = q_;
   switch (ee)
   {
@@ -166,7 +167,8 @@ void DyrosJetModel::getTransformEndEffector
 
 void DyrosJetModel::getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 6, 6> *jacobian)
 {
-  Eigen::MatrixXd full_jacobian(6,MODEL_DOF);
+  // Non-realtime
+  Eigen::MatrixXd full_jacobian(6,MODEL_WITH_VJOINT_DOF);
   full_jacobian.setZero();
   RigidBodyDynamics::CalcPointJacobian6D(model_, q_, end_effector_id_[ee],
                                          Eigen::Vector3d::Zero(), full_jacobian, false);
@@ -188,7 +190,8 @@ void DyrosJetModel::getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 
 }
 void DyrosJetModel::getJacobianMatrix7DoF(EndEffector ee, Eigen::Matrix<double, 6, 7> *jacobian)
 {
-  Eigen::MatrixXd full_jacobian(6,MODEL_DOF);
+  // Non-realtime
+  Eigen::MatrixXd full_jacobian(6,MODEL_WITH_VJOINT_DOF);
   full_jacobian.setZero();
   RigidBodyDynamics::CalcPointJacobian6D(model_, q_, end_effector_id_[ee],
                                          Eigen::Vector3d::Zero(), full_jacobian, false);
