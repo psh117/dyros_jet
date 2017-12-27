@@ -106,8 +106,8 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
     getTransformEndEffector((EndEffector)i, &currnet_transform_[i]);
     if (i < 2)
     {
-
       getJacobianMatrix6DoF((EndEffector)i, &leg_jacobian_[i]);
+      getJacobianMatrix12DoF((EndEffector)i, &leg_with_vlink_jacobian_[i]);
     }
     else
     {
@@ -164,6 +164,35 @@ void DyrosJetModel::getTransformEndEffector
   // model_.mBodies[0].mCenterOfMass
 }
 
+
+void DyrosJetModel::getJacobianMatrix12DoF(EndEffector ee, Eigen::Matrix<double, 6, 12> *jacobian)
+{
+  // Non-realtime
+  Eigen::MatrixXd full_jacobian(6,MODEL_WITH_VJOINT_DOF);
+  full_jacobian.setZero();
+  RigidBodyDynamics::CalcPointJacobian6D(model_, q_, end_effector_id_[ee],
+                                         Eigen::Vector3d::Zero(), full_jacobian, false);
+
+  switch (ee)
+  {
+  case EE_LEFT_FOOT:
+  case EE_RIGHT_FOOT:
+    // swap
+    // Virtual Link
+    jacobian->block<3, 6>(0, 0) = full_jacobian.block<3, 6>(3, 0);
+    jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
+
+    // Leg Link
+    jacobian->block<3, 6>(0, 6) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
+    jacobian->block<3, 6>(3, 6) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
+    break;
+  case EE_LEFT_HAND:
+  case EE_RIGHT_HAND:
+    //*jacobian = full_jacobian.block<6, 7>(0, joint_start_index_[ee]);
+    ROS_ERROR("Arm is 7 DoF. Please call getJacobianMatrix7DoF");
+    break;
+  }
+}
 
 void DyrosJetModel::getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 6, 6> *jacobian)
 {

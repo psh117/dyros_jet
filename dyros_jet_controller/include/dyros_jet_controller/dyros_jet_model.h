@@ -39,7 +39,8 @@ public:
 
   void test();
   // Calc Jacobian, Transformation
-  void updateKinematics(const Eigen::VectorXd &q);
+  void updateKinematics(const Eigen::VectorXd &q ///< input q (size must be DyrosJetModel::MODEL_DOF)
+                        );
 
   void getTransformEndEffector(EndEffector ee, Eigen::Isometry3d* transform_matrix);
   void getTransformEndEffector(EndEffector ee, Eigen::Vector3d* position, Eigen::Matrix3d* rotation);
@@ -47,12 +48,13 @@ public:
   void getTransformEndEffector(EndEffector ee, const Eigen::VectorXd& q, bool update_kinematics,
                                   Eigen::Vector3d* position, Eigen::Matrix3d* rotation);
 
-
   void getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 6, 6> *jacobian);
   void getJacobianMatrix7DoF(EndEffector ee, Eigen::Matrix<double, 6, 7> *jacobian);
+  void getJacobianMatrix12DoF(EndEffector ee, Eigen::Matrix<double, 6, 12> *jacobian);  ///< @brief get jacobian matrix with virtual link (6 DOF)
 
   const Eigen::Isometry3d& getCurrentTrasmfrom(EndEffector ee) { return currnet_transform_[ee]; }
   const Eigen::Matrix<double, 6, 6>& getLegJacobian(EndEffector ee) { return leg_jacobian_[ee]; }
+  const Eigen::Matrix<double, 6, 12>& getLegWithVLinkJacobian(EndEffector ee) { return leg_with_vlink_jacobian_[ee]; }
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
 
 private:
@@ -64,6 +66,7 @@ private:
   Eigen::Isometry3d currnet_transform_[4];
 
   Eigen::Matrix<double, 6, 6> leg_jacobian_[2];
+  Eigen::Matrix<double, 6, 12> leg_with_vlink_jacobian_[2];
   Eigen::Matrix<double, 6, 7> arm_jacobian_[2];
   Eigen::Matrix<double, MODEL_WITH_VJOINT_DOF, MODEL_WITH_VJOINT_DOF> A_;
   Eigen::MatrixXd A_temp_;
