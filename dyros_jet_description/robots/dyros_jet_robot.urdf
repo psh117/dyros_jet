@@ -1,10 +1,10 @@
 <robot name="dyros_jet_robot">
   <link name="world"/>
-  <joint name="virtual" type="fixed">
+  <joint name="virtual" type="floating">
     <origin xyz="0 0 0" rpy="0 0 0" />
     <parent link="world"/>
     <child link="base_link"/>
-    <limit effort="30" velocity="1.0" lower="-2.2" upper="0.7" />
+    <limit effort="30" velocity="1.0" />
   </joint>
 
   <link name="base_link">
@@ -54,7 +54,8 @@
         iyy="0.013976"
         iyz="2.6E-05"
         izz="0.00478" />
-    </inertial>
+    </inertial>name (required)
+    Specifies a unique name of the joint
     <visual>
       <origin
         xyz="0 0 0"
