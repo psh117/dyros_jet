@@ -140,18 +140,17 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
 {
   if(msg->walk_mode)
   {
-    for (unsigned int i=0; i<total_dof_ - 2; i++)
-    {
-      walking_controller_.setEnable(i, true);
-    }
-  }
-  else
-  {
     for (unsigned int i=0; i<total_dof_; i++)
     {
-      walking_controller_.setEnable(i, false);
+      if (msg->walk_enable[i])
+      {
+        walking_controller_.setEnable(i, true);
+      }
+      else
+      {
+        walking_controller_.setEnable(i, false);
+      }
     }
   }
-
-}
+  }
 }

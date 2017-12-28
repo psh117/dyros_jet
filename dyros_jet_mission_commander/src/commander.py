@@ -54,6 +54,7 @@ def commander():
 
     walk_msg= WalkingCommand()
     walk_msg.walk_mode = true
+    walk_msg.walk_enable = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, False, False]
 
     walk_pub.publish(walk.msg);
 
