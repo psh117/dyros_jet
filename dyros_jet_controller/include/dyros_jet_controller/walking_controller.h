@@ -14,13 +14,13 @@ public:
 
   static constexpr unsigned int PRIORITY = 2;
 
-  void WalkingController::initWalkingPose(VectorQd& desired_q);
-  void WalkingController::compute(VectorQd& desired_q);
-  void WalkingController::setTarget(unsigned int joint_number, double target, double start_time, double end_time);
-  void WalkingController::setTarget(unsigned int joint_number, double target, double duration);
-  void WalkingController::setEnable(unsigned int joint_number, bool enable);
-  void WalkingController::updateControlMask(unsigned int *mask);
-  void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired_q);
+  void initWalkingPose(VectorQd& desired_q);
+  void compute(VectorQd& desired_q);
+  void setTarget(unsigned int joint_number, double target, double start_time, double end_time);
+  void setTarget(unsigned int joint_number, double target, double duration);
+  void setEnable(unsigned int joint_number, bool enable);
+  void updateControlMask(unsigned int *mask);
+  void writeDesired(const unsigned int *mask, VectorQd& desired_q);
 
 private:
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
