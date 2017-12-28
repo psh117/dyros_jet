@@ -12,10 +12,10 @@ class WalkingController
 public:
 
 
-  static constexpr unsigned int PRIORITY = 2;
+  static constexpr unsigned int PRIORITY = 8;
 
-  WalkingController(const VectorQd& current_q, const double& control_time) :
-    current_q_(current_q), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF), start_time_{}, end_time_{}{}
+  WalkingController(const VectorQd& current_q, const double hz, const double& control_time) :
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), current_q_(current_q), hz_(hz), control_time_(control_time), start_time_{}, end_time_{} {}
 
   void initWalkingPose(VectorQd& desired_q);
   void compute(VectorQd& desired_q);
@@ -25,16 +25,28 @@ public:
   void updateControlMask(unsigned int *mask);
   void writeDesired(const unsigned int *mask, VectorQd& desired_q);
 
+  //functions in compute
+  void getFootStep();
+  void getCOMTrajectory();
+  void getZMPTrajectory();
+  void computeIKControl();
+  void computeJacobianControl();
+  void compensator();
+
 private:
+
+  const double hz_;
+  const double &control_time_; // updated by control_base
+
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
 
   VectorQd start_q_;
   VectorQd desired_q_;
   VectorQd target_q_;
   const VectorQd& current_q_;
-  const double &current_time_;
+  //const double &current_time_;
   const unsigned int total_dof_;
-  const unsigned int ra_hand = 30;
+  const unsigned int ra_hand_ = 30;
 
   double start_time_[DyrosJetModel::HW_TOTAL_DOF];
   double end_time_[DyrosJetModel::HW_TOTAL_DOF];
