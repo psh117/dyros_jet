@@ -74,6 +74,10 @@ void ControlBase::compute()
 
   tick_ ++;
   control_time_ = tick_ / Hz_;
+  if ((tick_ % 200) == 0 )
+  {
+    ROS_INFO ("1 sec, %lf sec", control_time_);
+  }
 }
 
 void ControlBase::reflect()
