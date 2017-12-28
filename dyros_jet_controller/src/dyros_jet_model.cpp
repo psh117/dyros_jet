@@ -91,16 +91,16 @@ void DyrosJetModel::test()
   std::cout << currnet_transform_[1].translation() << std::endl << std::endl;
   std::cout << currnet_transform_[2].translation() << std::endl << std::endl;
   std::cout << currnet_transform_[3].translation() << std::endl << std::endl;
+  std::cout << "full_inertia_" << std::endl;
+  std::cout << A_<< std::endl << std::endl << std::endl;
+  std::cout << "leg_inertia_" << std::endl;
+  std::cout << leg_A_<< std::endl << std::endl << std::endl;
 }
 
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 {
   RigidBodyDynamics::UpdateKinematicsCustom(model_, &q, NULL, NULL);
-  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, A_temp_, true);
-  A_ = A_temp_;
   q_.segment<28>(6) = q;
-  // std::cout << A_ << std::endl<< std::endl<< std::endl<< std::endl;
-
   for(unsigned int i=0; i<4; i++)
   {
     getTransformEndEffector((EndEffector)i, &currnet_transform_[i]);
@@ -114,6 +114,10 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
       getJacobianMatrix7DoF((EndEffector)i, &arm_jacobian_[i-2]);
     }
   }
+  getInertiaMatrix34DoF(&A_);
+  getInertiaMatrix18DoF(&leg_A_);
+
+
 }
 
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
@@ -164,6 +168,25 @@ void DyrosJetModel::getTransformEndEffector
   // model_.mBodies[0].mCenterOfMass
 }
 
+void DyrosJetModel::getInertiaMatrix34DoF(Eigen::Matrix<double, 34, 34> *inertia)
+{
+  // Non-realtime
+  Eigen::MatrixXd full_inertia(MODEL_WITH_VJOINT_DOF, MODEL_WITH_VJOINT_DOF);
+  full_inertia.setZero();
+  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, full_inertia, false);
+
+  inertia->block<34, 34>(0, 0) = full_inertia.block<34, 34>(0, 0);
+}
+
+void DyrosJetModel::getInertiaMatrix18DoF(Eigen::Matrix<double, 18, 18> *leg_inertia)
+{
+  // Non-realtime
+  Eigen::MatrixXd full_inertia(MODEL_WITH_VJOINT_DOF, MODEL_WITH_VJOINT_DOF);
+  full_inertia.setZero();
+  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, full_inertia, false);
+
+  leg_inertia->block<18, 18>(0, 0) = full_inertia.block<18, 18>(0, 0);
+}
 
 void DyrosJetModel::getJacobianMatrix12DoF(EndEffector ee, Eigen::Matrix<double, 6, 12> *jacobian)
 {
