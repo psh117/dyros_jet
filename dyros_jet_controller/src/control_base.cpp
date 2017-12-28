@@ -138,7 +138,7 @@ void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPt
 
 void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg)
 {
-  if(msg->walk_mode[0] == dyros_jet_msgs::WalkingCommand::WALK)
+  if(msg->walk_mode)
   {
     for (unsigned int i=0; i<total_dof_ - 2; i++)
     {
