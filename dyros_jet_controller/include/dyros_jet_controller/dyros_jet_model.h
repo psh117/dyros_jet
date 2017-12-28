@@ -50,7 +50,7 @@ public:
 
   void getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 6, 6> *jacobian);
   void getJacobianMatrix7DoF(EndEffector ee, Eigen::Matrix<double, 6, 7> *jacobian);
-  void getJacobianMatrix12DoF(EndEffector ee, Eigen::Matrix<double, 6, 12> *jacobian);  ///< @brief get jacobian matrix with virtual link (6 DOF)
+  void getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double, 6, 18> *jacobian);  ///< @brief get jacobian matrix with virtual link (6 DOF)
   void getInertiaMatrix34DoF(Eigen::Matrix<double, 34, 34> *inertia); ///< @brief get whole body inertia matrix with virtual link (34 DOF)
   void getInertiaMatrix18DoF(Eigen::Matrix<double, 18, 18> *leg_inertia); ///< @brief get leg inertia matrix with virtual link (18 DOF)
 
@@ -58,7 +58,7 @@ public:
 
   const Eigen::Isometry3d& getCurrentTrasmfrom(EndEffector ee) { return currnet_transform_[ee]; }
   const Eigen::Matrix<double, 6, 6>& getLegJacobian(EndEffector ee) { return leg_jacobian_[ee]; }
-  const Eigen::Matrix<double, 6, 12>& getLegWithVLinkJacobian(EndEffector ee) { return leg_with_vlink_jacobian_[ee]; }
+  const Eigen::Matrix<double, 6, 18>& getLegWithVLinkJacobian(EndEffector ee) { return leg_with_vlink_jacobian_[ee]; }
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
 
 private:
@@ -70,11 +70,17 @@ private:
   Eigen::Isometry3d currnet_transform_[4];
 
   Eigen::Matrix<double, 6, 6> leg_jacobian_[2];
-  Eigen::Matrix<double, 6, 12> leg_with_vlink_jacobian_[2];
+  Eigen::Matrix<double, 6, 18> leg_with_vlink_jacobian_[2];
   Eigen::Matrix<double, 6, 7> arm_jacobian_[2];
   Eigen::Matrix<double, MODEL_WITH_VJOINT_DOF, MODEL_WITH_VJOINT_DOF> A_;
   Eigen::Matrix<double, 18, 18> leg_A_;
   Eigen::MatrixXd A_temp_;
+
+  //test
+  Eigen::Matrix<double, 6, 6> lambda_c_;
+  Eigen::Matrix<double, 6, 18> j_c_;
+  Eigen::Matrix<double, 18, 18> p_c_;
+  Eigen::Matrix<double, 18, 18> I_;
 
 
 };

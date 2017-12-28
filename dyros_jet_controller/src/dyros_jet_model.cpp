@@ -79,8 +79,17 @@ DyrosJetModel::DyrosJetModel() :
 
 void DyrosJetModel::test()
 {
+
+
+
   updateKinematics(Eigen::Vector28d::Zero());
+
+  I_.setIdentity();
+  j_c_ = leg_with_vlink_jacobian_[0];
+  lambda_c_ = (j_c_*leg_A_.inverse()*j_c_.transpose()).inverse();
+  p_c_ = j_c_.transpose()*lambda_c_*j_c_*leg_A_.inverse();
   std::cout << "leg_jacobian_" << std::endl;
+  /*
   std::cout << leg_jacobian_[0] << std::endl << std::endl;
   std::cout << leg_jacobian_[1] << std::endl;
   std::cout << "arm_jacobian_" << std::endl;
@@ -93,8 +102,15 @@ void DyrosJetModel::test()
   std::cout << currnet_transform_[3].translation() << std::endl << std::endl;
   std::cout << "full_inertia_" << std::endl;
   std::cout << A_<< std::endl << std::endl << std::endl;
-  std::cout << "leg_inertia_" << std::endl;
-  std::cout << leg_A_<< std::endl << std::endl << std::endl;
+  */
+  std::cout << "p_c_" << std::endl;
+
+  std::cout << p_c_ << std::endl << std::endl << std::endl;
+
+  std::cout << "lambda_c_" << std::endl;
+  std::cout << lambda_c_<< std::endl << std::endl << std::endl;
+
+  //std::cout << leg_A_.inverse()-leg_A_.inverse()*(I_ - p_c_)<< std::endl << std::endl << std::endl;
 }
 
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
@@ -107,7 +123,7 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
     if (i < 2)
     {
       getJacobianMatrix6DoF((EndEffector)i, &leg_jacobian_[i]);
-      getJacobianMatrix12DoF((EndEffector)i, &leg_with_vlink_jacobian_[i]);
+      getJacobianMatrix18DoF((EndEffector)i, &leg_with_vlink_jacobian_[i]);
     }
     else
     {
@@ -116,6 +132,7 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
   }
   getInertiaMatrix34DoF(&A_);
   getInertiaMatrix18DoF(&leg_A_);
+
 
 
 }
@@ -188,26 +205,36 @@ void DyrosJetModel::getInertiaMatrix18DoF(Eigen::Matrix<double, 18, 18> *leg_ine
   leg_inertia->block<18, 18>(0, 0) = full_inertia.block<18, 18>(0, 0);
 }
 
-void DyrosJetModel::getJacobianMatrix12DoF(EndEffector ee, Eigen::Matrix<double, 6, 12> *jacobian)
+void DyrosJetModel::getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double, 6, 18> *jacobian)
 {
   // Non-realtime
   Eigen::MatrixXd full_jacobian(6,MODEL_WITH_VJOINT_DOF);
   full_jacobian.setZero();
   RigidBodyDynamics::CalcPointJacobian6D(model_, q_, end_effector_id_[ee],
                                          Eigen::Vector3d::Zero(), full_jacobian, false);
+  jacobian->setZero();
 
   switch (ee)
   {
   case EE_LEFT_FOOT:
+    // swap
+    // Virtual Link
+    jacobian->block<3, 6>(0, 0) = full_jacobian.block<3, 6>(3, 0);
+    jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
+
+    // left Leg Link
+    jacobian->block<3, 6>(0, 6) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
+    jacobian->block<3, 6>(3, 6) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
+    break;
   case EE_RIGHT_FOOT:
     // swap
     // Virtual Link
     jacobian->block<3, 6>(0, 0) = full_jacobian.block<3, 6>(3, 0);
     jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
 
-    // Leg Link
-    jacobian->block<3, 6>(0, 6) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
-    jacobian->block<3, 6>(3, 6) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
+    // right Leg Link
+    jacobian->block<3, 6>(0, 12) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
+    jacobian->block<3, 6>(3, 12) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
     break;
   case EE_LEFT_HAND:
   case EE_RIGHT_HAND:
