@@ -18,7 +18,7 @@ public:
   virtual ~SimulationInterface() { vrepStop(); }
   void vrepStart();
   void vrepStop();
-  void vrepStepDone();
+  void vrepStepTrigger();
   void vrepEnableSyncMode();
 
   virtual void update() override; // update controller based on readdevice
@@ -28,6 +28,7 @@ public:
 
 private:  // CALLBACK
   void simulationTimeCallback(const std_msgs::Float32ConstPtr& msg);
+  void simulationStepDoneCallback(const std_msgs::BoolConstPtr& msg);
   void jointCallback(const sensor_msgs::JointStateConstPtr& msg);
   void leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
   void rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
@@ -38,13 +39,16 @@ private:
   ros::Publisher vrep_joint_set_pub_;
   ros::Publisher vrep_sim_start_pub_;
   ros::Publisher vrep_sim_stop_pub_;
-  ros::Publisher vrep_sim_step_done_pub_;
+  ros::Publisher vrep_sim_step_trigger_pub_;
   ros::Publisher vrep_sim_enable_syncmode_pub_;
+
+  ros::Subscriber vrep_sim_step_done_sub_;
 
   sensor_msgs::JointState joint_set_msg_;
 
 
   bool simulation_running_;
+  bool simulation_step_done_;
   float simulation_time_; // from v-rep simulation time
 
   ros::Rate rate_;
