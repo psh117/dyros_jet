@@ -71,7 +71,6 @@ void TaskController::updateControlMask(unsigned int *mask)
   }
 }
 
-
 void TaskController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
 {
   for(unsigned int i=0; i<total_dof_; i++)
@@ -86,9 +85,8 @@ void TaskController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
 // Jacobian OK. Translation OK.
 void TaskController::computeCLIK()
 {
-
   const double inverse_damping = 0.03;
-  const double phi_gain = 1.0;
+  const double phi_gain = 1;
   const double kp = 200;
 
   // Arm
@@ -155,22 +153,25 @@ void TaskController::computeCLIK()
              J * J.transpose()).inverse();
 
 
+        auto tmp = (J_inverse * (x_dot_desired + x_error * kp)) / hz_;
         desired_q_.segment<7>(model_.joint_start_index_[i]) =
             (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
 
-
+/*
         std::cout << "Jacobian : " << std::endl;
         std::cout << J << std::endl;
         std::cout << "Jacobian.inv : "<< std::endl;
         std::cout << J_inverse << std::endl;
         std::cout << "desired_q_ : " << std::endl << desired_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
         std::cout << "x : " << std::endl << x << std::endl;
-        std::cout << "q : " << std::endl << current_q_ << std::endl;
+        std::cout << "q : " << std::endl << current_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
+        std::cout << "calc : " << std::endl << tmp << std::endl;
         std::cout << "rot : " << std::endl << rot << std::endl;
+        std::cout << "rot : " << std::endl << rot_target << std::endl;
         std::cout << "x_cubic : " << std::endl << x_cubic << std::endl;
         std::cout << "x_error : " << std::endl << x_error << std::endl;
         std::cout << "x_dot_desired : " << std::endl << x_dot_desired << std::endl;
-
+*/
       }
     }
   }

@@ -122,16 +122,16 @@ void DyrosJetModel::getTransformEndEffector // must call updateKinematics before
   transform_matrix->translation() = RigidBodyDynamics::CalcBodyToBaseCoordinates
       (model_, q_,end_effector_id_[ee], base_position_, false);
   transform_matrix->linear() = RigidBodyDynamics::CalcBodyWorldOrientation(
-        model_, q_, end_effector_id_[ee], false);
+        model_, q_, end_effector_id_[ee], false).transpose();
 }
 
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
 (EndEffector ee, Eigen::Vector3d* position, Eigen::Matrix3d* rotation)
 {
-  *position = RigidBodyDynamics::CalcBaseToBodyCoordinates
+  *position = RigidBodyDynamics::CalcBodyToBaseCoordinates
       (model_, q_,end_effector_id_[ee], base_position_, false);
   *rotation = RigidBodyDynamics::CalcBodyWorldOrientation(
-        model_, q_, end_effector_id_[ee], false);
+        model_, q_, end_effector_id_[ee], false).transpose();
 }
 
 void DyrosJetModel::getTransformEndEffector
@@ -155,10 +155,10 @@ void DyrosJetModel::getTransformEndEffector
   {
     q_ = q_new;
   }
-  *position = RigidBodyDynamics::CalcBaseToBodyCoordinates
+  *position = RigidBodyDynamics::CalcBodyToBaseCoordinates
       (model_,q_new,end_effector_id_[ee], base_position_, update_kinematics);
   *rotation = RigidBodyDynamics::CalcBodyWorldOrientation(
-        model_, q_new, end_effector_id_[ee], update_kinematics);
+        model_, q_new, end_effector_id_[ee], update_kinematics).transpose();
   // RigidBodyDynamics::Calcpo
   // model_.mBodies[0].mCenterOfMass
 }
