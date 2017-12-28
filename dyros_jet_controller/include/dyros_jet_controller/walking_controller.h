@@ -16,6 +16,10 @@ public:
 
   void WalkingController::initWalkingPose(VectorQd& desired_q);
   void WalkingController::compute(VectorQd& desired_q);
+  void WalkingController::setTarget(unsigned int joint_number, double target, double start_time, double end_time);
+  void WalkingController::setTarget(unsigned int joint_number, double target, double duration);
+  void WalkingController::setEnable(unsigned int joint_number, bool enable);
+  void WalkingController::updateControlMask(unsigned int *mask);
   void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired_q);
 
 private:
@@ -26,7 +30,10 @@ private:
   VectorQd target_q_;
   const double &current_time_;
   const unsigned int total_dof_;
-  const unsigned int RA_HAND = 31;
+  const unsigned int ra_hand = 30;
+
+  double start_time_[DyrosJetModel::HW_TOTAL_DOF];
+  double end_time_[DyrosJetModel::HW_TOTAL_DOF];
 
 }
 

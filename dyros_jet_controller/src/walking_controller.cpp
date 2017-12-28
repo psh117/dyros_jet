@@ -42,7 +42,7 @@ void WalkingController::initWalkingPose(VectorQd& desired_q)
   target_q(index++) = 40*DEGREE;
   target_q(index++) = -20*DEGREE;
   target_q(index++) = -2*DEGREE;
-  target_q(RA_HAND) = 40*DEGREE; // Joint number??
+  target_q(ra_hand) = 40*DEGREE; // Joint number??
 
 
 
@@ -55,13 +55,60 @@ void WalkingController::initWalkingPose(VectorQd& desired_q)
   }
 }
 
-
 void WalkingController::compute(VectorQd& desired_q)
 {
 
 }
 
 
+void WalkingController::setTarget(unsigned int joint_number, double target, double start_time, double end_time)
+{
+  if(joint_number >= total_dof_)
+  {
+    ROS_ERROR("WalkingController::setTarget - Out of range. Input = %u", joint_number);
+    return ;
+  }
+  start_time_[joint_number] = start_time;
+  end_time_[joint_number] = end_time;
+  start_q_(joint_number) = current_q_(joint_number);
+  target_q_(joint_number) = target;
+}
+
+void WalkingController::setTarget(unsigned int joint_number, double target, double duration)
+{
+  setTarget(joint_number, target, current_time_, current_time_ + duration);
+}
+
+void WalkingController::setEnable(unsigned int joint_number, bool enable)
+{
+  if (joint_number < total_dof_)
+  {
+    joint_enable_[joint_number] = enable;
+  }
+  else
+  {
+    ROS_ERROR("WalkingController::setEnable - Out of range. Input = %u", joint_number);
+  }
+}
+
+void WalkingController::updateControlMask(unsigned int *mask)
+{
+  for (int i=0; i<total_dof_; i++)
+  {
+    if (joint_enable_[i])
+    {
+      if (mask[i] >= PRIORITY * 2)
+      {
+         setTarget(i,desired_q_(i),0);// Stop moving
+      }
+      mask[i] = (mask[i] | PRIORITY);
+    }
+    else
+    {
+      mask[i] = (mask[i] & ~PRIORITY);
+    }
+  }
+}
 void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
 {
   for(unsigned int i=0; i<total_dof_; i++)
