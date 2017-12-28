@@ -14,7 +14,7 @@ public:
 
   static constexpr unsigned int PRIORITY = 2;
 
-  WalkingController::WalkingController(const VectorQd& current_q, const double& control_time) :
+  WalkingController(const VectorQd& current_q, const double& control_time) :
     current_q_(current_q), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF), start_time_{}, end_time_{}{}
 
   void initWalkingPose(VectorQd& desired_q);
@@ -39,6 +39,7 @@ private:
   double start_time_[DyrosJetModel::HW_TOTAL_DOF];
   double end_time_[DyrosJetModel::HW_TOTAL_DOF];
 
-}
+};
 
 }
+#endif // WALKING_CONTROLLER_H
