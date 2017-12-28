@@ -13,7 +13,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
-  walking_cmd_sub_ = nh.subscribe("/dyros_jet/walking_cmd",3, &ControlBase::walkingCmdCallback,this);
+  walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
   parameterInitialize();
   model_.test();
 }
@@ -136,7 +136,7 @@ void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPt
   }
 }
 
-void ControlBase::walkingCmdCallback(const dyros_jet_msgs::WalkingCmdConstPtr& msg)
+void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg)
 {
 
 }
