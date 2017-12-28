@@ -14,6 +14,9 @@ public:
 
   static constexpr unsigned int PRIORITY = 2;
 
+  WalkingController::WalkingController(const VectorQd& current_q, const double& control_time) :
+    current_q_(current_q), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF), start_time_{}, end_time_{}{}
+
   void initWalkingPose(VectorQd& desired_q);
   void compute(VectorQd& desired_q);
   void setTarget(unsigned int joint_number, double target, double start_time, double end_time);
@@ -28,6 +31,7 @@ private:
   VectorQd start_q_;
   VectorQd desired_q_;
   VectorQd target_q_;
+  const VectorQd& current_q_;
   const double &current_time_;
   const unsigned int total_dof_;
   const unsigned int ra_hand = 30;

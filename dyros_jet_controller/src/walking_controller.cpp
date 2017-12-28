@@ -4,8 +4,14 @@
 namespace dyros_jet_controller
 {
 
+WalkingController::WalkingController(const VectorQd& current_q, const double& control_time) :
+  current_q_(current_q), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF),
+  start_time_{}, end_time_{}
+{
 
-void WalkingController::initWalkingPose(VectorQd& desired_q)
+}
+
+void WalkingController::initWalkingPose(VectorQd* desired_q)
 {
   int index = 0;
   target_q(index++) = 0;
@@ -50,17 +56,21 @@ void WalkingController::initWalkingPose(VectorQd& desired_q)
   {
     if(joint_enable_[i])
     {
-      desired_q_(i) = DyrosMath::cubic(current_time_, 0.0, 5.0*Hz, start_q_(i), target_q_(i), 0, 0);
+      desired_q(i) = DyrosMath::cubic(current_time_, 0.0, 5.0*Hz, start_q_(i), target_q_(i), 0, 0);
     }
   }
 }
 
-void WalkingController::compute(VectorQd& desired_q)
+void WalkingController::compute(VectorQd* desired_q)
 {
 
 }
 
+void WalkingController::setApproachData(double x, double y, double theta)
+{
 
+}
+/*  //Should Revise
 void WalkingController::setTarget(unsigned int joint_number, double target, double start_time, double end_time)
 {
   if(joint_number >= total_dof_)
@@ -78,7 +88,7 @@ void WalkingController::setTarget(unsigned int joint_number, double target, doub
 {
   setTarget(joint_number, target, current_time_, current_time_ + duration);
 }
-
+*/
 void WalkingController::setEnable(unsigned int joint_number, bool enable)
 {
   if (joint_number < total_dof_)
@@ -99,7 +109,7 @@ void WalkingController::updateControlMask(unsigned int *mask)
     {
       if (mask[i] >= PRIORITY * 2)
       {
-         setTarget(i,desired_q_(i),0);// Stop moving
+      //   setTarget(i,desired_q_(i),0);// Should revise
       }
       mask[i] = (mask[i] | PRIORITY);
     }

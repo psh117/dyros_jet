@@ -2,11 +2,13 @@
 import rospy
 from dyros_jet_msgs.msg import JointCommand
 from dyros_jet_msgs.msg import TaskCommand
+from dyros_jet_msgs.msg import WalkingCommand
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
 def commander():
     pub = rospy.Publisher('/dyros_jet/joint_command', JointCommand, queue_size=10)
     task_pub = rospy.Publisher('/dyros_jet/task_command', TaskCommand, queue_size=10)
+    walk_pub = rospy.Publisher('/dyros_jet/walking_command',WalkingCommand, queue_size =10)
     rospy.init_node('mission_commander', anonymous=True)
     r = rospy.Rate(1) #50hz
 #    r.sleep()
@@ -22,6 +24,11 @@ def commander():
     print('connected')
     print('waiting for connection2')
     while not rospy.is_shutdown() and task_pub.get_num_connections() >= 1:
+        rospy.sleep(.5)
+        pass
+    print('connected')
+    print('waiting for connection3')
+    while not rospy.is_shutdown() and walk_pub.get_num_connections() >= 1:
         rospy.sleep(.5)
         pass
     print('connected')
@@ -42,6 +49,13 @@ def commander():
     task_msg.pose[3].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
     task_msg.duration = [0.0, 0.0, 0.0, 5.0]
     task_pub.publish(task_msg);
+
+    rospy.sleep(5.0);
+
+    walk_msg= WalkingCommand()
+    walk_msg.walk_mode = [0]
+
+    walk_pub.publish(walk.msg);
 
     rospy.sleep(5.0);
 

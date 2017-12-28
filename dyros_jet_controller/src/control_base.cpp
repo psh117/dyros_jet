@@ -7,7 +7,7 @@ namespace dyros_jet_controller
 // Constructor
 ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   ui_update_count_(0), is_first_boot_(true), Hz_(Hz), control_mask_{}, total_dof_(DyrosJetModel::HW_TOTAL_DOF),
-  task_controller_(model_, q_, Hz, control_time_), joint_controller_(q_, control_time_)
+  task_controller_(model_, q_, Hz, control_time_), joint_controller_(q_, control_time_), walking_controller_(q_,control_time_)
 {
 
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
@@ -138,7 +138,20 @@ void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPt
 
 void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg)
 {
+  if(msg->walk_mode[0] == dyros_jet_msgs::WalkingCommand::WALK)
+  {
+    for (unsigned int i=0; i<total_dof_ - 2; i++)
+    {
+      walking_controller_.setEnable(i, true);
+    }
+  }
+  else
+  {
+    for (unsigned int i=0; i<total_dof_; i++)
+    {
+      walking_controller_.setEnable(i, false);
+    }
+  }
 
 }
-
 }

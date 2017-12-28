@@ -38,7 +38,7 @@
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "dyros_jet_controller/task_controller.h"
 #include "dyros_jet_controller/joint_controller.h"
-// #include "Walking_Controller.h"
+#include "dyros_jet_controller/walking_controller.h"
 // #include "Upperbody_Controller.h"
 
 
@@ -98,6 +98,7 @@ protected:
   DyrosJetModel model_;
   TaskController task_controller_;
   JointController joint_controller_;
+  WalkingController walking_controller_;
 
 private:
   double Hz_; ///< control
