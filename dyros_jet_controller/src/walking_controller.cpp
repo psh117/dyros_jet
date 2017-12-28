@@ -28,14 +28,14 @@ void WalkingController::initWalkingPose(VectorQd& desired_q)
   target_q(index++) =  0*DEGREE;
   target_q(index++) = -70*DEGREE;
   target_q(index++) = -10*DEGREE;
-//R_leg
+// R_leg
   target_q(index++) = 0*DEGREE;
   target_q(index++) = -2*DEGREE;
   target_q(index++) = 20*DEGREE;
   target_q(index++) = -40*DEGREE;
   target_q(index++) = 20*DEGREE;
   target_q(index++) = 2*DEGREE;
-//L_leg
+// L_leg
   target_q(index++) = 0*DEGREE;
   target_q(index++) = 2*DEGREE;
   target_q(index++) = -20*DEGREE;
