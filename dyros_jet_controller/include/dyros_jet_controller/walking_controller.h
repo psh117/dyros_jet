@@ -22,7 +22,9 @@ public:
 
 
   void compute(VectorQd* desired_q);
-  void setTarget(int walk_mode, std::vector<bool> compensator_mode,int ik_mode, bool heel_toe, bool first_foot_step, double x, double y, double z, double theta, double step_length);
+  void setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
+                 bool is_right_foot_swing, double x, double y, double z, double theta,
+                 double step_length, double step_length_y);
 //  void setTarget(unsigned int joint_number, double target, double duration);
   void setEnable(bool enable);
   void updateControlMask(unsigned int *mask);
@@ -43,7 +45,7 @@ private:
   const double hz_;
  // const double &control_time_; // updated by control_base
 
-<<<<<<< HEAD
+
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
   double step_length_x_;
   double step_length_y_;
@@ -52,9 +54,7 @@ private:
   double target_z_;
   double target_theta_;
   double step_num_;
-=======
   bool walking_enable_;
->>>>>>> e485f8bcfcc8bcdddb7fd93b3b66e28c73b535c4
 
   VectorQd start_q_;
   VectorQd desired_q_;

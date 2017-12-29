@@ -18,8 +18,16 @@ void WalkingController::compute(VectorQd* desired_q)
 }
 
 void WalkingController::setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
-                                  bool first_foot_step, double x, double y, double z, double theta, double step_length)
+                                  bool is_right_foot_swing, double x, double y, double z, double theta,
+                                  double step_length_x, double step_length_y)
 {
+  target_x_ = x;
+  target_y_ = y;
+  target_z_ = z;
+  target_theta_ = theta;
+  step_length_x_ = step_length_x;
+  step_length_y_ = step_length_y;
+
 
 }
 
