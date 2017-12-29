@@ -29,7 +29,7 @@
 #include "dyros_jet_msgs/JointState.h"
 #include <dyros_jet_msgs/TaskCommand.h>
 #include <dyros_jet_msgs/JointCommand.h>
-#include "dyros_jet_msgs/WalkingCommand.h"
+#include <dyros_jet_msgs/WalkingCommand.h>
 //#include "dyros_jet_msgs/RecogCmd.h"
 //#include "dyros_jet_msgs/TaskCmdboth.h"
 

@@ -9,6 +9,8 @@
 
 #define GRAVITY 9.80665
 #define MAX_DOF 50U
+#define DEG2RAD 1/RAD2DEG
+
 namespace Eigen
 {
 
@@ -38,6 +40,9 @@ typedef Matrix<rScalar, -1, -1, 0, MAX_DOF, MAX_DOF> MatrixJXd;
 
 namespace DyrosMath
 {
+
+//constexpr double GRAVITY {9.80665};
+//constexpr double DEG2RAD {};
 
 static double cubic(double time,     ///< Current time
              double time_0,   ///< Start time
