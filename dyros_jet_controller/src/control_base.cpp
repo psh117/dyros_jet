@@ -138,19 +138,24 @@ void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPt
 
 void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg)
 {
-  if(msg->walk_mode)
+  vector<bool> compensate_v;
+  compensate_v.reserve(2);
+
+  for (int i =0; i<2; i++)
   {
-    for (unsigned int i=0; i<total_dof_; i++)
-    {
-      if (msg->walk_enable[i])
-      {
-        walking_controller_.setEnable(i, true);
-      }
-      else
-      {
-        walking_controller_.setEnable(i, false);
-      }
-    }
+    compensate_v[i]=msg->compensator_mode[i];
   }
+
+
+  if(msg->walk_mode == dyros_jet_msgs::WalkingCommand::STATIC_WALKING)
+  {
+    walking_controller_.setEnable(true);
+    walking_controller_.setTarget(msg->walk_mode, compensate_v, msg->ik_mode, msg->first_foot_step,
+    msg-> heel_toe, msg->x, msg->y, msg->height, msg->theta, msg-> step_length);
   }
+  else
+  {
+    walking_controller_.setEnable(false);
+  }
+ }
 }
