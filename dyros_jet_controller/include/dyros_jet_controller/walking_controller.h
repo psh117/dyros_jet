@@ -12,7 +12,7 @@ class WalkingController
 public:
 
 
-  static constexpr unsigned int PRIORITY = 2;
+  static constexpr unsigned int PRIORITY = 8;
 
   WalkingController(const VectorQd& current_q, const double hz, const double& control_time) :
     total_dof_(DyrosJetModel::HW_TOTAL_DOF), current_q_(current_q), hz_(hz), control_time_(control_time), start_time_{}, end_time_{} {}
