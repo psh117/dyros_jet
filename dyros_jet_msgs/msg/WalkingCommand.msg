@@ -21,13 +21,3 @@ float32 y
 float32 height
 float32 theta
 float32 step_length
-
-
-
-
-
-
-
-
-
-

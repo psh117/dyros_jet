@@ -4,6 +4,7 @@
 namespace dyros_jet_controller
 {
 
+<<<<<<< HEAD
 
 void WalkingController::compute(VectorQd* desired_q)
 {
