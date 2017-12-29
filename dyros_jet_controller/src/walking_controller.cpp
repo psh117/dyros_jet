@@ -48,7 +48,7 @@ void WalkingController::initWalkingPose(VectorQd* desired_q)
   target_q(index++) = 40*DEGREE;
   target_q(index++) = -20*DEGREE;
   target_q(index++) = -2*DEGREE;
-  target_q(ra_hand) = 40*DEGREE; // Joint number??
+  target_q(ra_hand_) = 40*DEGREE; // Joint number??
 
 
 
@@ -63,6 +63,12 @@ void WalkingController::initWalkingPose(VectorQd* desired_q)
 
 void WalkingController::compute(VectorQd* desired_q)
 {
+  getFootStep();
+  getCOMTrajectory();
+  getZMPTrajectory();
+  computeIKControl();
+  computeJacobianControl();
+  compensator();
 
 }
 
@@ -89,6 +95,7 @@ void WalkingController::setTarget(unsigned int joint_number, double target, doub
   setTarget(joint_number, target, current_time_, current_time_ + duration);
 }
 */
+
 void WalkingController::setEnable(unsigned int joint_number, bool enable)
 {
   if (joint_number < total_dof_)
@@ -109,7 +116,7 @@ void WalkingController::updateControlMask(unsigned int *mask)
     {
       if (mask[i] >= PRIORITY * 2)
       {
-      //   setTarget(i,desired_q_(i),0);// Should revise
+        mask[i] = (mask[i] & ~PRIORITY);
       }
       mask[i] = (mask[i] | PRIORITY);
     }
@@ -119,6 +126,7 @@ void WalkingController::updateControlMask(unsigned int *mask)
     }
   }
 }
+
 void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
 {
   for(unsigned int i=0; i<total_dof_; i++)
