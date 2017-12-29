@@ -4,9 +4,8 @@
 namespace dyros_jet_controller
 {
 
-WalkingController::WalkingController(const VectorQd& current_q, const double& control_time) :
-  current_q_(current_q), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF),
-  start_time_{}, end_time_{}
+WalkingController::WalkingController(const VectorQd& current_q, const double hz, const double& control_time) :
+  current_q_(current_q), control_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF),hz_(hz), start_time_{}, end_time_{}
 {
 
 }
@@ -76,8 +75,8 @@ void WalkingController::setApproachData(double x, double y, double theta)
 {
 
 }
-/*  //Should Revise
-void WalkingController::setTarget(unsigned int joint_number, double target, double start_time, double end_time)
+
+void WalkingController::setTarget(double target_x, double target_y, double target_z, double target_theta, double step_length, bool is_jacobian_control, bool is_left_foot_swing)
 {
   if(joint_number >= total_dof_)
   {
@@ -94,7 +93,7 @@ void WalkingController::setTarget(unsigned int joint_number, double target, doub
 {
   setTarget(joint_number, target, current_time_, current_time_ + duration);
 }
-*/
+
 
 void WalkingController::setEnable(unsigned int joint_number, bool enable)
 {
@@ -137,4 +136,14 @@ void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired
     }
   }
 }
+
+/**Foot step related fuctions
+ */
+
+void WalkingController::getFootStep()
+{
+  
+}
+  
+
 }

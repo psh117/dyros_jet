@@ -53,7 +53,7 @@ def commander():
     rospy.sleep(5.0);
 
     walk_msg= WalkingCommand()
-    walk_msg.walk_mode = true
+    walk_msg.walk_mode = True
     walk_msg.walk_enable = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, False, False]
 
     walk_pub.publish(walk.msg);
