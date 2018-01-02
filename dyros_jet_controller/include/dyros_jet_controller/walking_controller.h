@@ -39,7 +39,8 @@ public:
   void compensator();
 
   //functions for getFootStep()
-  void turnandGoandTurn();
+  void calculateFootStepTotal();
+  void calculateFootStepSeparate();
 
 
 
@@ -52,6 +53,7 @@ private:
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
   double step_length_x_;
   double step_length_y_;
+  //double step_angle_theta_;
   double target_x_;
   double target_y_;
   double target_z_;

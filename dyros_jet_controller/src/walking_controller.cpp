@@ -67,6 +67,7 @@ void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired
     if( mask[i] >= PRIORITY && mask[i] < PRIORITY * 2 )
     {
       desired_q(i) = desired_q_(i);
+      WalkingController::target_x_ =1;
     }
   }
 }
@@ -77,17 +78,16 @@ void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired
 void WalkingController::getFootStep()
 {
 
-
 }
   
-void turnandGoandTurn()
+void WalkingController::calculateFootStepTotal()
 {
   double initial_rot;
   double final_rot = 0.0;
   double initial_drot = 0.0;
   double final_drot = 0.0;
 
-  initial_rot= atan2(target_x_, target_y_);
+  initial_rot= atan2(target_y_, target_x_);
 
   if(initial_rot > 0.0)
     initial_drot = 10*DEG2RAD;
@@ -106,56 +106,56 @@ void turnandGoandTurn()
   int final_total_step_number = final_rot/final_drot;
   double final_residual_angle = final_rot-final_total_step_number*final_drot;
   double length_to_target = sqrt(target_x_*target_x_+target_y_*target_y_);
-  double dlength = step_length_x_; //footstep length;
+  const double &dlength = step_length_x_; //footstep length;
   int middle_total_step_number = length_to_target/(dlength);
   double middle_residual_length = length_to_target-middle_total_step_number*(dlength);
 
 
 
-  int temp_size;
+  int number_of_foot_step;
 
 
   int del_size;
 
   del_size = 1;
-  temp_size = initial_total_step_number*del_size+middle_total_step_number *del_size+final_total_step_number*del_size;
+  number_of_foot_step = initial_total_step_number*del_size+middle_total_step_number *del_size+final_total_step_number*del_size;
 
   if(initial_total_step_number!=0 || abs(initial_residual_angle)>=0.0001)
   {
     if(initial_total_step_number%2==0)
-        temp_size = temp_size+2*del_size;
+        number_of_foot_step = number_of_foot_step+2*del_size;
     else
     {
       if(abs(initial_residual_angle)>= 0.0001)
-          temp_size = temp_size+3*del_size;
+          number_of_foot_step = number_of_foot_step+3*del_size;
       else
-          temp_size = temp_size+del_size;
+          number_of_foot_step = number_of_foot_step+del_size;
     }
   }
 
   if(middle_total_step_number!=0 || abs(middle_residual_length)>=0.0001)
   {
     if(middle_total_step_number%2==0)
-      temp_size = temp_size+2*del_size;
+      number_of_foot_step = number_of_foot_step+2*del_size;
     else
     {
       if(abs(middle_residual_length)>= 0.0001)
-        temp_size = temp_size+3*del_size;
+        number_of_foot_step = number_of_foot_step+3*del_size;
       else
-        temp_size = temp_size+del_size;
+        number_of_foot_step = number_of_foot_step+del_size;
     }
   }
 
   if(final_total_step_number!=0 || abs(final_residual_angle)>= 0.0001)
   {
     if(abs(final_residual_angle)>= 0.0001)
-      temp_size = temp_size+2*del_size;
+      number_of_foot_step = number_of_foot_step+2*del_size;
     else
-      temp_size = temp_size+del_size;
+      number_of_foot_step = number_of_foot_step+del_size;
   }
 
 
-  foot_step_.resize(temp_size,7);
+  foot_step_.resize(number_of_foot_step,7);
   foot_step_.setZero();
 
   int index = 0;
@@ -363,3 +363,269 @@ void turnandGoandTurn()
   }
 }
 
+void WalkingController::calculateFootStepSeparate()
+{
+  double x = target_x_;
+  double y = target_y_;
+  double alpha = target_theta_;
+
+  const double dx = step_length_x_;
+  const double dy = step_length_y_;
+  const double dtheta = 10.0*DEG2RAD;
+  if(x<0.0)
+    const double dx = -step_length_x_;
+  if(y<0.0)
+    const double dy = -step_length_y_;
+  if(alpha<0.0)
+    const double dtheta = -10.0*DEG2RAD;
+
+  int x_number = x/dx;
+  int y_number = y/dy;
+  int theta_number = alpha/dtheta;
+
+  double x_residual = x-x_number*dx;
+  double y_residual = y-y_number*dy;
+  double theta_residual = alpha-theta_number*dtheta;
+  int number_of_foot_step = 0;
+  int temp = -1;
+
+  if(x_number!=0 || abs(x_residual)>=0.001)
+  {
+    temp *= -1;
+    number_of_foot_step += 1;
+
+    for(int i=0;i<x_number;i++)
+    {
+      temp *= -1;
+    }
+    number_of_foot_step += x_number;
+
+    if(abs(x_residual)>=0.001)
+    {
+      temp *= -1;
+      temp *= -1;
+      number_of_foot_step += 2;
+    }
+    else
+    {
+      temp *= -1;
+      number_of_foot_step += 1;
+    }
+  }
+
+  if(y_number!=0 || abs(y_residual)>=0.001)
+  {
+    if(x==0)
+    {
+      if(y>=0)
+        temp = -1;
+      else
+        temp = 1;
+      temp *= -1;
+      number_of_foot_step += 1;
+    }
+
+    if(y>=0 && temp==-1)
+    {
+      number_of_foot_step += 1;
+    }
+    else if(y<0 && temp==1)
+    {
+      number_of_foot_step += 1;
+    }
+
+    number_of_foot_step += 2*y_number;
+
+    if(abs(y_residual)>=0.001)
+    {
+      number_of_foot_step += 2;
+    }
+  }
+
+  if(theta_number!=0 || abs(theta_residual)>= 0.02)
+  {
+    number_of_foot_step += theta_number;
+
+    if(abs(theta_residual) >= 0.02)
+    {
+      number_of_foot_step += 2;
+    }
+    else
+    {
+      number_of_foot_step += 1;
+    }
+  }
+
+
+  foot_step_.resize(number_of_foot_step, 7);
+  foot_step_.setZero();
+
+  //int temp = -1;
+  temp = -1;
+  int index = 0;
+
+  if(x_number!=0 || abs(x_residual)>=0.001)
+  {
+    temp *= -1;
+
+    foot_step_(index,0) = 0;
+    foot_step_(index,1) = -temp*0.127794;
+    foot_step_(index,6) = 0.5+temp*0.5;
+    index++;
+
+    for(int i=0;i<x_number;i++)
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = (i+1)*dx;
+      foot_step_(index,1) = -temp*0.127794;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+
+    if(abs(x_residual)>=0.001)
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+    else
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+  }
+
+  if(y_number!=0 || abs(y_residual)>=0.001)
+  {
+    if(x==0)
+    {
+      if(y>=0)
+          temp = -1;
+      else
+          temp = 1;
+
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+
+    if(y>=0 && temp==-1)
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+    else if(y<0 && temp==1)
+    {
+      temp *= -1;
+
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+
+    for(int i=0;i<y_number;i++)
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794+(i+1)*dy;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794+(i+1)*dy;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+
+    if(abs(y_residual)>=0.001)
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794+y;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+
+      temp *= -1;
+
+      foot_step_(index,0) = x;
+      foot_step_(index,1) = -temp*0.127794+y;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+  }
+
+
+  if(theta_number!=0 || abs(theta_residual)>= 0.02)
+  {
+    for (int i =0 ; i<theta_number; i++)
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = temp*0.127794*sin((i+1)*dtheta)+x;
+      foot_step_(index,1) = -temp*0.127794*cos((i+1)*dtheta)+y;
+      foot_step_(index,5) = (i+1)*dtheta;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+
+    if(abs(theta_residual) >= 0.02)
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = temp*0.127794*sin(alpha)+x;
+      foot_step_(index,1) = -temp*0.127794*cos(alpha)+y;
+      foot_step_(index,5) = alpha;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+
+      temp *= -1;
+
+      foot_step_(index,0) = temp*0.127794*sin(alpha)+x;
+      foot_step_(index,1) = -temp*0.127794*cos(alpha)+y;
+      foot_step_(index,5) = alpha;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+
+    else
+    {
+      temp *= -1;
+
+      foot_step_(index,0) = temp*0.127794*sin(alpha)+x;
+      foot_step_(index,1) = -temp*0.127794*cos(alpha)+y;
+      foot_step_(index,5) = alpha;
+      foot_step_(index,6) = 0.5+temp*0.5;
+      index++;
+    }
+  }
+}
+
+}
