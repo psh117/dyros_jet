@@ -22,7 +22,7 @@ void TaskController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d 
 }
 void TaskController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double duration)
 {
-  setTarget(ee, target, control_time_, control_time_ + duration);
+  setTarget(ee, target, current_time_, current_time_ + duration);
 }
 void TaskController::setEnable(DyrosJetModel::EndEffector ee, bool enable)
 {
@@ -106,14 +106,14 @@ void TaskController::computeCLIK()
       const auto &x_target = target_transform_[i].translation();
       const auto &rot_target = target_transform_[i].linear();
 
-      double h_cubic = DyrosMath::cubic(control_time_,
+      double h_cubic = DyrosMath::cubic(current_time_,
                                         start_time_[i],
                                         end_time_[i],
                                         0, 1, 0, 0);
 
       Eigen::Vector3d x_cubic;
       Eigen::Vector6d x_dot_desired;
-      x_cubic = DyrosMath::cubicVector<3>(control_time_,
+      x_cubic = DyrosMath::cubicVector<3>(current_time_,
                                           start_time_[i],
                                           end_time_[i],
                                           x_0,

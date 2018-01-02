@@ -151,7 +151,7 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   {
     walking_controller_.setEnable(true);
     walking_controller_.setTarget(msg->walk_mode, compensate_v, msg->ik_mode, msg->first_foot_step,
-    msg-> heel_toe, msg->x, msg->y, msg->height, msg->theta, msg-> step_length);
+    msg-> heel_toe, msg->x, msg->y, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
   }
   else
   {

@@ -38,12 +38,15 @@ public:
   void computeJacobianControl();
   void compensator();
 
+  //functions for getFootStep()
+  void turnandGoandTurn();
+
 
 
 private:
 
   const double hz_;
- // const double &control_time_; // updated by control_base
+  const double &current_time_; // updated by control_base
 
 
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
@@ -54,7 +57,10 @@ private:
   double target_z_;
   double target_theta_;
   double step_num_;
+  Eigen::MatrixXd foot_step_;
+
   bool walking_enable_;
+
 
   VectorQd start_q_;
   VectorQd desired_q_;

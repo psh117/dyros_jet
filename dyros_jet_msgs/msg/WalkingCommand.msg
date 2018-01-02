@@ -20,4 +20,5 @@ float32 x
 float32 y
 float32 height
 float32 theta
-float32 step_length
+float32 step_length_x
+float32 step_length_y
