@@ -65,7 +65,8 @@ def commander():
     walk_msg.y = 0.0
     walk_msg.z = 0.75
     walk_msg.theta = 0
-    walk_msg.step_length =0.15
+    walk_msg.step_length_x =0.15
+    walk_msg.step_length_y =0.00
 
     walk_pub.publish(walk_msg);
     rospy.sleep(5.0);

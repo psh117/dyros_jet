@@ -16,7 +16,7 @@ public:
   static constexpr unsigned int PRIORITY = 16;  ///< Joint priority
 
   TaskController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), control_time_(control_time), start_time_{}, end_time_{} {}
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{} {}
   void compute();
   void setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double start_time, double end_time);
   void setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double duration);
@@ -37,7 +37,7 @@ private:
 
   // motion time
   const double hz_;
-  const double &control_time_; // updated by control_base
+  const double &current_time_; // updated by control_base
   double start_time_[4];
   double end_time_[4];
 
