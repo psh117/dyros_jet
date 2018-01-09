@@ -104,6 +104,7 @@ static Eigen::Matrix<double, N, 1> cubicVector(double time,     ///< Current tim
   }
   return res;
 }
+
 static Eigen::Vector3d getPhi(Eigen::Matrix3d current_rotation,
                        Eigen::Matrix3d desired_rotation)
 {
@@ -120,6 +121,102 @@ static Eigen::Vector3d getPhi(Eigen::Matrix3d current_rotation,
 
   return phi;
 }
+
+static Eigen::Isometry3d multiplyIsometry3d(Eigen::Isometry3d A,
+                                      Eigen::Isometry3d B)
+{
+  Eigen::Isometry3d AB;
+
+  AB.linear() = A.linear()*B.linear();
+  AB.translation() = A.linear()*B.translation() + A.translation();
+  return AB;
+}
+
+static Eigen::Isometry3d inverseIsometry3d(Eigen::Isometry3d A)
+{
+  Eigen::Isometry3d A_inv;
+
+  A_inv.linear() = A.linear().transpose();
+  A_inv.translation() = -A.linear().transpose()*A.translation();
+  return A_inv;
+}
+
+static Eigen::Matrix3d rotateWithZ(double yaw_angle)
+{
+  Eigen::Matrix3d rotate_wth_z(3, 3);
+
+  rotate_wth_z(0, 0) = cos(yaw_angle);
+  rotate_wth_z(1, 0) = sin(yaw_angle);
+  rotate_wth_z(2, 0) = 0.0;
+
+  rotate_wth_z(0, 1) = -sin(yaw_angle);
+  rotate_wth_z(1, 1) = cos(yaw_angle);
+  rotate_wth_z(2, 1) = 0.0;
+
+  rotate_wth_z(0, 2) = 0.0;
+  rotate_wth_z(1, 2) = 0.0;
+  rotate_wth_z(2, 2) = 1.0;
+
+  return rotate_wth_z;
+}
+
+static Eigen::Matrix3d rotateWithY(double pitch_angle)
+{
+  Eigen::Matrix3d rotate_wth_y(3, 3);
+
+  rotate_wth_y(0, 0) = cos(pitch_angle);
+  rotate_wth_y(1, 0) = 0.0;
+  rotate_wth_y(2, 0) = -sin(pitch_angle);
+
+  rotate_wth_y(0, 1) = 0.0;
+  rotate_wth_y(1, 1) = 1.0;
+  rotate_wth_y(2, 1) = 0.0;
+
+  rotate_wth_y(0, 2) = sin(pitch_angle);
+  rotate_wth_y(1, 2) = 0.0;
+  rotate_wth_y(2, 2) = cos(pitch_angle);
+
+  return rotate_wth_y;
+}
+
+static Eigen::Matrix3d rotateWithX(double roll_angle)
+{
+  Eigen::Matrix3d rotate_wth_x(3, 3);
+
+  rotate_wth_x(0, 0) = 1.0;
+  rotate_wth_x(1, 0) = 0.0;
+  rotate_wth_x(2, 0) = 0.0;
+
+  rotate_wth_x(0, 1) = 0.0;
+  rotate_wth_x(1, 1) = cos(roll_angle);
+  rotate_wth_x(2, 1) = sin(roll_angle);
+
+  rotate_wth_x(0, 2) = 0.0;
+  rotate_wth_x(1, 2) = -sin(roll_angle);
+  rotate_wth_x(2, 2) = cos(roll_angle);
+
+  return rotate_wth_x;
+}
+
+static Eigen::Vector3d rot2Euler(Eigen::Matrix3d Rot)
+{
+    double beta;
+    Eigen::Vector3d angle;
+    beta = -asin(Rot(2,0));
+
+    if(abs(beta) < 90*DEG2RAD)
+        beta = beta;
+    else
+        beta = 180*DEG2RAD-beta;
+
+    angle(0) = atan2(Rot(2,1),Rot(2,2)+1E-37); //roll
+    angle(2) = atan2(Rot(1,0),Rot(0,0)+1E-37); //pitch
+    angle(1) = beta; //yaw
+
+    return angle;
+}
+
+
 }
 
 #endif

@@ -50,6 +50,8 @@ public:
   void getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 6, 6> *jacobian);
   void getJacobianMatrix7DoF(EndEffector ee, Eigen::Matrix<double, 6, 7> *jacobian);
 
+  void getCenterOfMassPosition(Eigen::Vector3d* position);
+
   const Eigen::Isometry3d& getCurrentTrasmfrom(EndEffector ee) { return currnet_transform_[ee]; }
   const Eigen::Matrix<double, 6, 6>& getLegJacobian(EndEffector ee) { return leg_jacobian_[ee]; }
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
@@ -66,6 +68,8 @@ private:
   Eigen::Matrix<double, 6, 7> arm_jacobian_[2];
   Eigen::Matrix28d A_;
   Eigen::MatrixXd A_temp_;
+
+  Eigen::Vector3d com_;
 
 
 };

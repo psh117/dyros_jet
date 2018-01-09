@@ -8,19 +8,29 @@ namespace dyros_jet_controller
 
 void WalkingController::compute(VectorQd* desired_q)
 {
-  /*getFootStep();
-  getCOMTrajectory();
-  getZMPTrajectory();
-  computeIKControl();
-  computeJacobianControl();
-  compensator();
-*/
+  if(walking_enable_)
+  {
+    if(walking_tick ==0)
+    {
+      updateInitialState();
+    }
+    /*getFootStep();
+    getCOMTrajectory();
+    getZMPTrajectory();
+    computeIKControl();
+    computeJacobianControl();
+    compensator();
+  */
+    walking_tick ++;
+  }
+
 }
 
 void WalkingController::setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
                                   bool is_right_foot_swing, double x, double y, double z, double theta,
                                   double step_length_x, double step_length_y)
 {
+
   target_x_ = x;
   target_y_ = y;
   target_z_ = z;
@@ -34,7 +44,6 @@ void WalkingController::setTarget(int walk_mode, std::vector<bool> compensator_m
 
 void WalkingController::setEnable(bool enable)
 {
-
   walking_enable_=enable;
 }
 
@@ -77,7 +86,9 @@ void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired
 
 void WalkingController::getFootStep()
 {
+  calculateFootStepTotal();
 
+  total_step_num_ = foot_step_.col(1).size();
 }
   
 void WalkingController::calculateFootStepTotal()
@@ -94,7 +105,7 @@ void WalkingController::calculateFootStepTotal()
   else
       initial_drot = -10*DEG2RAD;
 
-  int initial_total_step_number = initial_rot/initial_drot;
+  unsigned int initial_total_step_number = initial_rot/initial_drot;
   double initial_residual_angle = initial_rot-initial_total_step_number*initial_drot;
 
   final_rot = target_theta_-initial_rot;
@@ -103,16 +114,16 @@ void WalkingController::calculateFootStepTotal()
   else
     final_drot = -10*DEG2RAD;
 
-  int final_total_step_number = final_rot/final_drot;
+  unsigned int final_total_step_number = final_rot/final_drot;
   double final_residual_angle = final_rot-final_total_step_number*final_drot;
   double length_to_target = sqrt(target_x_*target_x_+target_y_*target_y_);
   const double &dlength = step_length_x_; //footstep length;
-  int middle_total_step_number = length_to_target/(dlength);
+  unsigned int middle_total_step_number = length_to_target/(dlength);
   double middle_residual_length = length_to_target-middle_total_step_number*(dlength);
 
 
 
-  int number_of_foot_step;
+  unsigned int number_of_foot_step;
 
 
   int del_size;
@@ -461,7 +472,7 @@ void WalkingController::calculateFootStepSeparate()
   foot_step_.setZero();
 
   //int temp = -1;
-  temp = -1;
+  temp = -1; //fisrt step is right foot
   int index = 0;
 
   if(x_number!=0 || abs(x_residual)>=0.001)
@@ -614,7 +625,6 @@ void WalkingController::calculateFootStepSeparate()
       foot_step_(index,6) = 0.5+temp*0.5;
       index++;
     }
-
     else
     {
       temp *= -1;
@@ -628,4 +638,202 @@ void WalkingController::calculateFootStepSeparate()
   }
 }
 
+void WalkingController::getZMPTrajectory()
+{
+
+  floatToSupportFootstep();
 }
+
+void WalkingController::floatToSupportFootstep()
+{
+  Eigen::Isometry3d reference;
+
+  if(current_step_num_ == 0)
+  {
+    if(foot_step_(current_step_num_,6) == 1) //right support
+    {
+      reference.translation() = rfoot_float_init_.translation();
+      reference.translation()(2) = 0;
+      reference.linear() = rfoot_float_init_.linear();
+      reference.translation()(0) = 0.0;
+    }
+    else  //left support
+    {
+      reference.translation() = lfoot_float_init_.translation();
+      reference.translation()(2) = 0;
+      reference.linear() = lfoot_float_init_.linear();
+      reference.translation()(0) = 0.0;
+    }
+  }
+  else
+  {
+    reference.linear() = DyrosMath::rotateWithZ(foot_step_(current_step_num_-1,5));
+    for(int i=0 ;i<3; i++)
+      reference.translation()(i) = foot_step_(current_step_num_-1,i);
+  }
+
+  Eigen::Vector3d temp_local_position;
+  Eigen::Vector3d temp_global_position;
+
+  if(current_step_num_ == 0)
+  {
+    for(int i=0; i<total_step_num_; i++)
+    {
+      for(int j=0; j<3; j++)
+        temp_global_position(j)  = foot_step_(i,j);
+
+      temp_local_position = reference.linear().transpose()*(temp_global_position-reference.translation());
+
+      for(int j=0; j<3; j++)
+        foot_step_support_frame_(i,j) = temp_local_position(j);
+
+      foot_step_support_frame_(i,3) = foot_step_(i,3);
+      foot_step_support_frame_(i,4) = foot_step_(i,4);
+      foot_step_support_frame_(i,5) = foot_step_(i,5) - supportfoot_float_init(5);
+
+    }
+  }
+  else
+  {
+    for(int i=0; i<total_step_num_; i++)
+    {
+      for(int j=0; j<3; j++)
+        temp_global_position(j)  = foot_step_(i,j);
+
+      temp_local_position = reference.linear().transpose()*(temp_global_position-reference.translation());
+
+      for(int j=0; j<3; j++)
+        foot_step_support_frame_(i,j) = temp_local_position(j);
+
+      foot_step_support_frame_(i,3) = foot_step_(i,3);
+      foot_step_support_frame_(i,4) = foot_step_(i,4);
+      foot_step_support_frame_(i,5) = foot_step_(i,5) - foot_step_(current_step_num_-1,5);
+
+    }
+  }
+
+  for(int j=0;j<3;j++)
+    temp_global_position(j) = swingfoot_float_init(j);
+
+  temp_local_position = reference.linear().transpose()*(temp_global_position-reference.translation());
+
+  for(int j=0;j<3;j++)
+  swingfoot_suppport_init(j) = temp_local_position(j);
+
+  swingfoot_suppport_init(3) = swingfoot_float_init(3);
+  swingfoot_suppport_init(4) = swingfoot_float_init(4);
+
+  if(current_step_num_ == 0)
+    swingfoot_suppport_init(5) = swingfoot_float_init(5) - supportfoot_float_init(5);
+  else
+    swingfoot_suppport_init(5) = swingfoot_float_init(5) - foot_step_(current_step_num_-1,5);
+
+
+
+  for(int j=0;j<3;j++)
+    temp_global_position(j) = supportfoot_float_init(j);
+
+  temp_local_position = reference.linear().transpose()*(temp_global_position-reference.translation());
+
+  for(int j=0;j<3;j++)
+    supportfoot_support_init(j) = temp_local_position(j);
+
+  supportfoot_support_init(3) = supportfoot_float_init(3);
+  supportfoot_support_init(4) = supportfoot_float_init(4);
+
+  if(current_step_num_ == 0)
+      supportfoot_support_init(5) = 0;
+  else
+      supportfoot_support_init(5) = supportfoot_float_init(5) - foot_step_(current_step_num_-1,5);
+}
+
+void WalkingController::updateInitialState()
+{
+  dyros_model_.updateKinematics(current_q_);
+  q_init_ = current_q_;
+  dyros_model_.getTransformEndEffector((DyrosJetModel::EndEffector)0, &lfoot_float_init_);
+  dyros_model_.getTransformEndEffector((DyrosJetModel::EndEffector)1, &rfoot_float_init_);
+  dyros_model_.getCenterOfMassPosition(&com_float_init_);
+  pelv_float_init_.setIdentity();
+
+  Eigen::Isometry3d ref_frame;
+  if(foot_step_(current_step_num_, 6) == 0)  //left foot support
+  {
+    ref_frame = lfoot_float_init_;
+  }
+  else if(foot_step_(current_step_num_, 6) == 1)
+  {
+    ref_frame = rfoot_float_init_;
+  }
+
+  lfoot_support_init_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(ref_frame),lfoot_float_init_);
+  rfoot_support_init_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(ref_frame),rfoot_float_init_);
+  pelv_support_init_ = DyrosMath::inverseIsometry3d(ref_frame);
+
+  supportfoot_float_init.setZero();
+  swingfoot_float_init.setZero();
+
+  if(foot_step_(0,6) == 0)  //left suppport foot
+  {
+      for(int i=0; i<2; i++)
+          supportfoot_float_init(i) = lfoot_float_init_.translation()(i);
+      for(int i=0; i<3; i++)
+          supportfoot_float_init(i+3) = DyrosMath::rot2Euler(lfoot_float_init_.linear())(i);
+
+      for(int i=0; i<2; i++)
+          swingfoot_float_init(i) = rfoot_float_init_.translation()(i);
+      for(int i=0; i<3; i++)
+          swingfoot_float_init(i+3) = DyrosMath::rot2Euler(rfoot_float_init_.linear())(i);
+
+    supportfoot_float_init(0) = 0.0;
+    swingfoot_float_init(0) = 0.0;
+  }
+  else
+  {
+    for(int i=0; i<2; i++)
+        supportfoot_float_init(i) = rfoot_float_init_.translation()(i);
+    for(int i=0; i<3; i++)
+        supportfoot_float_init(i+3) = DyrosMath::rot2Euler(rfoot_float_init_.linear())(i);
+
+    for(int i=0; i<2; i++)
+        swingfoot_float_init(i) = lfoot_float_init_.translation()(i);
+    for(int i=0; i<3; i++)
+        swingfoot_float_init(i+3) = DyrosMath::rot2Euler(lfoot_float_init_.linear())(i);
+
+  supportfoot_float_init(0) = 0.0;
+  swingfoot_float_init(0) = 0.0;
+  }
+
+  /*
+  com_local_init_= dyros_model_.com_;
+  pelv_local_init_.translation() = dyros_model_.currnet_transform_[0].translation();
+  pelv_local_init_.linear() = dyros_model_.currnet_transform_[0].linear();
+  Rot2euler(_T_Trunk_support.linear(),_init_info._trunk_support_euler_init);
+
+  lfoot_local_init_.translation() = _T_LFoot_support[5].translation();
+  lfoot_local_init_.linear() = _T_LFoot_support[5].linear();
+  _init_info._XL_support_euler_init = _T_LFoot_support_euler;
+
+  rfoot_local_init_.translation() = _T_RFoot_support[5].translation();
+  rfoot_local_init_.linear() = _T_RFoot_support[5].linear();
+  _init_info._XR_support_euler_init = _T_RFoot_support_euler;
+
+  _init_info._COM_global_init.setZero();
+  pelv_global_init_.translation() = _T_Trunk_global.translation();
+  pelv_global_init_.linear() = _T_Trunk_global.linear();
+  Rot2euler(_T_Trunk_global.linear(),_init_info._trunk_support_euler_init);
+
+    lfoot_global_init_.translation() = _T_LFoot_global[5].translation();
+    lfoot_global_init_.linear() = _T_LFoot_global[5].linear();
+    _init_info._XL_global_euler_init = _T_LFoot_global_euler;
+
+    rfoot_global_init_.translation() = _T_RFoot_global[5].translation();
+    rfoot_global_init_.linear() = _T_RFoot_global[5].linear();
+    _init_info._XR_global_euler_init = _T_RFoot_global_euler;
+*/
+
+}
+
+}
+
+

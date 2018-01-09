@@ -17,8 +17,8 @@ public:
 
   static constexpr unsigned int PRIORITY = 8;
 
-  WalkingController(const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{} {}
+  WalkingController(DyrosJetModel& model,const VectorQd& current_q, const double hz, const double& control_time) :
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), dyros_model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{} {}
 
 
   void compute(VectorQd* desired_q);
@@ -42,13 +42,20 @@ public:
   void calculateFootStepTotal();
   void calculateFootStepSeparate();
 
+  //functions for getZMPTrajectory()
+  void floatToSupportFootstep();
+
+  void updateInitialState();
+
 
 
 private:
+  DyrosJetModel &dyros_model_;
 
   const double hz_;
   const double &current_time_; // updated by control_base
-
+  double walking_tick = 0;
+  double walking_time = 0;
 
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
   double step_length_x_;
@@ -58,8 +65,11 @@ private:
   double target_y_;
   double target_z_;
   double target_theta_;
-  double step_num_;
+  double total_step_num_;
   Eigen::MatrixXd foot_step_;
+  Eigen::MatrixXd foot_step_support_frame_;
+
+  double current_step_num_;
 
   bool walking_enable_;
 
@@ -73,6 +83,31 @@ private:
   double start_time_[DyrosJetModel::HW_TOTAL_DOF];
   double end_time_[DyrosJetModel::HW_TOTAL_DOF];
 
+  //Step initial state variable//
+  Eigen::Vector3d com_suppport_init_;
+  Eigen::Isometry3d pelv_support_init_;
+  Eigen::Isometry3d lfoot_support_init_;
+  Eigen::Isometry3d rfoot_support_init_;
+  Eigen::Vector3d com_float_init_;
+  Eigen::Isometry3d pelv_float_init_;
+  Eigen::Isometry3d lfoot_float_init_;
+  Eigen::Isometry3d rfoot_float_init_;
+  VectorQd q_init_;
+
+  //Step initial state variable//
+  Eigen::Vector3d com_support_cuurent_;
+  Eigen::Isometry3d pelv_support_cuurent_;
+  Eigen::Isometry3d lfoot_support_cuurent_;
+  Eigen::Isometry3d rfoot_support_cuurent_;
+  Eigen::Vector3d com_float_cuurent_;
+  Eigen::Isometry3d pelv_float_cuurent_;
+  Eigen::Isometry3d lfoot_float_cuurent_;
+  Eigen::Isometry3d rfoot_float_cuurent_;
+
+  Eigen::Vector3d supportfoot_float_init;
+  Eigen::Vector3d supportfoot_support_init;
+  Eigen::Vector3d swingfoot_float_init;
+  Eigen::Vector3d swingfoot_suppport_init;
 };
 
 }
