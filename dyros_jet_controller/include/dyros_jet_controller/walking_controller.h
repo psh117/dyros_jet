@@ -17,15 +17,16 @@ public:
 
   static constexpr unsigned int PRIORITY = 8;
 
-  WalkingController(DyrosJetModel& model,const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), dyros_model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{} {}
+
+  WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{} {}
+
 
 
   void compute(VectorQd* desired_q);
   void setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
                  bool is_right_foot_swing, double x, double y, double z, double theta,
                  double step_length, double step_length_y);
-//  void setTarget(unsigned int joint_number, double target, double duration);
   void setEnable(bool enable);
   void updateControlMask(unsigned int *mask);
   void writeDesired(const unsigned int *mask, VectorQd& desired_q);
@@ -34,7 +35,7 @@ public:
   void getFootStep();
   void getCOMTrajectory();
   void getZMPTrajectory();
-  void computeIKControl();
+  void computeIKControl(Eigen::VectorLXd *desired_leg_q);
   void computeJacobianControl();
   void compensator();
 
@@ -50,13 +51,13 @@ public:
 
 
 private:
-  DyrosJetModel &dyros_model_;
 
   const double hz_;
   const double &current_time_; // updated by control_base
   double walking_tick = 0;
   double walking_time = 0;
 
+  bool walking_enable_;
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
   double step_length_x_;
   double step_length_y_;
@@ -70,9 +71,6 @@ private:
   Eigen::MatrixXd foot_step_support_frame_;
 
   double current_step_num_;
-
-  bool walking_enable_;
-
 
   VectorQd start_q_;
   VectorQd desired_q_;
@@ -108,6 +106,13 @@ private:
   Eigen::Vector3d supportfoot_support_init;
   Eigen::Vector3d swingfoot_float_init;
   Eigen::Vector3d swingfoot_suppport_init;
+
+  DyrosJetModel &model_;
+  Eigen::Isometry3d currnet_leg_transform_[2];
+  Eigen::Isometry3d currnet_leg_transform_l_;
+  Eigen::Isometry3d currnet_leg_transform_r_;
+
+
 };
 
 }
