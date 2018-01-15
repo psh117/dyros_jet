@@ -43,8 +43,6 @@ void WalkingController::compute(VectorQd* desired_q)
     }
 
     walking_tick ++;
-  }
-
 }
 
 void WalkingController::setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
