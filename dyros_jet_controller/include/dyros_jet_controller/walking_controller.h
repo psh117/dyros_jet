@@ -33,11 +33,14 @@ public:
 
   //functions in compute
   void getFootStep();
-  void getCOMTrajectory();
-  void getZMPTrajectory();
-  void computeIKControl(Eigen::VectorLXd *desired_leg_q);
+  void getComTrajectory();
+  void getZmpTrajectory();
+  void computeIkControl(Eigen::VectorLXd *desired_leg_q);
   void computeJacobianControl();
   void compensator();
+
+  void updateInitialState();
+
 
   //functions for getFootStep()
   void calculateFootStepTotal();
@@ -45,8 +48,9 @@ public:
 
   //functions for getZMPTrajectory()
   void floatToSupportFootstep();
+  void addZmpOffset();
+  void zmpGenerator();
 
-  void updateInitialState();
 
 
 
@@ -69,6 +73,9 @@ private:
   double total_step_num_;
   Eigen::MatrixXd foot_step_;
   Eigen::MatrixXd foot_step_support_frame_;
+  Eigen::MatrixXd foot_step_support_frame_offset;
+
+  Eigen::MatrixXd ref_zmp_;
 
   double current_step_num_;
 
@@ -79,7 +86,7 @@ private:
   //const double &current_time_;
   const unsigned int total_dof_;
   double start_time_[DyrosJetModel::HW_TOTAL_DOF];
-  double end_time_[DyrosJetModel::HW_TOTAL_DOF];
+  double end_tisupportfoot_support_init_offsetme_[DyrosJetModel::HW_TOTAL_DOF];
 
   //Step initial state variable//
   Eigen::Vector3d com_suppport_init_;
@@ -92,7 +99,16 @@ private:
   Eigen::Isometry3d rfoot_float_init_;
   VectorQd q_init_;
 
-  //Step initial state variable//
+  Eigen::Vector3d supportfoot_float_init;
+  Eigen::Vector3d supportfoot_support_init;
+  Eigen::Vector3d supportfoot_support_init_offset;
+  Eigen::Vector3d swingfoot_float_init;
+  Eigen::Vector3d swingfoot_support_init;
+  Eigen::Vector3d swingfoot_support_init_offset;
+
+  Eigen::Vector3d lfoot_zmp_offset;
+  Eigen::Vector3d rfoot_zmp_offset;
+  //Step current state variable//
   Eigen::Vector3d com_support_cuurent_;
   Eigen::Isometry3d pelv_support_cuurent_;
   Eigen::Isometry3d lfoot_support_cuurent_;
@@ -102,15 +118,13 @@ private:
   Eigen::Isometry3d lfoot_float_cuurent_;
   Eigen::Isometry3d rfoot_float_cuurent_;
 
-  Eigen::Vector3d supportfoot_float_init;
-  Eigen::Vector3d supportfoot_support_init;
-  Eigen::Vector3d swingfoot_float_init;
-  Eigen::Vector3d swingfoot_suppport_init;
+
 
   DyrosJetModel &model_;
   Eigen::Isometry3d currnet_leg_transform_[2];
   Eigen::Isometry3d currnet_leg_transform_l_;
   Eigen::Isometry3d currnet_leg_transform_r_;
+
 
 
 };

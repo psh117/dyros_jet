@@ -15,9 +15,9 @@ void WalkingController::compute(VectorQd* desired_q)
       updateInitialState();
     }
     /*getFootStep();
-    getCOMTrajectory();
-    getZMPTrajectory();
-    computeIKControl();
+    getComTrajectory();
+    getZmpTrajectory();
+    computeIkControl();
     computeJacobianControl();
     compensator();
   */
@@ -89,6 +89,8 @@ void WalkingController::getFootStep()
   calculateFootStepTotal();
 
   total_step_num_ = foot_step_.col(1).size();
+
+  floatToSupportFootstep();
 }
   
 
@@ -135,13 +137,13 @@ void WalkingController::calculateFootStepTotal()
   if(initial_total_step_number!=0 || abs(initial_residual_angle)>=0.0001)
   {
     if(initial_total_step_number%2==0)
-        number_of_foot_step = number_of_foot_step+2*del_size;
+      number_of_foot_step = number_of_foot_step+2*del_size;
     else
     {
       if(abs(initial_residual_angle)>= 0.0001)
-          number_of_foot_step = number_of_foot_step+3*del_size;
+        number_of_foot_step = number_of_foot_step+3*del_size;
       else
-          number_of_foot_step = number_of_foot_step+del_size;
+        number_of_foot_step = number_of_foot_step+del_size;
     }
   }
 
@@ -373,158 +375,6 @@ void WalkingController::calculateFootStepTotal()
       index++;
     }
   }
-}
-
-void WalkingController::computeIKControl(Eigen::VectorLXd *desired_leg_q)
-{
-  for (int i=0; i<2; i++)
-  {
-    model_.getTransformEndEffector((DyrosJetModel::EndEffector)i, &currnet_leg_transform_[i]);
-  }
-  currnet_leg_transform_l_=currnet_leg_transform_[0];
-  currnet_leg_transform_r_=currnet_leg_transform_[1];
-
-  Eigen::Vector3d lp, rp;
-  //Should revise by dg, Trunk_trajectory_global.translation()
-  lp = currnet_leg_transform_l_.linear().transpose()*(Trunk_trajectory_global.translation()-currnet_leg_transform_l_.translation());
-  rp = currnet_leg_transform_r_.linear().transpose()*(Trunk_trajectory_global.translation()-currnet_leg_transform_r_.translation());
-
-  Eigen::Matrix3d trunk_leg_transform_l_, trunk_leg_transform_r_;
-  trunk_leg_transform_l_ = Trunk_trajectory_global.linear().transpose()*currnet_leg_transform_l_.linear();
-  trunk_leg_transform_r_ = Trunk_trajectory_global.linear().transpose()*currnet_leg_transform_r_.linear();
-
-  Eigen::Vector3d ld, rd;
-  ld.setZero(); rd.setZero();
-  ld(1) = 0.105;
-  ld(2) = -0.1829;
-  rd(1) = -0.105;
-  rd(2) = -0.1829;
-  ld = trunk_leg_transform_l_.transpose() * ld;
-  rd = trunk_leg_transform_r_.transpose() * rd;
-
-  Eigen::Vector3d lr, rr;
-  lr = lp + ld;
-  rr = rp + rd;
-
-  double l_upper_ = 0.3729; // direct length from hip to knee
-  double l_lower_ = 0.3728; //direct length from knee to ankle
-
-  double offset_hip_pitch_ = 24.6271*DEG2RAD;
-  double offset_knee_pitch_ = 15.3655*DEG2RAD;
-  double offset_ankle_pitch_ = 9.2602*DEG2RAD;
-
-  //////////////////////////// LEFT LEG INVERSE KINEMATICS ////////////////////////////
-
-  double lc = lr.norm();
-  desired_leg_q(9) = (- acos((l_upper_*l_upper_ + l_lower_*l_lower_ - lc*lc) / (2*l_upper_*l_lower_))+ 3.141592); // - offset_knee_pitch //+ alpha_lower
-
-  double l_ankle_pitch_ = asin((l_upper_*sin(3.141592-qd(9)))/lc);
-  desired_leg_q(10) = -atan2(lr(0), sqrt(lr(1)*lr(1)+lr(2)*lr(2))) - l_ankle_pitch_;// - offset_ankle_pitch ;
-  desired_leg_q(11) = atan2(lr(1), lr(2));
-
-  Eigen::Matrix3d r_tl2_;
-  Eigen::Matrix3d r_l2l3_;
-  Eigen::Matrix3d r_l3l4_;
-  Eigen::Matrix3d r_l4l5_;
-
-  r_tl2_.setZero();
-  r_l2l3_.setZero();
-  r_l3l4_.setZero();
-  r_l4l5_.setZero();
-
-  r_l2l3_(0,0) = cos(desired_leg_q(9));
-  r_l2l3_(0,2) = sin(desired_leg_q(9));
-  r_l2l3_(1,1) = 1.0;
-  r_l2l3_(2,0) = -sin(desired_leg_q(9));
-  r_l2l3_(2,2) = cos(desired_leg_q(9));
-
-  r_l3l4_(0,0) = cos(desired_leg_q(10));
-  r_l3l4_(0,2) = sin(desired_leg_q(10));
-  r_l3l4_(1,1) = 1.0;
-  r_l3l4_(2,0) = -sin(desired_leg_q(10));
-  r_l3l4_(2,2) = cos(desired_leg_q(10));
-
-  r_l4l5_(0,0) = 1.0;
-  r_l4l5_(1,1) = cos(desired_leg_q(11));
-  r_l4l5_(1,2) = -sin(desired_leg_q(11));
-  r_l4l5_(2,1) = sin(desired_leg_q(11));
-  r_l4l5_(2,2) = cos(desired_leg_q(11));
-
-  r_tl2_ = trunk_leg_transform_l_ * r_l4l5_.transpose() * r_l3l4_.transpose() * r_l2l3_.transpose();
-
-  desired_leg_q(7) = asin(r_tl2_(2,1));
-
-  double c_lq5_ = -R_tl2(0,1)/cos(qd(7));
-  if (c_lq5_ > 1.0)
-  {
-    c_lq5_ =1.0;
-  }
-  else if (c_lq5_ < -1.0)
-  {
-    c_lq5_ = -1.0;
-  }
-
-  desired_leg_q(6) = -asin(c_lq5_);
-  desired_leg_q(8) = -asin(r_tl2_(2,0)/cos(desired_leg_q(7)))+offset_hip_pitch_;
-  desired_leg_q(9) = desired_leg_q(9)- offset_knee_pitch_;
-  desired_leg_q(10) = desired_leg_q(10)- offset_ankle_pitch_;
-
-  //////////////////////////// RIGHT LEG INVERSE KINEMATICS ////////////////////////////
-
-  double rc = rr.norm();
-  desired_leg_q(3) = (- acos((l_upper_*l_upper_ + l_lower_*l_lower_ - rc*rc) / (2*l_upper_*l_lower_))+ 3.141592); // - offset_knee_pitch //+ alpha_lower
-
-  double r_ankle_pitch_ = asin((l_upper_*sin(3.141592-desired_leg_q(3)))/rc);
-  desired_leg_q(4) = -atan2(rr(0), sqrt(rr(1)*rr(1)+rr(2)*rr(2)))-r_ankle_pitch_;
-  desired_leg_q(5) = atan2(rr(1),rr(2));
-
-  Eigen::Matrix3d r_tr2_;
-  Eigen::Matrix3d r_r2r3_;
-  Eigen::Matrix3d r_r3r4_;
-  Eigen::Matrix3d r_r4r5_;
-
-  r_tr2_.setZero();
-  r_r2r3_.setZero();
-  r_r3r4_.setZero();
-  r_r4r5_.setZero();
-
-  r_r2r3_(0,0) = cos(desired_leg_q(3));
-  r_r2r3_(0,2) = sin(desired_leg_q(3));
-  r_r2r3_(1,1) = 1.0;
-  r_r2r3_(2,0) = -sin(desired_leg_q(3));
-  r_r2r3_(2,2) = cos(desired_leg_q(3));
-
-  r_r3r4_(0,0) = cos(desired_leg_q(4));
-  r_r3r4_(0,2) = sin(desired_leg_q(4));
-  r_r3r4_(1,1) = 1.0;
-  r_r3r4_(2,0) = -sin(desired_leg_q(4));
-  r_r3r4_(2,2) = cos(desired_leg_q(4));
-
-  r_r4r5_(0,0) = 1.0;
-  r_r4r5_(1,1) = cos(desired_leg_q(5));
-  r_r4r5_(1,2) = -sin(desired_leg_q(5));
-  r_r4r5_(2,1) = sin(desired_leg_q(5));
-  r_r4r5_(2,2) = cos(desired_leg_q(5));
-
-  r_tr2_ = trunk_leg_transform_r_ * r_r4r5_.transpose() * r_r3r4_.transpose() * r_r2r3_.transpose();
-
-  desired_leg_q(1) = asin(r_tr2_(2,1));
-
-  double c_rq5_ = -r_tr2(0,1)/cos(qd(1));
-  if (c_rq5_ > 1.0)
-  {
-    c_rq5_ =1.0;
-  }
-  else if (c_rq5_ < -1.0)
-  {
-    c_rq5_ = -1.0;
-  }
-
-  desired_leg_q(0) = -asin(c_rq5_);
-  desired_leg_q(2) = -asin(r_tr2_(2,0)/cos(desired_leg_q(1)))+offset_hip_pitch_;
-  desired_leg_q(3) = desired_leg_q(3)- offset_knee_pitch_;
-  desired_leg_q(4) = desired_leg_q(4)- offset_ankle_pitch_;
-
 }
 
 void WalkingController::calculateFootStepSeparate()
@@ -791,9 +641,160 @@ void WalkingController::calculateFootStepSeparate()
   }
 }
 
+void WalkingController::computeIKControl(Eigen::VectorLXd *desired_leg_q)
+{
+  for (int i=0; i<2; i++)
+  {
+    model_.getTransformEndEffector((DyrosJetModel::EndEffector)i, &currnet_leg_transform_[i]);
+  }
+  currnet_leg_transform_l_=currnet_leg_transform_[0];
+  currnet_leg_transform_r_=currnet_leg_transform_[1];
+
+  Eigen::Vector3d lp, rp;
+  //Should revise by dg, Trunk_trajectory_global.translation()
+  lp = currnet_leg_transform_l_.linear().transpose()*(Trunk_trajectory_global.translation()-currnet_leg_transform_l_.translation());
+  rp = currnet_leg_transform_r_.linear().transpose()*(Trunk_trajectory_global.translation()-currnet_leg_transform_r_.translation());
+
+  Eigen::Matrix3d trunk_leg_transform_l_, trunk_leg_transform_r_;
+  trunk_leg_transform_l_ = Trunk_trajectory_global.linear().transpose()*currnet_leg_transform_l_.linear();
+  trunk_leg_transform_r_ = Trunk_trajectory_global.linear().transpose()*currnet_leg_transform_r_.linear();
+
+  Eigen::Vector3d ld, rd;
+  ld.setZero(); rd.setZero();
+  ld(1) = 0.105;
+  ld(2) = -0.1829;
+  rd(1) = -0.105;
+  rd(2) = -0.1829;
+  ld = trunk_leg_transform_l_.transpose() * ld;
+  rd = trunk_leg_transform_r_.transpose() * rd;
+
+  Eigen::Vector3d lr, rr;
+  lr = lp + ld;
+  rr = rp + rd;
+
+  double l_upper_ = 0.3729; // direct length from hip to knee
+  double l_lower_ = 0.3728; //direct length from knee to ankle
+
+  double offset_hip_pitch_ = 24.6271*DEG2RAD;
+  double offset_knee_pitch_ = 15.3655*DEG2RAD;
+  double offset_ankle_pitch_ = 9.2602*DEG2RAD;
+
+  //////////////////////////// LEFT LEG INVERSE KINEMATICS ////////////////////////////
+
+  double lc = lr.norm();
+  desired_leg_q(9) = (- acos((l_upper_*l_upper_ + l_lower_*l_lower_ - lc*lc) / (2*l_upper_*l_lower_))+ 3.141592); // - offset_knee_pitch //+ alpha_lower
+
+  double l_ankle_pitch_ = asin((l_upper_*sin(3.141592-qd(9)))/lc);
+  desired_leg_q(10) = -atan2(lr(0), sqrt(lr(1)*lr(1)+lr(2)*lr(2))) - l_ankle_pitch_;// - offset_ankle_pitch ;
+  desired_leg_q(11) = atan2(lr(1), lr(2));
+
+  Eigen::Matrix3d r_tl2_;
+  Eigen::Matrix3d r_l2l3_;
+  Eigen::Matrix3d r_l3l4_;
+  Eigen::Matrix3d r_l4l5_;
+
+  r_tl2_.setZero();
+  r_l2l3_.setZero();
+  r_l3l4_.setZero();
+  r_l4l5_.setZero();
+
+  r_l2l3_(0,0) = cos(desired_leg_q(9));
+  r_l2l3_(0,2) = sin(desired_leg_q(9));
+  r_l2l3_(1,1) = 1.0;
+  r_l2l3_(2,0) = -sin(desired_leg_q(9));
+  r_l2l3_(2,2) = cos(desired_leg_q(9));
+
+  r_l3l4_(0,0) = cos(desired_leg_q(10));
+  r_l3l4_(0,2) = sin(desired_leg_q(10));
+  r_l3l4_(1,1) = 1.0;
+  r_l3l4_(2,0) = -sin(desired_leg_q(10));
+  r_l3l4_(2,2) = cos(desired_leg_q(10));
+
+  r_l4l5_(0,0) = 1.0;
+  r_l4l5_(1,1) = cos(desired_leg_q(11));
+  r_l4l5_(1,2) = -sin(desired_leg_q(11));
+  r_l4l5_(2,1) = sin(desired_leg_q(11));
+  r_l4l5_(2,2) = cos(desired_leg_q(11));
+
+  r_tl2_ = trunk_leg_transform_l_ * r_l4l5_.transpose() * r_l3l4_.transpose() * r_l2l3_.transpose();
+
+  desired_leg_q(7) = asin(r_tl2_(2,1));
+
+  double c_lq5_ = -R_tl2(0,1)/cos(qd(7));
+  if (c_lq5_ > 1.0)
+  {
+    c_lq5_ =1.0;
+  }
+  else if (c_lq5_ < -1.0)
+  {
+    c_lq5_ = -1.0;
+  }
+
+  desired_leg_q(6) = -asin(c_lq5_);
+  desired_leg_q(8) = -asin(r_tl2_(2,0)/cos(desired_leg_q(7)))+offset_hip_pitch_;
+  desired_leg_q(9) = desired_leg_q(9)- offset_knee_pitch_;
+  desired_leg_q(10) = desired_leg_q(10)- offset_ankle_pitch_;
+
+  //////////////////////////// RIGHT LEG INVERSE KINEMATICS ////////////////////////////
+
+  double rc = rr.norm();
+  desired_leg_q(3) = (- acos((l_upper_*l_upper_ + l_lower_*l_lower_ - rc*rc) / (2*l_upper_*l_lower_))+ 3.141592); // - offset_knee_pitch //+ alpha_lower
+
+  double r_ankle_pitch_ = asin((l_upper_*sin(3.141592-desired_leg_q(3)))/rc);
+  desired_leg_q(4) = -atan2(rr(0), sqrt(rr(1)*rr(1)+rr(2)*rr(2)))-r_ankle_pitch_;
+  desired_leg_q(5) = atan2(rr(1),rr(2));
+
+  Eigen::Matrix3d r_tr2_;
+  Eigen::Matrix3d r_r2r3_;
+  Eigen::Matrix3d r_r3r4_;
+  Eigen::Matrix3d r_r4r5_;
+
+  r_tr2_.setZero();
+  r_r2r3_.setZero();
+  r_r3r4_.setZero();
+  r_r4r5_.setZero();
+
+  r_r2r3_(0,0) = cos(desired_leg_q(3));
+  r_r2r3_(0,2) = sin(desired_leg_q(3));
+  r_r2r3_(1,1) = 1.0;
+  r_r2r3_(2,0) = -sin(desired_leg_q(3));
+  r_r2r3_(2,2) = cos(desired_leg_q(3));
+
+  r_r3r4_(0,0) = cos(desired_leg_q(4));
+  r_r3r4_(0,2) = sin(desired_leg_q(4));
+  r_r3r4_(1,1) = 1.0;
+  r_r3r4_(2,0) = -sin(desired_leg_q(4));
+  r_r3r4_(2,2) = cos(desired_leg_q(4));
+
+  r_r4r5_(0,0) = 1.0;
+  r_r4r5_(1,1) = cos(desired_leg_q(5));
+  r_r4r5_(1,2) = -sin(desired_leg_q(5));
+  r_r4r5_(2,1) = sin(desired_leg_q(5));
+  r_r4r5_(2,2) = cos(desired_leg_q(5));
+
+  r_tr2_ = trunk_leg_transform_r_ * r_r4r5_.transpose() * r_r3r4_.transpose() * r_r2r3_.transpose();
+
+  desired_leg_q(1) = asin(r_tr2_(2,1));
+
+  double c_rq5_ = -r_tr2(0,1)/cos(qd(1));
+  if (c_rq5_ > 1.0)
+  {
+    c_rq5_ =1.0;
+  }
+  else if (c_rq5_ < -1.0)
+  {
+    c_rq5_ = -1.0;
+  }
+
+  desired_leg_q(0) = -asin(c_rq5_);
+  desired_leg_q(2) = -asin(r_tr2_(2,0)/cos(desired_leg_q(1)))+offset_hip_pitch_;
+  desired_leg_q(3) = desired_leg_q(3)- offset_knee_pitch_;
+  desired_leg_q(4) = desired_leg_q(4)- offset_ankle_pitch_;
+
+}
+
 void WalkingController::getZMPTrajectory()
 {
-
   floatToSupportFootstep();
 }
 
@@ -956,6 +957,94 @@ void WalkingController::updateInitialState()
   supportfoot_float_init(0) = 0.0;
   swingfoot_float_init(0) = 0.0;
   }
+}
+
+void WalkingController::getZmpTrajectory()
+{
+  unsigned int planning_step_number  = 3;
+
+  unsigned int norm_size = 0;
+
+  if(current_step_num_ >= total_step_num_ - planning_step_number)
+    norm_size = (_T_Last-_T_Start+1)*(total_step_num_-current_step_num_)+20*Hz;
+  else
+    norm_size = (_T_Last-_T_Start+1)*(planning_step_number);
+
+  if(current_step_num_ == 0)
+    norm_size = norm_size + _T_temp+1;
+
+  addZmpOffset();
+
+}
+
+void WalkingController::addZmpOffset()
+{
+  foot_step_support_frame_offset = foot_step_support_frame_;
+
+  if(foot_step_(0,6) == 0) //left support foot
+  {
+    supportfoot_support_init_offset(1) = supportfoot_support_init(1) + lfoot_zmp_offset;
+    swingfoot_support_init_offset(1) = swingfoot_support_init(1) + rfoot_zmp_offset;
+  }
+  else
+  {
+    supportfoot_support_init_offset(1) = supportfoot_support_init(1) + rfoot_zmp_offset;
+    swingfoot_support_init_offset(1) = swingfoot_support_init(1) + lfoot_zmp_offset;
+  }
+
+  for(int i=0; i<total_step_num_; i++)
+  {
+    if(foot_step_(i,6) == 0)
+    {
+      foot_step_support_frame_offset(i,1) += rfoot_zmp_offset;
+    }
+    else
+    {
+      foot_step_support_frame_offset(i,1) += lfoot_zmp_offset;
+    }
+  }
+}
+
+void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigned planning_step_num)
+{
+  ref_zmp_.resize(norm_size, 2);
+
+  Eigen::VectorXd temp_px;
+  Eigen::VectorXd temp_py;
+
+  unsigned int index =0;
+
+  if(current_step_num_ ==0)
+  {
+    for (int i=0; i<= _T_temp; i++) //200 tick
+    {
+        if(i <= 0.5*Hz)
+        {
+
+            ref_zmp_(i,0) = _init_info._COM_support_init(0)+_COM_offset(0);
+            ref_zmp_(i,1) = _init_info._COM_support_init(1)+_COM_offset(1);
+        }
+        else if(i < 1.5*Hz)
+        {
+
+            double del_x = i-0.5*Hz;
+            ref_zmp_(i,0) = _init_info._COM_support_init(0)+_COM_offset(0)-del_x*(_init_info._COM_support_init(0)+_COM_offset(0))/(1.0*Hz);
+            ref_zmp_(i,1) = _init_info._COM_support_init(1)+_COM_offset(1);
+        }
+        else
+        {
+
+            ref_zmp_(i,0) = 0.0;
+            ref_zmp_(i,1) = _init_info._COM_support_init(1)+_COM_offset(1);
+        }
+
+
+
+        index++;
+    }
+  }
+
+
 }
 
 }
