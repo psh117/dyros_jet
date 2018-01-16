@@ -1335,7 +1335,7 @@ void WalkingController::previewControl(Eigen::Vector3d com_support_init_)
 
 }
 
-void WalkingController::previewControlParameter(double dt)
+void WalkingController::previewControlParameter(double dt, int NL, double gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d gx)
 {
   Eigen::Matrix3d a;
   a.setIdentity();
@@ -1357,14 +1357,21 @@ void WalkingController::previewControlParameter(double dt)
   b_bar(0) = c*b;
   b_bar.segment(1,3) = b;
 
+  Eigen::Matrix1x4d b_bar_tran;
+  b_bar_tran = b_bar.transpose();
+
   Eigen::Vector4d i_p;
   i_p.setZero();
   i_p(0) = 1;
 
+  Eigen::Matrix4x3d f_bar;
+  f_bar.setZero();
+  f_bar.block<1,3>(0,0) = c*a;
+  f_bar.block<3,3>(1,0) = a;
+
   Eigen::Matrix4d a_bar;
   a_bar.block<4,1>(0,0) = i_p;
-  a_bar.block<1,3>(0,1) = c*a;
-  a_bar.block<3,3>(1,1) = a;
+  a_bar.block<4,3>(0,1) = f_bar;
 
   double qe, r;
   qe = 1.0;
@@ -1378,6 +1385,38 @@ void WalkingController::previewControlParameter(double dt)
   q_bar.block<3,3>(1,1) = qx;
 
   k=discreteRicattiEquation(a_bar, b_bar, r, q_bar);
+
+  double temp_mat;
+  temp_mat = r+b_bar_tran*k*b_bar;
+
+  Eigen::Matrix4d ac_bar;
+  ac_bar.setZero();
+  ac_bar = a_bar - b_bar*b_bar_tran*k*a_bar/temp_mat;
+
+  gi = b_bar_tran*k*i_p;
+  gi = gi/temp_mat;
+  gx = b_bar_tran*k*f_bar/temp_mat;
+
+  Eigen::MatrixXd x_l(4, NL);
+  Eigen::Vector4d x_l_column;
+  x_l.setZero();
+  x_l_column.setZero();
+  x_l_column = -ac_bar.transpose()*k*i_p;
+  for(int i=0; i<NL; i++)
+  {
+      x_l.block<4,1>(0,i) = x_l_column;
+      x_l_column = ac_bar.transpose()*x_l_column;
+  }
+  double gp_l_column;
+  gp_l_column = -gi;
+  for(int i=0; i<NL; i++)
+  {
+      gp_l(i) = gp_l_column;
+      gp_l_column = b_bar_tran*x_l.col(i);
+      gp_l_column = gp_l_column/temp_mat;
+  }
+
+
 
 }
 

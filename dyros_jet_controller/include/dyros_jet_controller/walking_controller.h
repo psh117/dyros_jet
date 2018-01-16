@@ -57,7 +57,7 @@ public:
 
   //PreviewController
   void previewControl(Eigen::Vector3d com_support_init_);
-  void previewControlParameter(double dt);
+  void previewControlParameter(double dt, int NL, double gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d gx);
   Eigen::Matrix4d discreteRicattiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q);
 
 
