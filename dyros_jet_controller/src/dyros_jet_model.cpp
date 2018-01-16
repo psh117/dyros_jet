@@ -216,7 +216,7 @@ void DyrosJetModel::getJacobianMatrix7DoF
 
 void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
 {
-  Eigen::Vector3d position_temp;
+  RigidBodyDynamics::Math::Vector3d position_temp;
   position_temp.setZero();
   Eigen::Vector28d qdot;
   qdot.setZero();
@@ -226,6 +226,8 @@ void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
 
   RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp, NULL, NULL, false);
   //RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp);
+
+  *position = position_temp;
 }
 
 }

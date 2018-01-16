@@ -55,6 +55,7 @@ public:
   const Eigen::Isometry3d& getCurrentTrasmfrom(EndEffector ee) { return currnet_transform_[ee]; }
   const Eigen::Matrix<double, 6, 6>& getLegJacobian(EndEffector ee) { return leg_jacobian_[ee]; }
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
+  const Eigen::Vector3d getCurrentCom(){ return com_;}
 
 private:
   RigidBodyDynamics::Model model_;

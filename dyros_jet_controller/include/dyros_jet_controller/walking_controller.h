@@ -35,8 +35,8 @@ public:
   void getFootStep();
   void getComTrajectory();
   void getZmpTrajectory();
-  void computeIkControl(Eigen::VectorLXd *desired_leg_q);
-  void computeJacobianControl();
+  void computeIkControl(Eigen::VectorLXd& desired_leg_q);
+  void computeJacobianControl(Eigen::VectorLXd& desired_leg_q_dot);
   void compensator();
 
   void updateInitialState();
@@ -61,6 +61,7 @@ private:
   double walking_tick = 0;
   double walking_time = 0;
 
+  int ik_mode_;
   bool walking_enable_;
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
   double step_length_x_;
@@ -86,7 +87,7 @@ private:
   //const double &current_time_;
   const unsigned int total_dof_;
   double start_time_[DyrosJetModel::HW_TOTAL_DOF];
-  double end_tisupportfoot_support_init_offsetme_[DyrosJetModel::HW_TOTAL_DOF];
+  double end_time_[DyrosJetModel::HW_TOTAL_DOF];
 
   //Step initial state variable//
   Eigen::Vector3d com_suppport_init_;
@@ -124,6 +125,13 @@ private:
   Eigen::Isometry3d currnet_leg_transform_[2];
   Eigen::Isometry3d currnet_leg_transform_l_;
   Eigen::Isometry3d currnet_leg_transform_r_;
+
+  Eigen::Matrix6d current_leg_jacobian_[2];
+  Eigen::Matrix6d current_leg_jacobian_l_;
+  Eigen::Matrix6d current_leg_jacobian_r_;
+
+  Eigen::VectorLXd desired_leg_q_;
+  Eigen::VectorLXd desired_leg_q_dot_;
 
 
 
