@@ -33,18 +33,16 @@ void WalkingController::compute(VectorQd* desired_q)
       computeJacobianControl(desired_leg_q_dot_);
       for(int i=0; i<6; i++)
       {
-        if(_cnt == 0){
+//        if(_cnt == 0){
 /*          desired_q_(i) = _init_q_(i);
           desired_q_(i+6) = _init_q_(i+6);*/
         }
  /*       desired_q_(i) = desired_leg_q_dot_(i)/hz_+_real_q(i);
-        desired_q_(i+6) = desired_leg_q_dot_(i+6)/hz_+_real_q(i+6);*/ //real_q_와 _init_q_에 대한 정의 필요
+        desired_q_(i+6) = desired_leg_q_dot_(i+6)/hz_+_real_q(i+6);*/ //_cnt, real_q_와 _init_q_에 대한 정의 필요
       }
     }
 
     walking_tick ++;
-  }
-
 }
 
 void WalkingController::setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
@@ -1126,22 +1124,22 @@ void WalkingController::computeJacobianControl(Eigen::VectorLXd& desired_leg_q_d
     desired_leg_q_dot(i) = q_lfoot_dot_(i);
   }
 
-  if(_cnt == 4.5*Hz || _cnt == 7.5*Hz)
+/*  if(_cnt == 4.5*hz_ || _cnt == 7.5*hz)
   {
   cout << "RFOOT J " << _RFoot_J_inv << endl;
   cout << "LFOOT J " << _LFoot_J_inv << endl;
-  }
-  if (_foot_step(_step_number,6) == 0){
+  }*/ // _cnt수정해야해
+//  if (_foot_step(_step_number,6) == 0){ _step_number, _foot_step 수정
       // right foot single support
      //write the com trajectory basd on the right foot and left foot trajectory based on the com
     // cout<<"right SSP"<<endl;
 
-  }
-  else{
+//  }
+//  else{
       //left foot single support
       //write the com trajectory based on the left foot and right foot trajectory based on the com
       //cout<<"Left SSP"<<endl;
-  }
+//  }
 
 }
 
