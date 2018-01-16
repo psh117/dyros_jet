@@ -5,6 +5,8 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
     dyros_jet_msgs
+    imu_3dm_gx4
+    rt_dynamixel_msgs
     geometry_msgs
     roscpp
     roslib
@@ -33,6 +35,7 @@ add_custom_target(dyros_jet_control_headers SOURCES ${HeaderFiles})
 
 
 file(GLOB BRIDGE_SRC
+    "src/real_robot_interface.cpp"
     "src/simulation_interface.cpp"
     "src/control_base.cpp"
     #"include/dyros_jet_controller/dyros_jet_model.h"

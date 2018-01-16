@@ -86,6 +86,7 @@ protected:
   Vector6d left_foot_ft_; // current left ft sensor values
   Vector6d right_foot_ft_; // current right ft sensor values
 
+  tf::Quaternion imu_data_; ///< IMU data with filter
   Vector3d gyro_; // current gyro sensor values
   Vector3d accelometer_; // current accelometer values
 
@@ -99,12 +100,15 @@ protected:
   TaskController task_controller_;
   JointController joint_controller_;
 
+protected:
+  string current_state_;
+  realtime_tools::RealtimePublisher<dyros_jet_msgs::JointState> joint_state_pub_;
+
 private:
   double Hz_; ///< control
   unsigned long tick_;
   double control_time_;
 
-  string current_state_;
   string previous_state_;
 
 
@@ -121,7 +125,8 @@ private:
   realtime_tools::RealtimePublisher<std_msgs::String> smach_pub_;
   ros::Subscriber smach_sub_;
 
-  // realtime_tools::RealtimePublisher<thormang_ctrl_msgs::JointState> joint_state_pub_-;
+
+
 
   void smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg);
   void taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
