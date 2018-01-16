@@ -700,7 +700,7 @@ void WalkingController::getZmpTrajectory()
     norm_size = norm_size + t_temp_+1;
 
   addZmpOffset();
-  zmpGenerator();
+ // zmpGenerator();
 
 }
 
@@ -1327,6 +1327,165 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 //  }
 
 }
+
+void WalkingController::previewControl(Eigen::Vector3d com_support_init_)
+{
+  zc = com_support_init_(2);
+
+
+}
+
+void WalkingController::previewControlParameter(double dt)
+{
+  Eigen::Matrix3d a;
+  a.setIdentity();
+  a(0,1) = dt;
+  a(0,2) = dt*dt/2.0;
+  a(1,2) = dt;
+
+  Eigen::Vector3d b;
+  b(0) =dt*dt*dt/6.0;
+  b(1) =dt*dt/2.0;
+  b(2) =dt;
+
+  Eigen::Matrix1x3d c;
+  c(0,0) = 1;
+  c(0,1) = 0;
+  c(0,2) = zc/GRAVITY;
+
+  Eigen::Vector4d b_bar;
+  b_bar(0) = c*b;
+  b_bar.segment(1,3) = b;
+
+  Eigen::Vector4d i_p;
+  i_p.setZero();
+  i_p(0) = 1;
+
+  Eigen::Matrix4d a_bar;
+  a_bar.block<4,1>(0,0) = i_p;
+  a_bar.block<1,3>(0,1) = c*a;
+  a_bar.block<3,3>(1,1) = a;
+
+  double qe, r;
+  qe = 1.0;
+  r = 0.000001;
+
+  Eigen::Matrix3d qx;
+  qx.setZero();
+  Eigen::Matrix4d q_bar, k;
+  q_bar.setZero();
+  q_bar(0,0) = qe;
+  q_bar.block<3,3>(1,1) = qx;
+
+  k=discreteRicattiEquation(a_bar, b_bar, r, q_bar);
+
+}
+
+
+Eigen::Matrix4d WalkingController::discreteRicattiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q)
+{
+  Eigen::Matrix4d z11, z12, z21, z22;
+  z11 = a.inverse();
+  z12 = a.inverse()*b*b.transpose()/r;
+  z21 = q*a.inverse();
+  z22 = a.transpose() + q*a.inverse()*b*b.transpose()/r;
+
+  Eigen::Matrix8d z;
+  z.setZero();
+  z.topLeftCorner(4,4) = z11;
+  z.topRightCorner(4,4) = z12;
+  z.bottomLeftCorner(4,4) = z21;
+  z.bottomRightCorner(4,4) = z22;
+
+  std::vector<double> eigVal_real(8);
+  std::vector<double> eigVal_img(8);
+  std::vector<Eigen::Vector8d> eigVec_real(8);
+  std::vector<Eigen::Vector8d> eigVec_img(8);
+
+  for(int i=0; i<8; i++)
+  {
+    eigVec_real[i].setZero();
+    eigVec_img[i].setZero();
+  }
+
+  Eigen::Vector8d deigVal_real, deigVal_img;
+  Eigen::Matrix8d deigVec_real, deigVec_img;
+  deigVal_real.setZero();
+  deigVal_img.setZero();
+  deigVec_real.setZero();
+  deigVec_img.setZero();
+  deigVal_real = z.eigenvalues().real();
+  deigVal_img = z.eigenvalues().imag();
+
+  Eigen::EigenSolver<Eigen::Matrix8d> es(z);
+  //EigenVector Solver
+  //Matrix3D ones = Matrix3D::Ones(3,3);
+  //EigenSolver<Matrix3D> es(ones);
+  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << es.eigenvectors().col(1) << endl;
+
+  for(int i=0;i<8; i++)
+  {
+      for(int j=0; j<8; j++)
+      {
+          deigVec_real(j,i) = es.eigenvectors().col(i)(j).real();
+          deigVec_img(j,i) = es.eigenvectors().col(i)(j).imag();
+      }
+  }
+
+  //Order the eigenvectors
+  //move e-vectors correspnding to e-value outside the unite circle to the left
+
+  Eigen::Matrix8x4d tempZ_real, tempZ_img;
+  tempZ_real.setZero();
+  tempZ_img.setZero();
+  int c=0;
+
+  for (int i=0;i<8;i++)
+  {
+      if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
+      {
+          for(int j=0; j<8; j++)
+          {
+              tempZ_real(j,c) = deigVec_real(j,i);
+              tempZ_img(j,c) = deigVec_img(j,i);
+          }
+          c++;
+      }
+  }
+
+  Eigen::Matrix8x4cd tempZ_comp;
+  for(int i=0;i<8;i++)
+  {
+      for(int j=0;j<4;j++)
+      {
+          tempZ_comp.real()(i,j) = tempZ_real(i,j);
+          tempZ_comp.imag()(i,j) = tempZ_img(i,j);
+      }
+  }
+
+  Eigen::Matrix4cd U11, U21, X;
+  for(int i=0;i<4;i++)
+  {
+      for(int j=0;j<4;j++)
+      {
+          U11(i,j) = tempZ_comp(i,j);
+          U21(i,j) = tempZ_comp(i+4,j);
+      }
+  }
+  X = U21*(U11.inverse());
+  Eigen::Matrix4d X_sol;
+  for(int i=0;i<4;i++)
+  {
+      for(int j=0;j<4;j++)
+      {
+          X_sol(i,j) = X.real()(i,j);
+      }
+  }
+
+  return X_sol;
+
+}
+
 
 }
 

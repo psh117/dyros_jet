@@ -55,7 +55,10 @@ public:
   void zmpGenerator(const unsigned int norm_size, const unsigned planning_step_num);
   void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
 
-
+  //PreviewController
+  void previewControl(Eigen::Vector3d com_support_init_);
+  void previewControlParameter(double dt);
+  Eigen::Matrix4d discreteRicattiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q);
 
 
 private:
@@ -156,6 +159,9 @@ private:
 
   Eigen::VectorLXd desired_leg_q_;
   Eigen::VectorLXd desired_leg_q_dot_;
+
+  //Preview Control
+  double zc;
 
 
 
