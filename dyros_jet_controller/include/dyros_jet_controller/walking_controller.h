@@ -31,10 +31,13 @@ public:
   void updateControlMask(unsigned int *mask);
   void writeDesired(const unsigned int *mask, VectorQd& desired_q);
 
+  void parameterSetting();
   //functions in compute
   void getFootStep();
   void getComTrajectory();
   void getZmpTrajectory();
+  void getPelvTrajectory();
+  void getFootTrajectory();
   void computeIkControl(Eigen::VectorLXd& desired_leg_q);
   void computeJacobianControl(Eigen::VectorLXd& desired_leg_q_dot);
   void compensator();
@@ -49,7 +52,8 @@ public:
   //functions for getZMPTrajectory()
   void floatToSupportFootstep();
   void addZmpOffset();
-  void zmpGenerator();
+  void zmpGenerator(const unsigned int norm_size, const unsigned planning_step_num);
+  void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
 
 
 
@@ -58,10 +62,27 @@ private:
 
   const double hz_;
   const double &current_time_; // updated by control_base
-  double walking_tick = 0;
-  double walking_time = 0;
+  double walking_tick_ = 0;
+  double walking_time_ = 0;
+
+  //parameterSetting()
+  double t_last_;
+  double t_start_;
+  double t_temp_;
+  double t_rest_init_;
+  double t_rest_last_;
+  double t_double1_;
+  double t_double2_;
+  double t_total_;
+  double foot_height_;
+
 
   int ik_mode_;
+  int walk_mode_;
+  std::vector<bool> compensator_mode_;
+  int heel_toe_mode_;
+  int is_right_foot_swing_;
+
   bool walking_enable_;
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
   double step_length_x_;
@@ -74,7 +95,7 @@ private:
   double total_step_num_;
   Eigen::MatrixXd foot_step_;
   Eigen::MatrixXd foot_step_support_frame_;
-  Eigen::MatrixXd foot_step_support_frame_offset;
+  Eigen::MatrixXd foot_step_support_frame_offset_;
 
   Eigen::MatrixXd ref_zmp_;
 
@@ -90,25 +111,28 @@ private:
   double end_time_[DyrosJetModel::HW_TOTAL_DOF];
 
   //Step initial state variable//
-  Eigen::Vector3d com_suppport_init_;
   Eigen::Isometry3d pelv_support_init_;
   Eigen::Isometry3d lfoot_support_init_;
   Eigen::Isometry3d rfoot_support_init_;
-  Eigen::Vector3d com_float_init_;
   Eigen::Isometry3d pelv_float_init_;
   Eigen::Isometry3d lfoot_float_init_;
   Eigen::Isometry3d rfoot_float_init_;
   VectorQd q_init_;
 
-  Eigen::Vector3d supportfoot_float_init;
-  Eigen::Vector3d supportfoot_support_init;
-  Eigen::Vector3d supportfoot_support_init_offset;
-  Eigen::Vector3d swingfoot_float_init;
-  Eigen::Vector3d swingfoot_support_init;
-  Eigen::Vector3d swingfoot_support_init_offset;
+  Eigen::Vector3d supportfoot_float_init_;
+  Eigen::Vector3d supportfoot_support_init_;
+  Eigen::Vector3d supportfoot_support_init_offset_;
+  Eigen::Vector3d swingfoot_float_init_;
+  Eigen::Vector3d swingfoot_support_init_;
+  Eigen::Vector3d swingfoot_support_init_offset_;
 
-  Eigen::Vector3d lfoot_zmp_offset;
-  Eigen::Vector3d rfoot_zmp_offset;
+  Eigen::Vector3d com_float_init_;
+  Eigen::Vector3d com_support_init_;
+
+  double lfoot_zmp_offset_;   //have to be initialized
+  double rfoot_zmp_offset_;
+  Eigen::Vector3d com_offset_;
+
   //Step current state variable//
   Eigen::Vector3d com_support_cuurent_;
   Eigen::Isometry3d pelv_support_cuurent_;
@@ -132,6 +156,7 @@ private:
 
   Eigen::VectorLXd desired_leg_q_;
   Eigen::VectorLXd desired_leg_q_dot_;
+
 
 
 
