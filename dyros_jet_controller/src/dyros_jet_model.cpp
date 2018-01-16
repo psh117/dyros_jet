@@ -100,7 +100,7 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
   q_ = q;
   // std::cout << A_ << std::endl<< std::endl<< std::endl<< std::endl;
 
-  //getCenterOfMassPosition(&com_);
+  getCenterOfMassPosition(&com_);
 
   for(unsigned int i=0; i<4; i++)
   {
@@ -213,10 +213,10 @@ void DyrosJetModel::getJacobianMatrix7DoF
   break;
   }
 }
-/*
+
 void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
 {
-  Eigen::Vector3d position_temp;
+  RigidBodyDynamics::Math::Vector3d position_temp;
   position_temp.setZero();
   Eigen::Vector28d qdot;
   qdot.setZero();
@@ -226,6 +226,8 @@ void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
 
   RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp, NULL, NULL, false);
   //RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp);
+
+  *position = position_temp;
 }
-*/
+
 }
