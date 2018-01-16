@@ -29,7 +29,7 @@ def commander():
     rospy.sleep(0.5)
     pub.publish(msg)
     time = 0
-    rospy.sleep(5.)
+    rospy.sleep(8.)
     
     msg.enable = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
     pub.publish(msg)

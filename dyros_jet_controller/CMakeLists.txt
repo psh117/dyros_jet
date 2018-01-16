@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
     )
 find_package(Eigen3 REQUIRED)
 catkin_package(
-    DEPENDS   dyros_jet_msgs geometry_msgs roscpp sensor_msgs std_msgs realtime_tools eigen_conversions
+    DEPENDS   dyros_jet_msgs imu_3dm_gx4 rt_dynamixel_msgs geometry_msgs roscpp sensor_msgs std_msgs realtime_tools eigen_conversions
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS include
     LIBRARIES # TODO

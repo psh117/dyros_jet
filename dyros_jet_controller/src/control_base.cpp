@@ -24,11 +24,12 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
 
   smach_pub_.init(nh, "/transition", 1);
 
-  smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
+  smach_sub_ = nh.subscribe("/Jimin_machine/smach/container_status", 3, &ControlBase::smachCallback, this);
+  //smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
   parameterInitialize();
-  model_.test();
+  // model_.test();
 }
 
 bool ControlBase::checkStateChanged()

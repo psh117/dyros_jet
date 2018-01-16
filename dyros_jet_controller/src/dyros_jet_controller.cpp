@@ -5,10 +5,11 @@
 
 #include <ros/ros.h>
 #include "dyros_jet_controller/simulation_interface.h"
-// #include "hardware_interface.h"
+#include "dyros_jet_controller/real_robot_interface.h"
 
 using namespace dyros_jet_controller;
 
+#include <math.h>
 
 int main(int argc, char **argv)
 {
@@ -28,15 +29,15 @@ int main(int argc, char **argv)
         ROS_INFO("DYROS JET MAIN CONTROLLER - !!! SIMULATION MODE !!!");
         ctr_obj = new SimulationInterface(nh, Hz);
     }
-    else if(mode == "real")
+    else if(mode == "real_robot")
     {
         ROS_INFO("DYROS JET MAIN CONTROLLER - !!! REAL ROBOT MODE !!!");
-        //ctrObj = new realrobot(nh);
-        ROS_ERROR("REAL ROBOT MODE IS NOT IMPLEMENTED YET!!!");
+        ctr_obj = new RealRobotInterface(nh, Hz);
+        //ROS_ERROR("REAL ROBOT MODE IS NOT IMPLEMENTED YET!!!");
     }
     else
     {
-        ROS_FATAL("Please choose simulation or real");
+        ROS_FATAL("Please choose simulation or real_robot");
     }
 
     while(ros::ok())
