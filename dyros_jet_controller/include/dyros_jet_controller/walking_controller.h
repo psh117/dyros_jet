@@ -35,8 +35,8 @@ public:
   void getFootStep();
   void getCOMTrajectory();
   void getZMPTrajectory();
-  void computeIKControl(Eigen::VectorLXd& desired_leg_q);
-  void computeJacobianControl(Eigen::VectorLXd& desired_leg_q_dot);
+  void computeIKControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q);
+  void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q_dot);
   void compensator();
 
   //functions for getFootStep()
