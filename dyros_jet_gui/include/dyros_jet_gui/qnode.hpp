@@ -26,6 +26,8 @@
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int32.h>
 
+#include <dyros_jet_msgs/JointState.h>
+
 #endif
 
 
@@ -73,7 +75,8 @@ public:
     void send_hello_count(const int count);
 
     // thormang_ctrl_msgs::JointState joint_msg;
-    std_msgs::Float32MultiArray recog_info_msg;
+    dyros_jet_msgs::JointState joint_msg_;
+    std_msgs::Float32MultiArray recog_info_msg_;
 
 
 Q_SIGNALS:
@@ -105,7 +108,7 @@ private:
     QStringListModel logging_model;
 
     bool isConnected;
-    // void jointStateCallback(const thormang_ctrl_msgs::JointStateConstPtr& msg);
+    void jointStateCallback(const dyros_jet_msgs::JointStateConstPtr& msg);
     void recogInfoCallback(const std_msgs::Float32MultiArrayConstPtr& msg);
 
 };

@@ -15,6 +15,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   joint_state_pub_.init(nh, "/dyros_jet/joint_state", 3);
   joint_state_pub_.msg_.id.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.angle.resize(DyrosJetModel::HW_TOTAL_DOF);
+  joint_state_pub_.msg_.velocity.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.current.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.error.resize(DyrosJetModel::HW_TOTAL_DOF);
   for (int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
@@ -99,6 +100,17 @@ void ControlBase::compute()
 
 void ControlBase::reflect()
 {
+  for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
+  {
+    joint_state_pub_.msg_.angle[i] = q_(i);
+    joint_state_pub_.msg_.velocity[i] = q_dot_(i);
+    joint_state_pub_.msg_.current[i] = torque_(i);
+  }
+
+  if(joint_state_pub_.trylock())
+  {
+    joint_state_pub_.unlockAndPublish();
+  }
 }
 
 void ControlBase::parameterInitialize()

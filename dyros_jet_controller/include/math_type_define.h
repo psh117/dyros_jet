@@ -69,12 +69,12 @@ static double cubic(double time,     ///< Current time
     x_t = x_0 + x_dot_0 * elapsed_time
 
         + (3 * total_x / total_time2
-           - 2 * x_dot_0 / total_time2
-           - x_dot_f / total_time2)
+           - 2 * x_dot_0 / total_time
+           - x_dot_f / total_time)
         * elapsed_time * elapsed_time
 
         + (-2 * total_x / total_time3 +
-           (x_dot_0 + x_dot_f) / total_time3)
+           (x_dot_0 + x_dot_f) / total_time2)
         * elapsed_time * elapsed_time * elapsed_time;
   }
 
