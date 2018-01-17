@@ -1328,19 +1328,18 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
 }
 
-//void WalkingController::previewControl(int k_, Eigen::Matrix4d k, double dt, Eigen::Vector3d com_support_init_, Eigen::Vector3d xi, Eigen::Vector3d yi, Eigen::Vector3d xs, Eigen::Vector3d ys, Eigen::Matrix3d a, Eigen::Matrix3d b, Eigen::Matrix1x3d c)
-//{
-/*  zc = com_support_init_(2);
+void WalkingController::previewControl(double dt, int NL, int k_, Eigen::Matrix4d k, Eigen::Vector3d x_i, Eigen::Vector3d y_i, Eigen::Vector3d xs, Eigen::Vector3d ys, Eigen::VectorXd& px_ref, Eigen::VectorXd& py_ref, double ux_1 , double uy_1 , double &ux, double &uy, double gi, Eigen::VectorXd gp_l, Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd)
+{ //Preview와 prameter에서 VectorXD로 되있는거 수정해야함
   Eigen::Vector3d x, y, x_1, y_1;
   x.setZero();
   y.setZero();
-  x1.setZero();
-  y1.setZero();
+  x_1.setZero();
+  y_1.setZero();
 
-  if(k==0 && _step_number == 0)
+  if(k_==0 && current_step_num_ == 0)
   {
-    x = xi(0);
-    y = yi(0);
+    x(0) = x_i(0);
+    y(0) = y_i(0);
   }
   else
   {
@@ -1360,17 +1359,34 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
   double px, py;
   px = c*x;
   py = c*y;
+/*
+  xzmp_err = px - px_ref(k_);
+  yzmp_err = py - py_ref(k_);
 
-  xzmp_err = px - px_ref(k);
-  yzmp_err = py - py_ref(k);
-*/
+  double sum_gp_px_ref = 0.0, sum_gp_py_ref =0.0;
+  for(int i = 0; i < NL; i++)
+  {
+      sum_gp_px_ref = sum_gp_px_ref + gp_l(i)*(px_ref(k_+1+i)-px_ref(k_+i));
+      sum_gp_py_ref = sum_gp_py_ref + gp_l(i)*(py_ref(k_+1+i)-py_ref(k_+i));
+  }
+  double gx_x, gx_y, del_ux, del_uy;
+  gx_x = gx*(x-x_1);
+  gx_y = gx*(y-y_1);
 
+  del_ux = -(xzmp_err*gi)-gx_x-sum_gp_px_ref;
+  del_uy = -(yzmp_err*gi)-gx_y-sum_gp_py_ref;
 
+  ux = ux_1 + del_ux;
+  uy = uy_1 + del_uy;
 
-//}
+  xd = a*x + a*ux;
+  yd = a*y + b*uy;*/
 
-void WalkingController::previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c)
+}
+
+void WalkingController::previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c)
 {
+  zc = com_support_init_(2);
   a.setIdentity();
   a(0,1) = dt;
   a(0,2) = dt*dt/2.0;

@@ -56,8 +56,11 @@ public:
   void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
 
   //PreviewController
-  //void previewControl(Eigen::Vector3d com_support_init_);
-  void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
+  void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k, Eigen::Vector3d x_i, Eigen::Vector3d y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
+                      Eigen::VectorXd& px_ref, Eigen::VectorXd& py_ref, double ux_1 , double uy_1 , double &ux, double &uy, double gi, Eigen::VectorXd gp_l,
+                      Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd);
+  void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
+                               Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
   Eigen::Matrix4d discreteRicattiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q);
 
 
