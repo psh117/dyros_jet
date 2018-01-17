@@ -700,7 +700,7 @@ void WalkingController::getZmpTrajectory()
     norm_size = norm_size + t_temp_+1;
 
   addZmpOffset();
- // zmpGenerator();
+  //zmpGenerator();
 
 }
 
@@ -1325,6 +1325,20 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
       //write the com trajectory based on the left foot and right foot trajectory based on the com
       //cout<<"Left SSP"<<endl;
 //  }
+
+}
+
+void WalkingController::modifiedPreviewControl(int norm_size)
+{
+  if(walking_tick_==0)
+    previewControlParameter(1.0/hz_, 16*hz_/10, _k ,com_support_init_, _gi, _gp_l, _gx, _a, _b, _c);
+  if(current_step_num_ == 0)
+    zmp_start_time_ = 0.0;
+  else
+    zmp_start_time_ = t_start_;
+  Eigen::VectorXd px_ref, py_ref;
+  norm_size
+
 
 }
 
