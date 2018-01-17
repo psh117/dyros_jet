@@ -15,13 +15,12 @@ void WalkingController::compute(VectorQd* desired_q)
   /*getFootStep();
     getComTrajectory();
     getZmpTrajectory();
-
   */
 
     //////compute//////////////////
     if (ik_mode_ == 0)
     {
-      computeIkControl(desired_leg_q_);
+     // computeIkControl(desired_leg_q_);
       for(int i=0; i<6; i++)
       {
         desired_q_(i) = desired_leg_q_(i);
@@ -30,7 +29,7 @@ void WalkingController::compute(VectorQd* desired_q)
     }
     else if (ik_mode_ == 1)
     {
-      computeJacobianControl(desired_leg_q_dot_);
+//      computeJacobianControl(desired_leg_q_dot_);
       for(int i=0; i<6; i++)
       {
 //        if(_cnt == 0){
@@ -717,7 +716,11 @@ void WalkingController::getZmpTrajectory()
     norm_size = norm_size + t_temp_+1;
 
   addZmpOffset();
+<<<<<<< HEAD
   zmpGenerator(norm_size, planning_step_number);
+=======
+ // zmpGenerator();
+>>>>>>> fbf671056135805abc8d15ee91d98ecc5f6e6bee
 
 }
 
@@ -1123,6 +1126,7 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
   }
 }
 
+<<<<<<< HEAD
 void WalkingController::getPelvTrajectory()
 {
 
@@ -1377,22 +1381,25 @@ void WalkingController::getFootTrajectory()
 }
 
 void WalkingController::computeIkControl(Eigen::VectorLXd& desired_leg_q)
+=======
+void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q)
+>>>>>>> fbf671056135805abc8d15ee91d98ecc5f6e6bee
 {
-  for (int i=2; i<4; i++)
+ /* for (int i=2; i<4; i++)
   {
     currnet_leg_transform_[i-2]=model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
   }
   currnet_leg_transform_l_=currnet_leg_transform_[0];
-  currnet_leg_transform_r_=currnet_leg_transform_[1];
+  currnet_leg_transform_r_=currnet_leg_transform_[1];*/
 
   Eigen::Vector3d lp, rp;
   //Should revise by dg, Trunk_trajectory_global.translation()
-  lp = currnet_leg_transform_l_.linear().transpose()*(Trunk_trajectory_global.translation()-currnet_leg_transform_l_.translation());
-  rp = currnet_leg_transform_r_.linear().transpose()*(Trunk_trajectory_global.translation()-currnet_leg_transform_r_.translation());
+  lp = float_lleg_transform.linear().transpose()*(float_trunk_transform.translation()-float_lleg_transform.translation());
+  rp = float_rleg_transform.linear().transpose()*(float_trunk_transform.translation()-float_rleg_transform.translation());
 
-  Eigen::Matrix3d trunk_leg_transform_l_, trunk_leg_transform_r_;
-  trunk_leg_transform_l_ = Trunk_trajectory_global.linear().transpose()*currnet_leg_transform_l_.linear();
-  trunk_leg_transform_r_ = Trunk_trajectory_global.linear().transpose()*currnet_leg_transform_r_.linear();
+  Eigen::Matrix3d trunk_lleg_rotation,trunk_rleg_rotation;
+  trunk_lleg_rotation = float_trunk_transform.linear().transpose()*float_lleg_transform.linear();
+  trunk_rleg_rotation = float_trunk_transform.linear().transpose()*float_rleg_transform.linear();
 
   Eigen::Vector3d ld, rd;
   ld.setZero(); rd.setZero();
@@ -1400,108 +1407,108 @@ void WalkingController::computeIkControl(Eigen::VectorLXd& desired_leg_q)
   ld(2) = -0.1829;
   rd(1) = -0.105;
   rd(2) = -0.1829;
-  ld = trunk_leg_transform_l_.transpose() * ld;
-  rd = trunk_leg_transform_r_.transpose() * rd;
+  ld = trunk_lleg_rotation.transpose() * ld;
+  rd = trunk_rleg_rotation.transpose() * rd;
 
   Eigen::Vector3d lr, rr;
   lr = lp + ld;
   rr = rp + rd;
 
-  double l_upper_ = 0.3729; // direct length from hip to knee
-  double l_lower_ = 0.3728; //direct length from knee to ankle
+  double l_upper = 0.3729; // direct length from hip to knee
+  double l_lower = 0.3728; //direct length from knee to ankle
 
-  double offset_hip_pitch_ = 24.6271*DEG2RAD;
-  double offset_knee_pitch_ = 15.3655*DEG2RAD;
-  double offset_ankle_pitch_ = 9.2602*DEG2RAD;
+  double offset_hip_pitch = 24.6271*DEG2RAD;
+  double offset_knee_pitch = 15.3655*DEG2RAD;
+  double offset_ankle_pitch = 9.2602*DEG2RAD;
 
   //////////////////////////// LEFT LEG INVERSE KINEMATICS ////////////////////////////
 
   double lc = lr.norm();
-  desired_leg_q(3) = (- acos((l_upper_*l_upper_ + l_lower_*l_lower_ - lc*lc) / (2*l_upper_*l_lower_))+ 3.141592); // - offset_knee_pitch //+ alpha_lower
+  desired_leg_q(3) = (- acos((l_upper*l_upper + l_lower*l_lower - lc*lc) / (2*l_upper*l_lower))+ 3.141592); // - offset_knee_pitch //+ alpha_lower
 
-  double l_ankle_pitch_ = asin((l_upper_*sin(3.141592-desired_leg_q(3)))/lc);
-  desired_leg_q(4) = -atan2(lr(0), sqrt(lr(1)*lr(1)+lr(2)*lr(2))) - l_ankle_pitch_;// - offset_ankle_pitch ;
+  double l_ankle_pitch = asin((l_upper*sin(3.141592-desired_leg_q(3)))/lc);
+  desired_leg_q(4) = -atan2(lr(0), sqrt(lr(1)*lr(1)+lr(2)*lr(2))) - l_ankle_pitch;// - offset_ankle_pitch ;
   desired_leg_q(5) = atan2(lr(1), lr(2));
 
-  Eigen::Matrix3d r_tl2_;
-  Eigen::Matrix3d r_l2l3_;
-  Eigen::Matrix3d r_l3l4_;
-  Eigen::Matrix3d r_l4l5_;
+  Eigen::Matrix3d r_tl2;
+  Eigen::Matrix3d r_l2l3;
+  Eigen::Matrix3d r_l3l4;
+  Eigen::Matrix3d r_l4l5;
 
-  r_tl2_.setZero();
-  r_l2l3_.setZero();
-  r_l3l4_.setZero();
-  r_l4l5_.setZero();
+  r_tl2.setZero();
+  r_l2l3.setZero();
+  r_l3l4.setZero();
+  r_l4l5.setZero();
 
-  r_l2l3_ = DyrosMath::rotateWithY(desired_leg_q(3));
-  r_l3l4_ = DyrosMath::rotateWithY(desired_leg_q(4));
-  r_l4l5_ = DyrosMath::rotateWithX(desired_leg_q(5));
+  r_l2l3 = DyrosMath::rotateWithY(desired_leg_q(3));
+  r_l3l4 = DyrosMath::rotateWithY(desired_leg_q(4));
+  r_l4l5 = DyrosMath::rotateWithX(desired_leg_q(5));
 
-  r_tl2_ = trunk_leg_transform_l_ * r_l4l5_.transpose() * r_l3l4_.transpose() * r_l2l3_.transpose();
+  r_tl2 = trunk_lleg_rotation * r_l4l5.transpose() * r_l3l4.transpose() * r_l2l3.transpose();
 
-  desired_leg_q(1) = asin(r_tl2_(2,1));
+  desired_leg_q(1) = asin(r_tl2(2,1));
 
-  double c_lq5_ = -r_tl2_(0,1)/cos(desired_leg_q(1));
-  if (c_lq5_ > 1.0)
+  double c_lq5 = -r_tl2(0,1)/cos(desired_leg_q(1));
+  if (c_lq5 > 1.0)
   {
-    c_lq5_ =1.0;
+    c_lq5 =1.0;
   }
-  else if (c_lq5_ < -1.0)
+  else if (c_lq5 < -1.0)
   {
-    c_lq5_ = -1.0;
+    c_lq5 = -1.0;
   }
 
-  desired_leg_q(0) = -asin(c_lq5_);
-  desired_leg_q(2) = -asin(r_tl2_(2,0)/cos(desired_leg_q(7)))+offset_hip_pitch_;
-  desired_leg_q(3) = desired_leg_q(9)- offset_knee_pitch_;
-  desired_leg_q(4) = desired_leg_q(10)- offset_ankle_pitch_;
+  desired_leg_q(0) = -asin(c_lq5);
+  desired_leg_q(2) = -asin(r_tl2(2,0)/cos(desired_leg_q(7)))+offset_hip_pitch;
+  desired_leg_q(3) = desired_leg_q(9)- offset_knee_pitch;
+  desired_leg_q(4) = desired_leg_q(10)- offset_ankle_pitch;
 
   //////////////////////////// RIGHT LEG INVERSE KINEMATICS ////////////////////////////
 
   double rc = rr.norm();
-  desired_leg_q(9) = (- acos((l_upper_*l_upper_ + l_lower_*l_lower_ - rc*rc) / (2*l_upper_*l_lower_))+ 3.141592); // - offset_knee_pitch //+ alpha_lower
+  desired_leg_q(9) = (- acos((l_upper*l_upper + l_lower*l_lower - rc*rc) / (2*l_upper*l_lower))+ 3.141592); // - offset_knee_pitch //+ alpha_lower
 
-  double r_ankle_pitch_ = asin((l_upper_*sin(3.141592-desired_leg_q(3)))/rc);
-  desired_leg_q(10) = -atan2(rr(0), sqrt(rr(1)*rr(1)+rr(2)*rr(2)))-r_ankle_pitch_;
+  double r_ankle_pitch = asin((l_upper*sin(3.141592-desired_leg_q(3)))/rc);
+  desired_leg_q(10) = -atan2(rr(0), sqrt(rr(1)*rr(1)+rr(2)*rr(2)))-r_ankle_pitch;
   desired_leg_q(11) = atan2(rr(1),rr(2));
 
-  Eigen::Matrix3d r_tr2_;
-  Eigen::Matrix3d r_r2r3_;
-  Eigen::Matrix3d r_r3r4_;
-  Eigen::Matrix3d r_r4r5_;
+  Eigen::Matrix3d r_tr2;
+  Eigen::Matrix3d r_r2r3;
+  Eigen::Matrix3d r_r3r4;
+  Eigen::Matrix3d r_r4r5;
 
-  r_tr2_.setZero();
-  r_r2r3_.setZero();
-  r_r3r4_.setZero();
-  r_r4r5_.setZero();
+  r_tr2.setZero();
+  r_r2r3.setZero();
+  r_r3r4.setZero();
+  r_r4r5.setZero();
 
-  r_r2r3_ = DyrosMath::rotateWithY(desired_leg_q(9));
-  r_r3r4_ = DyrosMath::rotateWithY(desired_leg_q(10));
-  r_r4r5_ = DyrosMath::rotateWithX(desired_leg_q(11));
+  r_r2r3 = DyrosMath::rotateWithY(desired_leg_q(9));
+  r_r3r4 = DyrosMath::rotateWithY(desired_leg_q(10));
+  r_r4r5 = DyrosMath::rotateWithX(desired_leg_q(11));
 
-  r_tr2_ = trunk_leg_transform_r_ * r_r4r5_.transpose() * r_r3r4_.transpose() * r_r2r3_.transpose();
+  r_tr2 = trunk_rleg_rotation * r_r4r5.transpose() * r_r3r4.transpose() * r_r2r3.transpose();
 
-  desired_leg_q(7) = asin(r_tr2_(2,1));
+  desired_leg_q(7) = asin(r_tr2(2,1));
 
-  double c_rq5_ = -r_tr2_(0,1)/cos(desired_leg_q(7));
-  if (c_rq5_ > 1.0)
+  double c_rq5 = -r_tr2(0,1)/cos(desired_leg_q(7));
+  if (c_rq5 > 1.0)
   {
-    c_rq5_ =1.0;
+    c_rq5 =1.0;
   }
-  else if (c_rq5_ < -1.0)
+  else if (c_rq5 < -1.0)
   {
-    c_rq5_ = -1.0;
+    c_rq5 = -1.0;
   }
 
-  desired_leg_q(6) = -asin(c_rq5_);
-  desired_leg_q(8) = -asin(r_tr2_(2,0)/cos(desired_leg_q(7)))+offset_hip_pitch_;
-  desired_leg_q(9) = desired_leg_q(9)- offset_knee_pitch_;
-  desired_leg_q(10) = desired_leg_q(10)- offset_ankle_pitch_;
+  desired_leg_q(6) = -asin(c_rq5);
+  desired_leg_q(8) = -asin(r_tr2(2,0)/cos(desired_leg_q(7)))+offset_hip_pitch;
+  desired_leg_q(9) = desired_leg_q(9)- offset_knee_pitch;
+  desired_leg_q(10) = desired_leg_q(10)- offset_ankle_pitch;
 
 }
 
 
-void WalkingController::computeJacobianControl(Eigen::VectorLXd& desired_leg_q_dot)
+void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q_dot)
 {
   for (int i=0; i<2; i++)
   {
@@ -1510,15 +1517,15 @@ void WalkingController::computeJacobianControl(Eigen::VectorLXd& desired_leg_q_d
   current_leg_jacobian_l_=current_leg_jacobian_[0];
   current_leg_jacobian_r_=current_leg_jacobian_[1];
 
-  Eigen::Matrix6d jacobian_temp_l_, jacobian_temp_r_, current_leg_jacobian_l_inv_, current_leg_jacobian_r_inv_,
+  Eigen::Matrix6d jacobian_temp_l, jacobian_temp_r, current_leg_jacobian_l_inv, current_leg_jacobian_r_inv,
       J_Damped;
   double wl, wr, w0, lambda, a;
   w0 = 0.001;
   lambda = 0.05;
-  jacobian_temp_l_=current_leg_jacobian_l_*current_leg_jacobian_l_.transpose();
-  jacobian_temp_r_=current_leg_jacobian_r_*current_leg_jacobian_r_.transpose();
-  wr = sqrt(jacobian_temp_l_.determinant());
-  wl = sqrt(jacobian_temp_r_.determinant());
+  jacobian_temp_l=current_leg_jacobian_l_*current_leg_jacobian_l_.transpose();
+  jacobian_temp_r=current_leg_jacobian_r_*current_leg_jacobian_r_.transpose();
+  wr = sqrt(jacobian_temp_l.determinant());
+  wl = sqrt(jacobian_temp_r.determinant());
 
   if (wr<=w0)
   { //Right Jacobi
@@ -1527,11 +1534,11 @@ void WalkingController::computeJacobianControl(Eigen::VectorLXd& desired_leg_q_d
     J_Damped = J_Damped.inverse();
 
     cout << "Singularity Region of right leg: " << wr << endl;
-    current_leg_jacobian_r_inv_ = current_leg_jacobian_r_.transpose()*J_Damped;
+    current_leg_jacobian_r_inv = current_leg_jacobian_r_.transpose()*J_Damped;
   }
   else
   {
-    current_leg_jacobian_r_inv_ = DyrosMath::pinv(current_leg_jacobian_r_);
+    current_leg_jacobian_r_inv = DyrosMath::pinv(current_leg_jacobian_r_);
   }
 
   if (wl<=w0)
@@ -1541,11 +1548,11 @@ void WalkingController::computeJacobianControl(Eigen::VectorLXd& desired_leg_q_d
     J_Damped = J_Damped.inverse();
 
     cout << "Singularity Region of right leg: " << wr << endl;
-    current_leg_jacobian_l_inv_ = current_leg_jacobian_l_.transpose()*J_Damped;
+    current_leg_jacobian_l_inv = current_leg_jacobian_l_.transpose()*J_Damped;
   }
   else
   {
-    current_leg_jacobian_l_inv_ = DyrosMath::pinv(current_leg_jacobian_r_);
+    current_leg_jacobian_l_inv = DyrosMath::pinv(current_leg_jacobian_r_);
   }
 
   Eigen::Matrix6d kp; // for setting CLIK gains
@@ -1566,25 +1573,25 @@ void WalkingController::computeJacobianControl(Eigen::VectorLXd& desired_leg_q_d
 
   Eigen::Vector6d lp, rp;
   lp.setZero(); rp.setZero();
-  lp.topRows<3>() = Foot_trajectory_global.LFoot.linear().transpose()*(-currnet_leg_transform_l_.translation()+Foot_trajectory_global.LFoot.translation()); //Foot_Trajectory should revise
-  rp.topRows<3>() = Foot_trajectory_global.RFoot.linear().transpose()*(-currnet_leg_transform_r_.translation()+Foot_trajectory_global.RFoot.translation());
+  lp.topRows<3>() = float_lleg_transform.linear().transpose()*(-currnet_leg_transform_l_.translation()+float_lleg_transform.translation()); //Foot_Trajectory should revise
+  rp.topRows<3>() = float_rleg_transform.linear().transpose()*(-currnet_leg_transform_r_.translation()+float_rleg_transform.translation());
 
-  Eigen::Vector3d r_leg_phi_, l_leg_phi_;
-  r_leg_phi_ = DyrosMath::getPhi(currnet_leg_transform_r_.linear(),Foot_trajectory_global.RFoot_euler);
-  l_leg_phi_ = DyrosMath::getPhi(currnet_leg_transform_l_.linear(),Foot_trajectory_global.lFoot_euler);
+  Eigen::Vector3d r_leg_phi, l_leg_phi;
+  /*r_leg_phi_ = DyrosMath::getPhi(currnet_leg_transform_r_.linear(),float_rleg_transform,translation());
+  l_leg_phi_ = DyrosMath::getPhi(currnet_leg_transform_l_.linear(),float_lleg_transform,translation());*/
   //1.15, Getphi의 phi 값 부호가 반대가 되야 할수도 있음
 
-  lp.bottomRows<3>() = - l_leg_phi_;
-  rp.bottomRows<3>() = - r_leg_phi_;
+  lp.bottomRows<3>() = - l_leg_phi;
+  rp.bottomRows<3>() = - r_leg_phi;
 
-  Eigen::Vector6d q_lfoot_dot_,q_rfoot_dot_;
-  q_lfoot_dot_=current_leg_jacobian_l_inv_*kp*lp;
-  q_rfoot_dot_=current_leg_jacobian_r_inv_*kp*rp;
+  Eigen::Vector6d q_lfoot_dot,q_rfoot_dot;
+  q_lfoot_dot=current_leg_jacobian_l_inv*kp*lp;
+  q_rfoot_dot=current_leg_jacobian_r_inv*kp*rp;
 
   for (int i=0; i<6; i++)
   {
-    desired_leg_q_dot(i+6) = q_rfoot_dot_(i+6);
-    desired_leg_q_dot(i) = q_lfoot_dot_(i);
+    desired_leg_q_dot(i+6) = q_rfoot_dot(i+6);
+    desired_leg_q_dot(i) = q_lfoot_dot(i);
   }
 
 /*  if(_cnt == 4.5*hz_ || _cnt == 7.5*hz_)
@@ -1605,6 +1612,249 @@ void WalkingController::computeJacobianControl(Eigen::VectorLXd& desired_leg_q_d
 //  }
 
 }
+
+void WalkingController::previewControl(double dt, int NL, int k_, Eigen::Matrix4d k, Eigen::Vector3d x_i, Eigen::Vector3d y_i, Eigen::Vector3d xs, Eigen::Vector3d ys, Eigen::VectorXd& px_ref, Eigen::VectorXd& py_ref, double ux_1 , double uy_1 , double &ux, double &uy, double gi, Eigen::VectorXd gp_l, Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd)
+{ //Preview와 prameter에서 VectorXD로 되있는거 수정해야함
+  Eigen::Vector3d x, y, x_1, y_1;
+  x.setZero();
+  y.setZero();
+  x_1.setZero();
+  y_1.setZero();
+
+  if(k_==0 && current_step_num_ == 0)
+  {
+    x(0) = x_i(0);
+    y(0) = y_i(0);
+  }
+  else
+  {
+   x = xs;
+   y = ys;
+  }
+
+  x_1(0) = x(0)-x(1)*dt;
+  x_1(1) = x(1)-x(2)*dt;
+  x_1(2) = x(2);
+  y_1(0) = y(0)-y(1)*dt;
+  y_1(1) = y(1)-y(2)*dt;
+  y_1(2) = y(2);
+
+  double xzmp_err =0.0, yzmp_err = 0.0;
+
+  double px, py;
+  px = c*x;
+  py = c*y;
+/*
+  xzmp_err = px - px_ref(k_);
+  yzmp_err = py - py_ref(k_);
+
+  double sum_gp_px_ref = 0.0, sum_gp_py_ref =0.0;
+  for(int i = 0; i < NL; i++)
+  {
+      sum_gp_px_ref = sum_gp_px_ref + gp_l(i)*(px_ref(k_+1+i)-px_ref(k_+i));
+      sum_gp_py_ref = sum_gp_py_ref + gp_l(i)*(py_ref(k_+1+i)-py_ref(k_+i));
+  }
+  double gx_x, gx_y, del_ux, del_uy;
+  gx_x = gx*(x-x_1);
+  gx_y = gx*(y-y_1);
+
+  del_ux = -(xzmp_err*gi)-gx_x-sum_gp_px_ref;
+  del_uy = -(yzmp_err*gi)-gx_y-sum_gp_py_ref;
+
+  ux = ux_1 + del_ux;
+  uy = uy_1 + del_uy;
+
+  xd = a*x + a*ux;
+  yd = a*y + b*uy;*/
+
+}
+
+void WalkingController::previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c)
+{
+  zc = com_support_init_(2);
+  a.setIdentity();
+  a(0,1) = dt;
+  a(0,2) = dt*dt/2.0;
+  a(1,2) = dt;
+  b(0) =dt*dt*dt/6.0;
+  b(1) =dt*dt/2.0;
+  b(2) =dt;
+  c(0,0) = 1;
+  c(0,1) = 0;
+  c(0,2) = zc/GRAVITY;
+
+  Eigen::Vector4d b_bar;
+  b_bar(0) = c*b;
+  b_bar.segment(1,3) = b;
+
+  Eigen::Matrix1x4d b_bar_tran;
+  b_bar_tran = b_bar.transpose();
+
+  Eigen::Vector4d i_p;
+  i_p.setZero();
+  i_p(0) = 1;
+
+  Eigen::Matrix4x3d f_bar;
+  f_bar.setZero();
+  f_bar.block<1,3>(0,0) = c*a;
+  f_bar.block<3,3>(1,0) = a;
+
+  Eigen::Matrix4d a_bar;
+  a_bar.block<4,1>(0,0) = i_p;
+  a_bar.block<4,3>(0,1) = f_bar;
+
+  double qe, r;
+  qe = 1.0;
+  r = 0.000001;
+
+  Eigen::Matrix3d qx;
+  qx.setZero();
+  Eigen::Matrix4d q_bar;
+  q_bar.setZero();
+  q_bar(0,0) = qe;
+  q_bar.block<3,3>(1,1) = qx;
+
+  k=discreteRicattiEquation(a_bar, b_bar, r, q_bar);
+
+  double temp_mat;
+  temp_mat = r+b_bar_tran*k*b_bar;
+
+  Eigen::Matrix4d ac_bar;
+  ac_bar.setZero();
+  ac_bar = a_bar - b_bar*b_bar_tran*k*a_bar/temp_mat;
+
+  gi = b_bar_tran*k*i_p;
+  gi = gi/temp_mat;
+  gx = b_bar_tran*k*f_bar/temp_mat;
+
+  Eigen::MatrixXd x_l(4, NL);
+  Eigen::Vector4d x_l_column;
+  x_l.setZero();
+  x_l_column.setZero();
+  x_l_column = -ac_bar.transpose()*k*i_p;
+  for(int i=0; i<NL; i++)
+  {
+      x_l.block<4,1>(0,i) = x_l_column;
+      x_l_column = ac_bar.transpose()*x_l_column;
+  }
+  double gp_l_column;
+  gp_l_column = -gi;
+  for(int i=0; i<NL; i++)
+  {
+      gp_l(i) = gp_l_column;
+      gp_l_column = b_bar_tran*x_l.col(i);
+      gp_l_column = gp_l_column/temp_mat;
+  }
+
+
+
+}
+
+
+Eigen::Matrix4d WalkingController::discreteRicattiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q)
+{
+  Eigen::Matrix4d z11, z12, z21, z22;
+  z11 = a.inverse();
+  z12 = a.inverse()*b*b.transpose()/r;
+  z21 = q*a.inverse();
+  z22 = a.transpose() + q*a.inverse()*b*b.transpose()/r;
+
+  Eigen::Matrix8d z;
+  z.setZero();
+  z.topLeftCorner(4,4) = z11;
+  z.topRightCorner(4,4) = z12;
+  z.bottomLeftCorner(4,4) = z21;
+  z.bottomRightCorner(4,4) = z22;
+
+  std::vector<double> eigVal_real(8);
+  std::vector<double> eigVal_img(8);
+  std::vector<Eigen::Vector8d> eigVec_real(8);
+  std::vector<Eigen::Vector8d> eigVec_img(8);
+
+  for(int i=0; i<8; i++)
+  {
+    eigVec_real[i].setZero();
+    eigVec_img[i].setZero();
+  }
+
+  Eigen::Vector8d deigVal_real, deigVal_img;
+  Eigen::Matrix8d deigVec_real, deigVec_img;
+  deigVal_real.setZero();
+  deigVal_img.setZero();
+  deigVec_real.setZero();
+  deigVec_img.setZero();
+  deigVal_real = z.eigenvalues().real();
+  deigVal_img = z.eigenvalues().imag();
+
+  Eigen::EigenSolver<Eigen::Matrix8d> es(z);
+  //EigenVector Solver
+  //Matrix3D ones = Matrix3D::Ones(3,3);
+  //EigenSolver<Matrix3D> es(ones);
+  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << es.eigenvectors().col(1) << endl;
+
+  for(int i=0;i<8; i++)
+  {
+      for(int j=0; j<8; j++)
+      {
+          deigVec_real(j,i) = es.eigenvectors().col(i)(j).real();
+          deigVec_img(j,i) = es.eigenvectors().col(i)(j).imag();
+      }
+  }
+
+  //Order the eigenvectors
+  //move e-vectors correspnding to e-value outside the unite circle to the left
+
+  Eigen::Matrix8x4d tempZ_real, tempZ_img;
+  tempZ_real.setZero();
+  tempZ_img.setZero();
+  int c=0;
+
+  for (int i=0;i<8;i++)
+  {
+      if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
+      {
+          for(int j=0; j<8; j++)
+          {
+              tempZ_real(j,c) = deigVec_real(j,i);
+              tempZ_img(j,c) = deigVec_img(j,i);
+          }
+          c++;
+      }
+  }
+
+  Eigen::Matrix8x4cd tempZ_comp;
+  for(int i=0;i<8;i++)
+  {
+      for(int j=0;j<4;j++)
+      {
+          tempZ_comp.real()(i,j) = tempZ_real(i,j);
+          tempZ_comp.imag()(i,j) = tempZ_img(i,j);
+      }
+  }
+
+  Eigen::Matrix4cd U11, U21, X;
+  for(int i=0;i<4;i++)
+  {
+      for(int j=0;j<4;j++)
+      {
+          U11(i,j) = tempZ_comp(i,j);
+          U21(i,j) = tempZ_comp(i+4,j);
+      }
+  }
+  X = U21*(U11.inverse());
+  Eigen::Matrix4d X_sol;
+  for(int i=0;i<4;i++)
+  {
+      for(int j=0;j<4;j++)
+      {
+          X_sol(i,j) = X.real()(i,j);
+      }
+  }
+
+  return X_sol;
+
+}
+
 
 }
 
