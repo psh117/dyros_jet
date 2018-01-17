@@ -52,7 +52,7 @@ DyrosJetModel::DyrosJetModel() :
   std::string urdf_path = desc_package_path + "/robots/dyros_jet_robot.urdf";
 
   ROS_INFO("Loading DYROS JET description from = %s",urdf_path.c_str());
-  RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true,true);
+  RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true, false);
   ROS_INFO("Successfully loaded.");
   ROS_INFO("Total DoF = %d", model_.dof_count);
   ROS_INFO("Total DoF = %d", model_.q_size);

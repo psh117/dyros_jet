@@ -2,7 +2,7 @@
 
 namespace dyros_jet_controller
 {
-
+ 
 JointController::JointController(const VectorQd& current_q, const double& control_time) :
   current_q_(current_q), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF),
   start_time_{}, end_time_{}

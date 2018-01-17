@@ -16,10 +16,6 @@ class SimulationInterface : public ControlBase{
 public:
   SimulationInterface(ros::NodeHandle &nh, double Hz); // constructor for initialize node
   virtual ~SimulationInterface() { vrepStop(); }
-  void vrepStart();
-  void vrepStop();
-  void vrepStepTrigger();
-  void vrepEnableSyncMode();
 
   virtual void update() override; // update controller based on readdevice
   virtual void compute() override; // compute algorithm and update all class object
@@ -33,6 +29,14 @@ private:  // CALLBACK
   void leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
   void rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
   void imuCallback(const sensor_msgs::ImuConstPtr& msg);
+
+
+
+private:
+  void vrepStart();
+  void vrepStop();
+  void vrepStepTrigger();
+  void vrepEnableSyncMode();
 
 private:
 

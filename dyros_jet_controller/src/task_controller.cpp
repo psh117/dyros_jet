@@ -60,10 +60,17 @@ void TaskController::updateControlMask(unsigned int *mask)
       if (mask[i] >= PRIORITY * 2)
       {
         // Higher priority task detected
-
-        target_transform_[i] = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index);
-        end_time_[i] = control_time_;
-
+        ee_enabled_[index] = false;
+        target_transform_[index] = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index);
+        end_time_[index] = control_time_;
+        if (index < 2)  // Legs
+        {
+          desired_q_.segment<6>(model_.joint_start_index_[index]) = current_q_.segment<6>(model_.joint_start_index_[index]);
+        }
+        else
+        {
+          desired_q_.segment<7>(model_.joint_start_index_[index]) = current_q_.segment<7>(model_.joint_start_index_[index]);
+        }
         //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
         target_arrived_[index] = true;
       }
@@ -102,79 +109,77 @@ void TaskController::computeCLIK()
   {
     if(ee_enabled_[i])
     {
-      if(!target_arrived_[i])
-      {
+      // For short names
+      const auto &x_0 = start_transform_[i].translation();
+      // const auto &rot_0 = start_transform_[i].linear();
 
-        // For short names
-        const auto &x_0 = start_transform_[i].translation();
-        // const auto &rot_0 = start_transform_[i].linear();
+      const auto &x = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).translation();
+      const auto &rot = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).linear();
 
-        const auto &x = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).translation();
-        const auto &rot = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).linear();
+      const auto &x_target = target_transform_[i].translation();
+      const auto &rot_target = target_transform_[i].linear();
 
-        const auto &x_target = target_transform_[i].translation();
-        const auto &rot_target = target_transform_[i].linear();
+      double h_cubic = DyrosMath::cubic(control_time_,
+                                        start_time_[i],
+                                        end_time_[i],
+                                        0, 1, 0, 0);
 
-        double h_cubic = DyrosMath::cubic(control_time_,
+      Eigen::Vector3d x_cubic;
+      Eigen::Vector6d x_dot_desired;
+      x_cubic = DyrosMath::cubicVector<3>(control_time_,
                                           start_time_[i],
                                           end_time_[i],
-                                          0, 1, 0, 0);
+                                          x_0,
+                                          x_target,
+                                          Eigen::Vector3d::Zero(),//start_x_dot_[i],
+                                          Eigen::Vector3d::Zero());
+      Eigen::Vector6d x_error;
+      x_error.head<3>() = (x_cubic - x);
+      //x_error.tail<3>().setZero();
+      h_cubic = 1.0;
+      x_error.tail<3>() =  - h_cubic * phi_gain * DyrosMath::getPhi(rot, rot_target);
+      x_dot_desired.head<3>() = x_cubic - x_prev_[i];
+      x_dot_desired.tail<3>().setZero();
 
-        Eigen::Vector3d x_cubic;
-        Eigen::Vector6d x_dot_desired;
-        x_cubic = DyrosMath::cubicVector<3>(control_time_,
-                                            start_time_[i],
-                                            end_time_[i],
-                                            x_0,
-                                            x_target,
-                                            Eigen::Vector3d::Zero(),//start_x_dot_[i],
-                                            Eigen::Vector3d::Zero());
-        Eigen::Vector6d x_error;
-        x_error.head<3>() = (x_cubic - x);
-        //x_error.tail<3>().setZero();
-        h_cubic = 1.0;
-        x_error.tail<3>() =  - h_cubic * phi_gain * DyrosMath::getPhi(rot, rot_target);
-        x_dot_desired.head<3>() = x_cubic - x_prev_[i];
-        x_dot_desired.tail<3>().setZero();
+      x_error = x_error; //* hz_;
+      x_dot_desired = x_dot_desired * hz_;
+      x_prev_[i] = x_cubic;
 
-        x_error = x_error; //* hz_;
-        x_dot_desired = x_dot_desired * hz_;
-        x_prev_[i] = x_cubic;
+      if (x_error.norm() < epsilon && control_time_ >= end_time_[i]) // target arrived, cubic finished
+      {
+        target_arrived_[i] = true;
+        ee_enabled_[i] = false;
+        ROS_INFO("target arrived - %d End effector", i);
+        continue;
+      }
+      if (i < 2)  // Legs
+      {
+        const auto &J = model_.getLegJacobian((DyrosJetModel::EndEffector)(i));
+        const auto &q = current_q_.segment<6>(model_.joint_start_index_[i]);
 
-        if (x_error.norm() < epsilon && control_time_ >= end_time_[i]) // target arrived, cubic finished
-        {
-          target_arrived_[i] = true;
-          ROS_INFO("target arrived - %d End effector", i);
-          continue;
-        }
-        if (i < 2)  // Legs
-        {
-          const auto &J = model_.getLegJacobian((DyrosJetModel::EndEffector)(i));
-          const auto &q = current_q_.segment<6>(model_.joint_start_index_[i]);
+        auto J_inverse = J.transpose() *
+            (inverse_damping * Eigen::Matrix6d::Identity() +
+             J * J.transpose()).inverse();
 
-          auto J_inverse = J.transpose() *
-              (inverse_damping * Eigen::Matrix6d::Identity() +
-               J * J.transpose()).inverse();
-
-          desired_q_.segment<6>(model_.joint_start_index_[i])
-              = (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
-        }
-        else    // Arms
-        {
-          const auto &J = model_.getArmJacobian((DyrosJetModel::EndEffector)(i));
-          const auto &q = current_q_.segment<7>(model_.joint_start_index_[i]);
+        desired_q_.segment<6>(model_.joint_start_index_[i])
+            = (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
+      }
+      else    // Arms
+      {
+        const auto &J = model_.getArmJacobian((DyrosJetModel::EndEffector)(i));
+        const auto &q = current_q_.segment<7>(model_.joint_start_index_[i]);
 
 
-          auto J_inverse = J.transpose() *
-              (inverse_damping * Eigen::Matrix6d::Identity() +
-               J * J.transpose()).inverse();
+        auto J_inverse = J.transpose() *
+            (inverse_damping * Eigen::Matrix6d::Identity() +
+             J * J.transpose()).inverse();
 
 
-          auto tmp = (J_inverse * (x_dot_desired + x_error * kp)) / hz_;
-          desired_q_.segment<7>(model_.joint_start_index_[i]) =
-              (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
+        auto tmp = (J_inverse * (x_dot_desired + x_error * kp)) / hz_;
+        desired_q_.segment<7>(model_.joint_start_index_[i]) =
+            (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
 
-  /*
+        /*
           std::cout << "Jacobian : " << std::endl;
           std::cout << J << std::endl;
           std::cout << "Jacobian.inv : "<< std::endl;
@@ -189,7 +194,6 @@ void TaskController::computeCLIK()
           std::cout << "x_error : " << std::endl << x_error << std::endl;
           std::cout << "x_dot_desired : " << std::endl << x_dot_desired << std::endl;
   */
-        }
       }
     }
   }

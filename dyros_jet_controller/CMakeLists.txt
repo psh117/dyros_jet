@@ -5,6 +5,8 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
     dyros_jet_msgs
+    imu_3dm_gx4
+    rt_dynamixel_msgs
     geometry_msgs
     roscpp
     roslib
@@ -15,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
     )
 find_package(Eigen3 REQUIRED)
 catkin_package(
-    DEPENDS   dyros_jet_msgs geometry_msgs roscpp sensor_msgs std_msgs realtime_tools eigen_conversions
+    DEPENDS   dyros_jet_msgs imu_3dm_gx4 rt_dynamixel_msgs geometry_msgs roscpp sensor_msgs std_msgs realtime_tools eigen_conversions
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS include
     LIBRARIES # TODO
@@ -33,6 +35,7 @@ add_custom_target(dyros_jet_control_headers SOURCES ${HeaderFiles})
 
 
 file(GLOB BRIDGE_SRC
+    "src/real_robot_interface.cpp"
     "src/simulation_interface.cpp"
     "src/control_base.cpp"
     #"include/dyros_jet_controller/dyros_jet_model.h"
