@@ -716,7 +716,6 @@ void WalkingController::getZmpTrajectory()
     norm_size = norm_size + t_temp_+1;
 
   addZmpOffset();
-
   zmpGenerator(norm_size, planning_step_number);
 }
 
@@ -1122,6 +1121,133 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
   }
 }
 
+void WalkingController::getComTrajectory()
+{
+  com_offset_.setZero();
+  if(com_control_mode_ == true)
+  {
+      xi_ = com_support_init_(0);
+      yi_ = com_support_init_(1);
+  }
+  else
+  {
+      xi_ = pelv_support_init_.translation()(0)+com_offset_(0);
+      yi_ = pelv_support_init_.translation()(1)+com_offset_(1);
+  }
+
+  if (walking_tick_ == t_start_ && current_step_num_ != 0)
+  {
+    Eigen::Vector3d COB_vel_prev;
+    Eigen::Vector3d COB_vel;
+    Eigen::Vector3d COB_acc_prev;
+    Eigen::Vector3d COB_acc;
+
+    Eigen::Matrix3d temp;
+
+    if(current_step_num_ == 1)
+    {
+      temp = DyrosMath::rotateWithZ(-supportfoot_float_init_(5));
+
+      COB_vel_prev(0) = xs_(1);
+      COB_vel_prev(1) = ys_(1);
+      COB_vel_prev(2) = 0.0;
+      COB_vel = temp*COB_vel_prev;
+
+      COB_acc_prev(0) = xs_(2);
+      COB_acc_prev(1) = ys_(2);
+      COB_acc_prev(2) = 0.0;
+      COB_acc = temp*COB_acc_prev;
+    }
+    else
+    {
+      temp = DyrosMath::rotateWithZ(-foot_step_support_frame_(current_step_num_-1,5)); ////////////////�ٽ� �����غ��� ��ǥ��
+
+      COB_vel_prev(0) = xs_(1);
+      COB_vel_prev(1) = ys_(1);
+      COB_vel_prev(2) = 0.0;
+      COB_vel = temp*COB_vel_prev;
+
+      COB_acc_prev(0) = xs_(2);
+      COB_acc_prev(1) = ys_(2);
+      COB_acc_prev(2) = 0.0;
+      COB_acc = temp*COB_acc_prev;
+    }
+
+    xs_(1) = COB_vel(0);
+    ys_(1) = COB_vel(1);
+    xs_(2) = COB_acc(0);
+    ys_(2) = COB_acc(1);
+  }
+
+  //COM �ġ ���
+  if(com_update_flag_ == true)
+  {
+    if(com_control_mode_ == true)
+    {
+      xs_(0) = com_support_init_(0);//+xs_(1)*1.0/Hz;
+      ys_(0) = com_support_init_(1);//+ys_(1)*1.0/Hz;
+    }
+    else
+    {
+      xs_(0) = pelv_support_init_.translation()(0)+ com_offset_(0);// + xs_(1)*1.0/Hz;
+      ys_(0) = pelv_support_init_.translation()(1)+ com_offset_(1);// + ys_(1)*1.0/Hz;
+    }
+  }
+
+  double x_err;
+  double y_err;
+
+  ////PreviewControl_basic(_cnt-_init_info.t, _K, Frequency2,  16*Hz2/10, 0.6802, _Gx, _Gi, _Gp_I, _A, _BBB, &_sum_px_err, &_sum_py_err, _px_ref, _py_ref, _xi, _yi, xs_, ys_, xd_, yd_, x_err, y_err);
+  modifiedPreviewControl();
+  xs_=xd_;
+  ys_=yd_;
+
+  //Reference ZMP �� ���� �ð�� ������� �������� ZMP�� �����ϱ� ������ start_time��� ���ߵ�.
+  double start_time = 0;
+
+  if(current_step_num_ == 0)
+    start_time = 0;
+  else
+    start_time = t_start_;
+
+  zmp_desired_(0) = ref_zmp_(walking_tick_-start_time,0);
+  zmp_desired_(1) = ref_zmp_(walking_tick_-start_time,1);
+
+  if(com_control_mode_ == true)
+  {
+    com_desired_(0) = xd_(0);
+    com_desired_(1) = yd_(0);
+    //com_desired_(2) = _init_info._COM_support_init(2);
+    //com_desired_(2) = Cubic(_cnt,_T_Start,_T_Start+_T_Double1,_init_COM._COM(2),0.0,_init_info._COM_support_init(2),0.0);
+    com_desired_(2) = pelv_support_init_.translation()(2);
+
+    com_dot_desired_(0) = xd_(1);
+    com_dot_desired_(1) = yd_(1);
+    com_dot_desired_(2) = 0;
+
+    double k= 100.0;
+    p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_cuurent_(0));
+    p_ref_(1) = yd_(1)+k*(yd_(0)-com_support_cuurent_(1));
+    p_ref_(2) = k*(com_desired_(2)-com_support_cuurent_(2));
+    l_ref_.setZero();
+  }
+  else
+  {
+    com_desired_(0) = xd_(0);
+    com_desired_(1) = yd_(0);
+    com_desired_(2) = pelv_support_init_.translation()(2);
+
+    com_dot_desired_(0) = xd_(1);
+    com_dot_desired_(1) = yd_(1);
+    com_dot_desired_(2) = 0;
+
+    double k= 100.0;
+    p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_cuurent_(0));
+    p_ref_(1) = yd_(1)+k*(yd_(0)-com_support_cuurent_(1));
+    p_ref_(2) = k*(com_desired_(2)-com_support_cuurent_(2));
+    l_ref_.setZero();
+  }
+}
 
 void WalkingController::getPelvTrajectory()
 {
@@ -1606,7 +1732,7 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
 }
 
-void WalkingController::modifiedPreviewControl(int norm_size)
+void WalkingController::modifiedPreviewControl()
 {
   if(walking_tick_==0)
     previewControlParameter(1.0/hz_, 16*hz_/10, _k ,com_support_init_, _gi, _gp_l, _gx, _a, _b, _c);
@@ -1614,6 +1740,8 @@ void WalkingController::modifiedPreviewControl(int norm_size)
     zmp_start_time_ = 0.0;
   else
     zmp_start_time_ = t_start_;
+  int norm_size;
+  norm_size = ref_zmp_.col(1).size();
 
   Eigen::VectorXd px_ref, py_ref;
   px_ref.resize(norm_size);
@@ -1653,7 +1781,13 @@ void WalkingController::modifiedPreviewControl(int norm_size)
 
 }
 
-void WalkingController::previewControl(double dt, int NL, int k_, Eigen::Matrix4d k, double x_i, double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys, Eigen::VectorXd px_ref, Eigen::VectorXd py_ref, double ux_1 , double uy_1 , double gi, Eigen::VectorXd gp_l, Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd)
+void WalkingController::previewControl(
+    double dt, int NL, int k_, Eigen::Matrix4d k, double x_i,
+    double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
+    Eigen::VectorXd px_ref, Eigen::VectorXd py_ref, double ux_1 ,
+    double uy_1 , double ux, double uy, double gi, Eigen::VectorXd gp_l,
+    Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
+    Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd)
 { //Preview와 prameter에서 VectorXD로 되있는거 수정해야함
   Eigen::Vector3d x, y, x_1, y_1;
   x.setZero();
@@ -1684,7 +1818,6 @@ void WalkingController::previewControl(double dt, int NL, int k_, Eigen::Matrix4
   double px, py;
   px = c*x;
   py = c*y;
-
   xzmp_err = px - px_ref(k_);
   yzmp_err = py - py_ref(k_);
 
@@ -1694,7 +1827,7 @@ void WalkingController::previewControl(double dt, int NL, int k_, Eigen::Matrix4
       sum_gp_px_ref = sum_gp_px_ref + gp_l(i)*(px_ref(k_+1+i)-px_ref(k_+i));
       sum_gp_py_ref = sum_gp_py_ref + gp_l(i)*(py_ref(k_+1+i)-py_ref(k_+i));
   }
-  double gx_x, gx_y, del_ux, del_uy, ux, uy;
+  double gx_x, gx_y, del_ux, del_uy;
   gx_x = gx*(x-x_1);
   gx_y = gx*(y-y_1);
 
@@ -1704,12 +1837,16 @@ void WalkingController::previewControl(double dt, int NL, int k_, Eigen::Matrix4
   ux = ux_1 + del_ux;
   uy = uy_1 + del_uy;
 
-  xd = a*x + b*ux;
+  xd = a*x + a*ux;
   yd = a*y + b*uy;
 
 }
 
-void WalkingController::previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c)
+void WalkingController::previewControlParameter(
+    double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_,
+    double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx,
+    Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c)
+
 {
   zc = com_support_init_(2);
   a.setIdentity();
@@ -1754,7 +1891,7 @@ void WalkingController::previewControlParameter(double dt, int NL, Eigen::Matrix
   q_bar(0,0) = qe;
   q_bar.block<3,3>(1,1) = qx;
 
-  k=discreteRicattiEquation(a_bar, b_bar, r, q_bar);
+  k=discreteRiccatiEquation(a_bar, b_bar, r, q_bar);
 
   double temp_mat;
   temp_mat = r+b_bar_tran*k*b_bar;
@@ -1786,12 +1923,10 @@ void WalkingController::previewControlParameter(double dt, int NL, Eigen::Matrix
       gp_l_column = gp_l_column/temp_mat;
   }
 
-
-
 }
 
 
-Eigen::Matrix4d WalkingController::discreteRicattiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q)
+Eigen::Matrix4d WalkingController::discreteRiccatiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q)
 {
   Eigen::Matrix4d z11, z12, z21, z22;
   z11 = a.inverse();
@@ -1894,6 +2029,7 @@ Eigen::Matrix4d WalkingController::discreteRicattiEquation(Eigen::Matrix4d a, Ei
   return X_sol;
 
 }
+
 
 
 }
