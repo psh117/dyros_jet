@@ -41,12 +41,12 @@ roslaunch dyros_jet_launch simulation.launch
 ```sh
 rosrun dyros_jet_gui dyros_jet_gui
 ```
-* Simple test prepare (Once)
+* Prepare a simple test (Once)
 ```sh
 chmod +x dyros_jet_mission_commander/src/commander.py
 catkin_make
 ```
-* Run simple test
+* Run the simple test
 ```sh
 rosrun dyros_jet_mission_commander commander.py
 ```
