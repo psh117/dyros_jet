@@ -56,12 +56,16 @@ public:
   void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
 
   //PreviewController
-  void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k, Eigen::Vector3d x_i, Eigen::Vector3d y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
-                      Eigen::VectorXd& px_ref, Eigen::VectorXd& py_ref, double ux_1 , double uy_1 , double &ux, double &uy, double gi, Eigen::VectorXd gp_l,
-                      Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd);
+  void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k,
+                      Eigen::Vector3d x_i, Eigen::Vector3d y_i, Eigen::Vector3d xs,
+                      Eigen::Vector3d ys, Eigen::VectorXd px_ref,
+                      Eigen::VectorXd py_ref, double ux_1 , double uy_1 ,
+                      double ux, double uy, double gi, Eigen::VectorXd gp_l,
+                      Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
+                      Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd);
   void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
-  Eigen::Matrix4d discreteRicattiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q);
+  Eigen::Matrix4d discreteRiccatiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q);
 
 
 private:
@@ -84,6 +88,8 @@ private:
   double t_total_;
   double foot_height_;
 
+  bool com_control_mode_;
+  bool com_update_flag_; // frome A to B
 
   int ik_mode_;
   int walk_mode_;
@@ -95,6 +101,7 @@ private:
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
   double step_length_x_;
   double step_length_y_;
+
   //double step_angle_theta_;
   double target_x_;
   double target_y_;
@@ -128,12 +135,12 @@ private:
   Eigen::Isometry3d rfoot_float_init_;
   VectorQd q_init_;
 
-  Eigen::Vector3d supportfoot_float_init_;
-  Eigen::Vector3d supportfoot_support_init_;
-  Eigen::Vector3d supportfoot_support_init_offset_;
-  Eigen::Vector3d swingfoot_float_init_;
-  Eigen::Vector3d swingfoot_support_init_;
-  Eigen::Vector3d swingfoot_support_init_offset_;
+  Eigen::Vector6d supportfoot_float_init_;
+  Eigen::Vector6d supportfoot_support_init_;
+  Eigen::Vector6d supportfoot_support_init_offset_;
+  Eigen::Vector6d swingfoot_float_init_;
+  Eigen::Vector6d swingfoot_support_init_;
+  Eigen::Vector6d swingfoot_support_init_offset_;
 
   Eigen::Isometry3d rfoot_trajectory_init_; //local frame
   Eigen::Isometry3d lfoot_trajectory_init_;
@@ -159,15 +166,6 @@ private:
   Eigen::Isometry3d lfoot_float_cuurent_;
   Eigen::Isometry3d rfoot_float_cuurent_;
 
-  Eigen::Isometry3d rfoot_trajectory_current_;  //local frame
-  Eigen::Isometry3d lfoot_trajectory_current_;
-  Eigen::Vector3d rfoot_trajectory_euler_current_;
-  Eigen::Vector3d lfoot_trajectory_euler_current_;
-  Eigen::Vector3d rfoot_trajectory_dot_current_;
-  Eigen::Vector3d lfoot_trajectory_dot_current_;
-
-
-
   DyrosJetModel &model_;
   Eigen::Isometry3d currnet_leg_transform_[2];
   Eigen::Isometry3d currnet_leg_transform_l_;
@@ -177,11 +175,36 @@ private:
   Eigen::Matrix6d current_leg_jacobian_l_;
   Eigen::Matrix6d current_leg_jacobian_r_;
 
+  //desired variables
   Eigen::VectorLXd desired_leg_q_;
   Eigen::VectorLXd desired_leg_q_dot_;
+  Eigen::Vector3d com_desired_;
+  Eigen::Vector3d com_dot_desired_;
+  Eigen::Vector2d zmp_desired_;
+
+  Eigen::Isometry3d rfoot_trajectory_current_;  //local frame
+  Eigen::Isometry3d lfoot_trajectory_current_;
+  Eigen::Vector3d rfoot_trajectory_euler_current_;
+  Eigen::Vector3d lfoot_trajectory_euler_current_;
+  Eigen::Vector3d rfoot_trajectory_dot_current_;
+  Eigen::Vector3d lfoot_trajectory_dot_current_;
+
+
+  //getComTrajectory() variables
+  double xi_;
+  double yi_;
+  Eigen::Vector3d xs_;
+  Eigen::Vector3d ys_;
+  Eigen::Vector3d xd_;
+  Eigen::Vector3d yd_;
 
   //Preview Control
   double zc;
+
+
+  //resolved momentum control
+  Eigen::Vector3d p_ref_;
+  Eigen::Vector3d l_ref_;
 
 
 
