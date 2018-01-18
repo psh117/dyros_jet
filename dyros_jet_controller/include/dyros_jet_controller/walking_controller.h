@@ -33,6 +33,7 @@ public:
 
   void parameterSetting();
   //functions in compute
+  void getRobotState();
   void getFootStep();
   void getComTrajectory();
   void getZmpTrajectory();
@@ -63,7 +64,8 @@ public:
                       double ux, double uy, double gi, Eigen::VectorXd gp_l,
                       Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
                       Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd);
-  void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
+  void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_,
+                               double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
   Eigen::Matrix4d discreteRiccatiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q);
 
@@ -133,6 +135,10 @@ private:
   Eigen::Isometry3d pelv_float_init_;
   Eigen::Isometry3d lfoot_float_init_;
   Eigen::Isometry3d rfoot_float_init_;
+
+  Eigen::Vector3d pelv_support_euler_init_;
+  Eigen::Vector3d lfoot_support_euler_init_;
+  Eigen::Vector3d rfoot_support_euler_init_;
   VectorQd q_init_;
 
   Eigen::Vector6d supportfoot_float_init_;
@@ -142,13 +148,6 @@ private:
   Eigen::Vector6d swingfoot_support_init_;
   Eigen::Vector6d swingfoot_support_init_offset_;
 
-  Eigen::Isometry3d rfoot_trajectory_init_; //local frame
-  Eigen::Isometry3d lfoot_trajectory_init_;
-  Eigen::Vector3d rfoot_trajectory_euler_init_;
-  Eigen::Vector3d lfoot_trajectory_euler_init_;
-  Eigen::Vector3d rfoot_trajectory_dot_init_;
-  Eigen::Vector3d lfoot_trajectory_dot_init_;
-
   Eigen::Vector3d com_float_init_;
   Eigen::Vector3d com_support_init_;
 
@@ -157,23 +156,21 @@ private:
   Eigen::Vector3d com_offset_;
 
   //Step current state variable//
-  Eigen::Vector3d com_support_cuurent_;
-  Eigen::Isometry3d pelv_support_cuurent_;
-  Eigen::Isometry3d lfoot_support_cuurent_;
-  Eigen::Isometry3d rfoot_support_cuurent_;
-  Eigen::Vector3d com_float_cuurent_;
-  Eigen::Isometry3d pelv_float_cuurent_;
-  Eigen::Isometry3d lfoot_float_cuurent_;
-  Eigen::Isometry3d rfoot_float_cuurent_;
+  Eigen::Vector3d com_support_current_;
+  Eigen::Isometry3d pelv_support_current_;
+  Eigen::Isometry3d lfoot_support_current_;
+  Eigen::Isometry3d rfoot_support_current_;
 
-  DyrosJetModel &model_;
-  Eigen::Isometry3d currnet_leg_transform_[2];
-  Eigen::Isometry3d currnet_leg_transform_l_;
-  Eigen::Isometry3d currnet_leg_transform_r_;
+  Eigen::Vector3d com_float_current_;
+  Eigen::Isometry3d pelv_float_current_;
+  Eigen::Isometry3d lfoot_float_current_;
+  Eigen::Isometry3d rfoot_float_current_;
 
-  Eigen::Matrix6d current_leg_jacobian_[2];
   Eigen::Matrix6d current_leg_jacobian_l_;
   Eigen::Matrix6d current_leg_jacobian_r_;
+
+  DyrosJetModel &model_;
+
 
   //desired variables
   Eigen::VectorLXd desired_leg_q_;
@@ -188,6 +185,8 @@ private:
   Eigen::Vector3d lfoot_trajectory_euler_current_;
   Eigen::Vector3d rfoot_trajectory_dot_current_;
   Eigen::Vector3d lfoot_trajectory_dot_current_;
+
+  Eigen::Isometry3d pelv_trajectory_current_; //local frame
 
 
   //getComTrajectory() variables
