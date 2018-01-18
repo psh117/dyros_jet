@@ -43,8 +43,9 @@ public:
   void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q_dot);
   void compensator();
 
+  void supportToFloatPattern();
+  void updateNextStepTime();
   void updateInitialState();
-
 
   //functions for getFootStep()
   void calculateFootStepTotal();
@@ -93,6 +94,7 @@ private:
 
   bool com_control_mode_;
   bool com_update_flag_; // frome A to B
+  bool gyro_frame_flag_;
 
   int ik_mode_;
   int walk_mode_;
@@ -180,15 +182,22 @@ private:
   Eigen::Vector3d com_dot_desired_;
   Eigen::Vector2d zmp_desired_;
 
-  Eigen::Isometry3d rfoot_trajectory_current_;  //local frame
-  Eigen::Isometry3d lfoot_trajectory_current_;
-  Eigen::Vector3d rfoot_trajectory_euler_current_;
-  Eigen::Vector3d lfoot_trajectory_euler_current_;
-  Eigen::Vector3d rfoot_trajectory_dot_current_;
-  Eigen::Vector3d lfoot_trajectory_dot_current_;
+  Eigen::Isometry3d rfoot_trajectory_support_;  //local frame
+  Eigen::Isometry3d lfoot_trajectory_support_;
+  Eigen::Vector3d rfoot_trajectory_euler_support_;
+  Eigen::Vector3d lfoot_trajectory_euler_support_;
+  Eigen::Vector3d rfoot_trajectory_dot_support_;
+  Eigen::Vector3d lfoot_trajectory_dot_support_;
 
-  Eigen::Isometry3d pelv_trajectory_current_; //local frame
+  Eigen::Isometry3d pelv_trajectory_support_; //local frame
+  Eigen::Isometry3d pelv_trajectory_float_; //pelvis frame
 
+  Eigen::Isometry3d rfoot_trajectory_float_;  //pelvis frame
+  Eigen::Isometry3d lfoot_trajectory_float_;
+  Eigen::Vector3d rfoot_trajectory_euler_float_;
+  Eigen::Vector3d lfoot_trajectory_euler_float_;
+  Eigen::Vector3d rfoot_trajectory_dot_float_;
+  Eigen::Vector3d lfoot_trajectory_dot_float_;
 
   //getComTrajectory() variables
   double xi_;
