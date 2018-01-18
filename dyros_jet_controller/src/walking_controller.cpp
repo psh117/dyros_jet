@@ -1837,7 +1837,7 @@ void WalkingController::previewControl(
   ux = ux_1 + del_ux;
   uy = uy_1 + del_uy;
 
-  xd = a*x + a*ux;
+  xd = a*x + b*ux;
   yd = a*y + b*uy;
 
 }
