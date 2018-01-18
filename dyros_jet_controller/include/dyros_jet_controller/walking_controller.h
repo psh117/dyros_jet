@@ -57,8 +57,9 @@ public:
   void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
 
   //PreviewController
+  void modifiedPreviewControl();
   void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k,
-                      Eigen::Vector3d x_i, Eigen::Vector3d y_i, Eigen::Vector3d xs,
+                      double x_i, double y_i, Eigen::Vector3d xs,
                       Eigen::Vector3d ys, Eigen::VectorXd px_ref,
                       Eigen::VectorXd py_ref, double ux_1 , double uy_1 ,
                       double ux, double uy, double gi, Eigen::VectorXd gp_l,
@@ -199,6 +200,14 @@ private:
 
   //Preview Control
   double zc;
+  double _gi;
+  double zmp_start_time_; //원래 코드에서는 start_time, zmp_ref 시작되는 time같음
+  Eigen::Matrix4d _k;
+  Eigen::VectorXd _gp_l;
+  Eigen::Matrix1x3d _gx;
+  Eigen::Matrix3d _a;
+  Eigen::Vector3d _b, _xd, _yd;
+  Eigen::Matrix1x3d _c;
 
 
   //resolved momentum control

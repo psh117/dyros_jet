@@ -746,8 +746,6 @@ void WalkingController::getZmpTrajectory()
 
   addZmpOffset();
   zmpGenerator(norm_size, planning_step_number);
-
-
 }
 
 void WalkingController::floatToSupportFootstep()
@@ -1233,8 +1231,8 @@ void WalkingController::getComTrajectory()
   double y_err;
 
   ////PreviewControl_basic(_cnt-_init_info.t, _K, Frequency2,  16*Hz2/10, 0.6802, _Gx, _Gi, _Gp_I, _A, _BBB, &_sum_px_err, &_sum_py_err, _px_ref, _py_ref, _xi, _yi, xs_, ys_, xd_, yd_, x_err, y_err);
-  modified_PreviewControl(t_double1_, t_total_);
 
+  modifiedPreviewControl();
   xs_=xd_;
   ys_=yd_;
 
@@ -1579,7 +1577,7 @@ void WalkingController::getFootTrajectory()
   }
   else
   {
-    if(foot_step_(current_step_num_,6) == 1) // �޹� ����
+    if(foot_step_(current_step_num_,6) == 1)
     {
       lfoot_trajectory_current_.translation() = lfoot_support_init_.translation();
       lfoot_trajectory_current_.translation()(2) = 0.0;
@@ -1853,9 +1851,59 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
 }
 
+void WalkingController::modifiedPreviewControl()
+{
+  if(walking_tick_==0)
+    previewControlParameter(1.0/hz_, 16*hz_/10, _k ,com_support_init_, _gi, _gp_l, _gx, _a, _b, _c);
+  if(current_step_num_ == 0)
+    zmp_start_time_ = 0.0;
+  else
+    zmp_start_time_ = t_start_;
+  int norm_size;
+  norm_size = ref_zmp_.col(1).size();
+
+  Eigen::VectorXd px_ref, py_ref;
+  px_ref.resize(norm_size);
+  py_ref.resize(norm_size);
+
+  for (int i=0; i<norm_size; i++)
+  {
+      px_ref(i) = ref_zmp_(i,0);
+      py_ref(i) = ref_zmp_(i,1);
+  }
+  double ux, uy, ux_1 = 0.0, uy_1 = 0.0;
+  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, ux_1, uy_1, ux, uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
+
+  Eigen::Vector3d xs_matrix, ys_matrix;
+  for (int i=0; i<3; i++)
+      xs_matrix(i) = _xd(i);
+  for (int i=0; i<3; i++)
+      ys_matrix(i) = _yd(i);
+
+  double est_zmp_error_x, est_zmp_error_y, rx, ry;
+  est_zmp_error_x = _c*xs_matrix;
+  est_zmp_error_y = _c*ys_matrix;
+
+  rx = 0.0;
+  ry = 0.0;
+
+  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, ux_1, uy_1, ux, uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
+
+  ux_1 = ux;
+  uy_1 = uy;
+
+  Eigen::Vector3d _xs, _ys;
+  _xs = _xd;
+  _ys = _yd;
+
+  double est_zmp;
+  est_zmp = _c(0)*_xs(0)+_c(1)*_xs(1)+_c(2)*_xs(2);
+
+}
+
 void WalkingController::previewControl(
-    double dt, int NL, int k_, Eigen::Matrix4d k, Eigen::Vector3d x_i,
-    Eigen::Vector3d y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
+    double dt, int NL, int k_, Eigen::Matrix4d k, double x_i,
+    double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
     Eigen::VectorXd px_ref, Eigen::VectorXd py_ref, double ux_1 ,
     double uy_1 , double ux, double uy, double gi, Eigen::VectorXd gp_l,
     Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
@@ -1869,8 +1917,8 @@ void WalkingController::previewControl(
 
   if(k_==0 && current_step_num_ == 0)
   {
-    x(0) = x_i(0);
-    y(0) = y_i(0);
+    x(0) = x_i;
+    y(0) = y_i;
   }
   else
   {
@@ -1909,7 +1957,7 @@ void WalkingController::previewControl(
   ux = ux_1 + del_ux;
   uy = uy_1 + del_uy;
 
-  xd = a*x + a*ux;
+  xd = a*x + b*ux;
   yd = a*y + b*uy;
 
 }
@@ -1918,7 +1966,6 @@ void WalkingController::previewControlParameter(
     double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_,
     double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx,
     Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c)
-
 {
   zc = com_support_init_(2);
   a.setIdentity();
