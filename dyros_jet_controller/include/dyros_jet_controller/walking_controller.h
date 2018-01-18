@@ -56,9 +56,9 @@ public:
   void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
 
   //PreviewController
-  void modifiedPreviewControl();
-  void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k, Eigen::Vector3d x_i, Eigen::Vector3d y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
-                      Eigen::VectorXd& px_ref, Eigen::VectorXd& py_ref, double ux_1 , double uy_1 , double &ux, double &uy, double gi, Eigen::VectorXd gp_l,
+  void modifiedPreviewControl(int norm_size);
+  void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k, double x_i, double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
+                      Eigen::VectorXd px_ref, Eigen::VectorXd py_ref, double ux_1 , double uy_1 , double gi, Eigen::VectorXd gp_l,
                       Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd);
   void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_, double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
@@ -75,7 +75,9 @@ private:
   //parameterSetting()
   double t_last_;
   double t_start_;
+  double t_start_real_;
   double t_temp_;
+  double t_imp_;
   double t_rest_init_;
   double t_rest_last_;
   double t_double1_;
@@ -100,13 +102,14 @@ private:
   double target_z_;
   double target_theta_;
   double total_step_num_;
+  double current_step_num_;
+
   Eigen::MatrixXd foot_step_;
   Eigen::MatrixXd foot_step_support_frame_;
   Eigen::MatrixXd foot_step_support_frame_offset_;
 
   Eigen::MatrixXd ref_zmp_;
 
-  double current_step_num_;
 
   VectorQd start_q_;
   VectorQd desired_q_;
@@ -133,6 +136,13 @@ private:
   Eigen::Vector3d swingfoot_support_init_;
   Eigen::Vector3d swingfoot_support_init_offset_;
 
+  Eigen::Isometry3d rfoot_trajectory_init_; //local frame
+  Eigen::Isometry3d lfoot_trajectory_init_;
+  Eigen::Vector3d rfoot_trajectory_euler_init_;
+  Eigen::Vector3d lfoot_trajectory_euler_init_;
+  Eigen::Vector3d rfoot_trajectory_dot_init_;
+  Eigen::Vector3d lfoot_trajectory_dot_init_;
+
   Eigen::Vector3d com_float_init_;
   Eigen::Vector3d com_support_init_;
 
@@ -149,6 +159,13 @@ private:
   Eigen::Isometry3d pelv_float_cuurent_;
   Eigen::Isometry3d lfoot_float_cuurent_;
   Eigen::Isometry3d rfoot_float_cuurent_;
+
+  Eigen::Isometry3d rfoot_trajectory_current_;  //local frame
+  Eigen::Isometry3d lfoot_trajectory_current_;
+  Eigen::Vector3d rfoot_trajectory_euler_current_;
+  Eigen::Vector3d lfoot_trajectory_euler_current_;
+  Eigen::Vector3d rfoot_trajectory_dot_current_;
+  Eigen::Vector3d lfoot_trajectory_dot_current_;
 
 
 
@@ -172,7 +189,7 @@ private:
   Eigen::VectorXd _gp_l;
   Eigen::Matrix1x3d _gx;
   Eigen::Matrix3d _a;
-  Eigen::Vector3d _b;
+  Eigen::Vector3d _b, _xd, _yd;
   Eigen::Matrix1x3d _c;
 
 
