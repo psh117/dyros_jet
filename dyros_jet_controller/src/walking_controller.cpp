@@ -1752,8 +1752,8 @@ void WalkingController::modifiedPreviewControl()
       px_ref(i) = ref_zmp_(i,0);
       py_ref(i) = ref_zmp_(i,1);
   }
-  double ux_1 = 0.0, uy_1 = 0.0;
- // previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, x_i, y_i, Eigen::Vector3d xs, Eigen::Vector3d ys, px_ref, py_ref, ux_1 , uy_1 , _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
+  double ux, uy, ux_1 = 0.0, uy_1 = 0.0;
+  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, ux_1, uy_1, ux, uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
 
   Eigen::Vector3d xs_matrix, ys_matrix;
   for (int i=0; i<3; i++)
@@ -1768,16 +1768,17 @@ void WalkingController::modifiedPreviewControl()
   rx = 0.0;
   ry = 0.0;
 
-  // previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, x_i, y_i, Eigen::Vector3d xs, Eigen::Vector3d ys, px_ref, py_ref, ux_1 , uy_1 , _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
-/*
+  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, ux_1, uy_1, ux, uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
+
   ux_1 = ux;
   uy_1 = uy;
 
+  Eigen::Vector3d _xs, _ys;
   _xs = _xd;
   _ys = _yd;
-*/
+
   double est_zmp;
-//  est_zmp = _c(0)*_xs(0)+_c(1)*_xs(1)+_c(2)*_xs(2);
+  est_zmp = _c(0)*_xs(0)+_c(1)*_xs(1)+_c(2)*_xs(2);
 
 }
 
@@ -1846,7 +1847,6 @@ void WalkingController::previewControlParameter(
     double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_,
     double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx,
     Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c)
-
 {
   zc = com_support_init_(2);
   a.setIdentity();
