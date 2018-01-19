@@ -1,0 +1,7 @@
+<launch>
+  <node name="smach" pkg="smach_usecase" type="executive.py" respawn="false" output="screen" />
+  <node name="dyros_jet_controller" pkg="dyros_jet_controller" type="dyros_jet_controller" respawn="false" output="screen">
+    <param name="run_mode" type="string" value="simulation" />
+  </node>
+</launch>
+

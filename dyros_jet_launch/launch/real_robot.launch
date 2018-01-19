@@ -1,0 +1,11 @@
+<launch>
+  <include file="$(find imu_3dm_gx4)/launch/imu.launch" />
+  <include file="$(find thormang_head_lidar)/launch/lidar.launch" />
+  <node name="rt_dynamixel" pkg="rt_dynamixel" type="rt_dynamixel_node" respawn="false" output="screen" />
+  <node name="ft_sensor" pkg="sensoray826" type="ati_ft_sensor_node" respawn="false" output="log" />
+  <node name="smach" pkg="smach_usecase" type="executive.py" respawn="false" output="screen" />
+  <node name="dyros_jet_controller" pkg="dyros_jet_controller" type="dyros_jet_controller" respawn="false" output="screen">
+    <param name="run_mode" type="string" value="real_robot" />
+  </node>
+</launch>
+
