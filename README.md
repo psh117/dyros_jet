@@ -9,6 +9,7 @@ sudo apt-get install ros-kinetic-qt-build
 sudo apt-get install ros-kinetic-realtime-tools
 cd ~/catkin_ws/src
 git clone https://github.com/KumarRobotics/imu_3dm_gx4
+git clone https://github.com/psh117/rt_dynamixel_msgs
 ```
 
 ### RBDL Setup ###
