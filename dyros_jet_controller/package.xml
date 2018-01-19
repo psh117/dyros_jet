@@ -35,6 +35,11 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>eigen_conversions</build_depend>
 
+  <build_depend>imu_3dm_gx4</build_depend>
+  <run_depend>imu_3dm_gx4</run_depend>
+  <build_depend>rt_dynamixel_msgs</build_depend>
+  <run_depend>rt_dynamixel_msgs</run_depend>
+
   <run_depend>dyros_jet_msgs</run_depend>
   <run_depend>eigen_conversions</run_depend>
   <run_depend>geometry_msgs</run_depend>

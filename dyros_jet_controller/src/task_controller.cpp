@@ -19,6 +19,7 @@ void TaskController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d 
   start_time_[ee] = start_time;
   end_time_[ee] = end_time;
   x_prev_[ee] = start_transform_[ee].translation();
+  target_arrived_[ee] = false;
 }
 void TaskController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double duration)
 {
@@ -59,18 +60,30 @@ void TaskController::updateControlMask(unsigned int *mask)
       if (mask[i] >= PRIORITY * 2)
       {
         // Higher priority task detected
-        setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
+        ee_enabled_[index] = false;
+        target_transform_[index] = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index);
+        end_time_[index] = control_time_;
+        if (index < 2)  // Legs
+        {
+          desired_q_.segment<6>(model_.joint_start_index_[index]) = current_q_.segment<6>(model_.joint_start_index_[index]);
+        }
+        else
+        {
+          desired_q_.segment<7>(model_.joint_start_index_[index]) = current_q_.segment<7>(model_.joint_start_index_[index]);
+        }
+        //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
+        target_arrived_[index] = true;
       }
       mask[i] = (mask[i] | PRIORITY);
     }
     else
     {
       mask[i] = (mask[i] & ~PRIORITY);
-      setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
+      //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
+      target_arrived_[index] = true;
     }
   }
 }
-
 
 void TaskController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
 {
@@ -86,10 +99,10 @@ void TaskController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
 // Jacobian OK. Translation OK.
 void TaskController::computeCLIK()
 {
-
   const double inverse_damping = 0.03;
-  const double phi_gain = 1.0;
+  const double phi_gain = 1;
   const double kp = 200;
+  const double epsilon = 1e-3;
 
   // Arm
   for(unsigned int i=0; i<4; i++)
@@ -132,6 +145,13 @@ void TaskController::computeCLIK()
       x_dot_desired = x_dot_desired * hz_;
       x_prev_[i] = x_cubic;
 
+      if (x_error.norm() < epsilon && control_time_ >= end_time_[i]) // target arrived, cubic finished
+      {
+        target_arrived_[i] = true;
+        ee_enabled_[i] = false;
+        ROS_INFO("target arrived - %d End effector", i);
+        continue;
+      }
       if (i < 2)  // Legs
       {
         const auto &J = model_.getLegJacobian((DyrosJetModel::EndEffector)(i));
@@ -155,22 +175,25 @@ void TaskController::computeCLIK()
              J * J.transpose()).inverse();
 
 
+        auto tmp = (J_inverse * (x_dot_desired + x_error * kp)) / hz_;
         desired_q_.segment<7>(model_.joint_start_index_[i]) =
             (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
 
-
-        std::cout << "Jacobian : " << std::endl;
-        std::cout << J << std::endl;
-        std::cout << "Jacobian.inv : "<< std::endl;
-        std::cout << J_inverse << std::endl;
-        std::cout << "desired_q_ : " << std::endl << desired_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
-        std::cout << "x : " << std::endl << x << std::endl;
-        std::cout << "q : " << std::endl << current_q_ << std::endl;
-        std::cout << "rot : " << std::endl << rot << std::endl;
-        std::cout << "x_cubic : " << std::endl << x_cubic << std::endl;
-        std::cout << "x_error : " << std::endl << x_error << std::endl;
-        std::cout << "x_dot_desired : " << std::endl << x_dot_desired << std::endl;
-
+        /*
+          std::cout << "Jacobian : " << std::endl;
+          std::cout << J << std::endl;
+          std::cout << "Jacobian.inv : "<< std::endl;
+          std::cout << J_inverse << std::endl;
+          std::cout << "desired_q_ : " << std::endl << desired_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
+          std::cout << "x : " << std::endl << x << std::endl;
+          std::cout << "q : " << std::endl << current_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
+          std::cout << "calc : " << std::endl << tmp << std::endl;
+          std::cout << "rot : " << std::endl << rot << std::endl;
+          std::cout << "rot : " << std::endl << rot_target << std::endl;
+          std::cout << "x_cubic : " << std::endl << x_cubic << std::endl;
+          std::cout << "x_error : " << std::endl << x_error << std::endl;
+          std::cout << "x_dot_desired : " << std::endl << x_dot_desired << std::endl;
+  */
       }
     }
   }

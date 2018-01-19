@@ -29,19 +29,32 @@ def commander():
     rospy.sleep(0.5)
     pub.publish(msg)
     time = 0
-    rospy.sleep(5.)
+    rospy.sleep(8.)
     
     msg.enable = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
     pub.publish(msg)
     rospy.sleep(.5)
 
+
     task_msg = TaskCommand()
+
+
     task_msg.end_effector=[False, False, False, True]
     task_msg.mode=[0, 0, 0, 0]
-    task_msg.pose[3].position = Point(0.1, 0.0, 0.0)
+    task_msg.pose[3].position = Point(0.3, 0.0, 0.0)
     task_msg.pose[3].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
     task_msg.duration = [0.0, 0.0, 0.0, 5.0]
     task_pub.publish(task_msg);
+
+    rospy.sleep(5.0);
+
+    task_msg.end_effector=[True, False, False, False]
+    task_msg.mode=[0, 0, 0, 0]
+    task_msg.pose[0].position = Point(0.0, 0.0, 0.2)
+    task_msg.pose[0].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
+    task_msg.duration = [5.0, 0.0, 0.0, 0.0]
+    task_pub.publish(task_msg);
+
 
     rospy.sleep(5.0);
 
