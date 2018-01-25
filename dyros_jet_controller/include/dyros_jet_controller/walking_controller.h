@@ -42,6 +42,7 @@ public:
   void computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q);
   void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q_dot);
   void compensator();
+  void hipCompensation();
 
   void supportToFloatPattern();
   void updateNextStepTime();
@@ -223,6 +224,9 @@ private:
   Eigen::Vector3d p_ref_;
   Eigen::Vector3d l_ref_;
 
+  //Gravitycompensate
+  Eigen::Vector12d joint_offset_angle_;
+  Eigen::Vector12d grav_ground_torque_;
 
 
 

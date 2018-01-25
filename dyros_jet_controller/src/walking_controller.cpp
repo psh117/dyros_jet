@@ -2185,6 +2185,78 @@ Eigen::Matrix4d WalkingController::discreteRiccatiEquation(Eigen::Matrix4d a, Ei
 
 }
 
+void WalkingController::hipCompensation()
+{
+  double a_total=-0.0012, b_total=0.00087420, rising=1.0; robotweightforce=46.892*GRAVITY, alpha, alpha_1, fromright, fromleft, f_l, f_r, k1 = 0.2, k = 0.2; //로봇무게 수정해야할듯
+  fromright = com_float_current_(1)-rfoot_float_current_.translation()(1);
+  fromleft = com_float_current_(1)-lfoot_float_current_.translation()(1);
+  alpha = (fromleft)/(fromleft-fromright);
+
+  if(fromright>=0)
+  {
+      alpha=1;
+  }
+  if(fromleft<=0)  {
+      alpha=0;
+  }
+  alpha_1 = 1-alpha;
+
+  f_r = robotweightforce*alpha;
+  f_l = robotweightforce*alpha_1;
+
+  Eigen::Vector6d lTau, rTau, Jc2, Jc8;
+  lTau.setZero();
+  rTau.setZero();
+  Jc2.setZero();
+  Jc8.setZero();
+
+  Jc2(0) = 0;
+  Jc2(1) = cos(desired_q_(8))*sin(desired_q_(7))*(3.0/1.0E1)-sin(desired_q_(7))*sin(desired_q_(8))*sin(desired_q_(9))*(3.0/1.0E1)+cos(desired_q_(8))*cos(desired_q_(9))*sin(desired_q_(7))*(3.0/1.0E1);
+  Jc2(2) = cos(desired_q_(7))*sin(desired_q_(8))*(3.0/1.0E1)+cos(desired_q_(7))*cos(desired_q_(8))*sin(desired_q_(9))*(3.0/1.0E1)+cos(desired_q_(7))*cos(desired_q_(9))*sin(desired_q_(8))*(3.0/1.0E1);
+  Jc2(3) = cos(desired_q_(7))*cos(desired_q_(8))*sin(desired_q_(9))*(3.0/1.0E1)+cos(desired_q_(7))*cos(desired_q_(9))*sin(desired_q_(8))*(3.0/1.0E1);
+  Jc2(4) = 0;
+  Jc2(5) = 0;
+
+  Jc8(0) = 0;
+  Jc8(1) = cos(desired_q_(2))*sin(desired_q_(1))*(3.0/1.0E1)+cos(desired_q_(2))*cos(desired_q_(3))*sin(desired_q_(1))*(3.0/1.0E1)-sin(desired_q_(1))*sin(desired_q_(2))*sin(desired_q_(3))*(3.0/1.0E1);
+  Jc8(2) = cos(desired_q_(1))*sin(desired_q_(2))*(3.0/1.0E1)+cos(desired_q_(1))*cos(desired_q_(2))*sin(desired_q_(3))*(3.0/1.0E1)+cos(desired_q_(1))*cos(desired_q_(3))*sin(desired_q_(2))*(3.0/1.0E1);
+  Jc8(3) = cos(desired_q_(1))*cos(desired_q_(2))*sin(desired_q_(3))*(3.0/1.0E1)+cos(desired_q_(1))*cos(desired_q_(3))*sin(desired_q_(2))*(3.0/1.0E1);
+  Jc8(4) = 0;
+  Jc8(5) = 0;
+
+  for(int i=0; i<6; i++)
+  {
+      rTau(i)=Jc2(i)*f_r;
+      lTau(i)=Jc8(i)*f_l;
+  }
+
+ /* if (_mg_control_flag == false)
+  {
+      desired_q_(2)=desired_q_(2)-(a_total*lTau(2)+b_total)*rising*k1;
+      desired_q_(3)=desired_q_(3)-(a_total*lTau(3)+b_total)*rising*0.3;
+      desired_q_(4)=desired_q_(4)-(a_total*lTau(4)+b_total)*rising*k1;
+      desired_q_(8)=desired_q_(8)-(a_total*rTau(2)+b_total)*rising*k;
+      desired_q_(9)=desired_q_(9)-(a_total*rTau(3)+b_total)*rising*0.3;
+      desired_q_(10)=desired_q_(10)-(a_total*rTau(4)+b_total)*rising*k;
+  }*/
+
+  joint_offset_angle_.setZero();
+  grav_ground_torque_.setZero();
+  joint_offset_angle_(2) = (a_total*lTau(2)+b_total)*rising*k1;
+  joint_offset_angle_(3) = (a_total*lTau(3)+b_total)*rising*0.2;
+  joint_offset_angle_(4) = (a_total*lTau(4)+b_total)*rising*k1;
+  joint_offset_angle_(8) = (a_total*rTau(2)+b_total)*rising*k;
+  joint_offset_angle_(9) = (a_total*rTau(3)+b_total)*rising*0.2;
+  joint_offset_angle_(10) = (a_total*rTau(4)+b_total)*rising*k;
+
+  for (int i=0; i<6; i++)
+  {
+      grav_ground_torque_(i) = lTau[i];
+      grav_ground_torque_(i+6) = rTau[i];
+  }
+
+}
+
 
 
 }
