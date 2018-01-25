@@ -158,5 +158,6 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   {
     walking_controller_.setEnable(false);
   }
- }
+}
+
 }

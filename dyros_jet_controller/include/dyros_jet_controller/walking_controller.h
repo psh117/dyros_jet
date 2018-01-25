@@ -57,6 +57,9 @@ public:
   void zmpGenerator(const unsigned int norm_size, const unsigned planning_step_num);
   void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
 
+  //functions in compensator()
+  void hipCompensator(); //reference Paper: http://dyros.snu.ac.kr/wp-content/uploads/2017/01/ICHR_2016_JS.pdf
+  
   //PreviewController
   void modifiedPreviewControl();
   void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k,

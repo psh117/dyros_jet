@@ -2,14 +2,14 @@
 #define MATH_TYPE_DEFINE_H
 
 
-#define RAD2DEG (0.01745329251994329576923690768489)
+#define DEG2RAD (0.01745329251994329576923690768489)
 // constexpr size_t MAX_DOF=50;
 
 #include <Eigen/Dense>
 
 #define GRAVITY 9.80665
 #define MAX_DOF 50U
-#define DEG2RAD 1/RAD2DEG
+#define RAD2DEG 1/RAD2DEG
 
 namespace Eigen
 {
@@ -290,6 +290,114 @@ static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference,
 }
 
 
+template <int _State_Size_, int _Input_Size_>
+Eigen::Matrix<double, _State_Size_, _State_Size_> discreteRiccatiEquation(
+    Eigen::Matrix<double, _State_Size_, _State_Size_> a,
+    Eigen::Matrix<double, _State_Size_, _Input_Size_> b,
+    Eigen::Matrix<double, _Input_Size_, _Input_Size_> r,
+    Eigen::Matrix<double, _State_Size_, _State_Size_> q)
+{
+  Eigen::Matrix4d z11, z12, z21, z22;
+  z11 = a.inverse();
+  z12 = a.inverse()*b*r.inverse()*b.transpose();
+  z21 = q*a.inverse();
+  z22 = a.transpose() + q*a.inverse()*b*r.inverse()*b.transpose();
+
+  Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_> z;
+  z.setZero();
+  z.topLeftCorner(4,4) = z11;
+  z.topRightCorner(4,4) = z12;
+  z.bottomLeftCorner(4,4) = z21;
+  z.bottomRightCorner(4,4) = z22;
+
+  std::vector<double> eigVal_real(8);
+  std::vector<double> eigVal_img(8);
+  std::vector<Eigen::Vector8d> eigVec_real(8);
+  std::vector<Eigen::Vector8d> eigVec_img(8);
+
+  for(int i=0; i<8; i++)
+  {
+    eigVec_real[i].setZero();
+    eigVec_img[i].setZero();
+  }
+
+  Eigen::Matrix<double, 2*_State_Size_, 1> deigVal_real, deigVal_img;
+  Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_> deigVec_real, deigVec_img;
+  deigVal_real.setZero();
+  deigVal_img.setZero();
+  deigVec_real.setZero();
+  deigVec_img.setZero();
+  deigVal_real = z.eigenvalues().real();
+  deigVal_img = z.eigenvalues().imag();
+
+  Eigen::EigenSolver<Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_>> ev(z);
+  //EigenVector Solver
+  //Matrix3D ones = Matrix3D::Ones(3,3);
+  //EigenSolver<Matrix3D> ev(ones);
+  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << ev.eigenvectors().col(1) << endl;
+
+  for(int i=0;i<8; i++)
+  {
+    for(int j=0; j<8; j++)
+    {
+      deigVec_real(j,i) = ev.eigenvectors().col(i)(j).real();
+      deigVec_img(j,i) = ev.eigenvectors().col(i)(j).imag();
+    }
+  }
+
+  //Order the eigenvectors
+  //move e-vectors correspnding to e-value outside the unite circle to the left
+
+  Eigen::Matrix8x4d tempZ_real, tempZ_img;
+  tempZ_real.setZero();
+  tempZ_img.setZero();
+  int c=0;
+
+  for (int i=0;i<8;i++)
+  {
+    if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
+    {
+      for(int j=0; j<8; j++)
+      {
+        tempZ_real(j,c) = deigVec_real(j,i);
+        tempZ_img(j,c) = deigVec_img(j,i);
+      }
+      c++;
+    }
+  }
+
+  Eigen::Matrix8x4cd tempZ_comp;
+  for(int i=0;i<8;i++)
+  {
+    for(int j=0;j<4;j++)
+    {
+      tempZ_comp.real()(i,j) = tempZ_real(i,j);
+      tempZ_comp.imag()(i,j) = tempZ_img(i,j);
+    }
+  }
+
+  Eigen::Matrix4cd U11, U21, X;
+  for(int i=0;i<4;i++)
+  {
+    for(int j=0;j<4;j++)
+    {
+      U11(i,j) = tempZ_comp(i,j);
+      U21(i,j) = tempZ_comp(i+4,j);
+    }
+  }
+  X = U21*(U11.inverse());
+  Eigen::Matrix4d X_sol;
+  for(int i=0;i<4;i++)
+  {
+    for(int j=0;j<4;j++)
+    {
+      X_sol(i,j) = X.real()(i,j);
+    }
+  }
+
+  return X_sol;
 }
 
+
+}
 #endif

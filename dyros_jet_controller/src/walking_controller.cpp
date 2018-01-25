@@ -2040,9 +2040,11 @@ void WalkingController::previewControlParameter(
   a_bar.block<4,1>(0,0) = i_p;
   a_bar.block<4,3>(0,1) = f_bar;
 
-  double qe, r;
+  double qe;
   qe = 1.0;
-  r = 0.000001;
+  Eigen::Matrix<double, 1,1> r;
+  r(0,0) = 0.000001;
+
 
   Eigen::Matrix3d qx;
   qx.setZero();
@@ -2051,10 +2053,10 @@ void WalkingController::previewControlParameter(
   q_bar(0,0) = qe;
   q_bar.block<3,3>(1,1) = qx;
 
-  k=discreteRiccatiEquation(a_bar, b_bar, r, q_bar);
+  k=DyrosMath::discreteRiccatiEquation<4, 1>(a_bar, b_bar, r, q_bar);
 
   double temp_mat;
-  temp_mat = r+b_bar_tran*k*b_bar;
+  temp_mat = r(0)+b_bar_tran*k*b_bar;
 
   Eigen::Matrix4d ac_bar;
   ac_bar.setZero();
@@ -2085,110 +2087,6 @@ void WalkingController::previewControlParameter(
 
 }
 
-
-Eigen::Matrix4d WalkingController::discreteRiccatiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q)
-{
-  Eigen::Matrix4d z11, z12, z21, z22;
-  z11 = a.inverse();
-  z12 = a.inverse()*b*b.transpose()/r;
-  z21 = q*a.inverse();
-  z22 = a.transpose() + q*a.inverse()*b*b.transpose()/r;
-
-  Eigen::Matrix8d z;
-  z.setZero();
-  z.topLeftCorner(4,4) = z11;
-  z.topRightCorner(4,4) = z12;
-  z.bottomLeftCorner(4,4) = z21;
-  z.bottomRightCorner(4,4) = z22;
-
-  std::vector<double> eigVal_real(8);
-  std::vector<double> eigVal_img(8);
-  std::vector<Eigen::Vector8d> eigVec_real(8);
-  std::vector<Eigen::Vector8d> eigVec_img(8);
-
-  for(int i=0; i<8; i++)
-  {
-    eigVec_real[i].setZero();
-    eigVec_img[i].setZero();
-  }
-
-  Eigen::Vector8d deigVal_real, deigVal_img;
-  Eigen::Matrix8d deigVec_real, deigVec_img;
-  deigVal_real.setZero();
-  deigVal_img.setZero();
-  deigVec_real.setZero();
-  deigVec_img.setZero();
-  deigVal_real = z.eigenvalues().real();
-  deigVal_img = z.eigenvalues().imag();
-
-  Eigen::EigenSolver<Eigen::Matrix8d> es(z);
-  //EigenVector Solver
-  //Matrix3D ones = Matrix3D::Ones(3,3);
-  //EigenSolver<Matrix3D> es(ones);
-  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << es.eigenvectors().col(1) << endl;
-
-  for(int i=0;i<8; i++)
-  {
-      for(int j=0; j<8; j++)
-      {
-          deigVec_real(j,i) = es.eigenvectors().col(i)(j).real();
-          deigVec_img(j,i) = es.eigenvectors().col(i)(j).imag();
-      }
-  }
-
-  //Order the eigenvectors
-  //move e-vectors correspnding to e-value outside the unite circle to the left
-
-  Eigen::Matrix8x4d tempZ_real, tempZ_img;
-  tempZ_real.setZero();
-  tempZ_img.setZero();
-  int c=0;
-
-  for (int i=0;i<8;i++)
-  {
-      if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
-      {
-          for(int j=0; j<8; j++)
-          {
-              tempZ_real(j,c) = deigVec_real(j,i);
-              tempZ_img(j,c) = deigVec_img(j,i);
-          }
-          c++;
-      }
-  }
-
-  Eigen::Matrix8x4cd tempZ_comp;
-  for(int i=0;i<8;i++)
-  {
-      for(int j=0;j<4;j++)
-      {
-          tempZ_comp.real()(i,j) = tempZ_real(i,j);
-          tempZ_comp.imag()(i,j) = tempZ_img(i,j);
-      }
-  }
-
-  Eigen::Matrix4cd U11, U21, X;
-  for(int i=0;i<4;i++)
-  {
-      for(int j=0;j<4;j++)
-      {
-          U11(i,j) = tempZ_comp(i,j);
-          U21(i,j) = tempZ_comp(i+4,j);
-      }
-  }
-  X = U21*(U11.inverse());
-  Eigen::Matrix4d X_sol;
-  for(int i=0;i<4;i++)
-  {
-      for(int j=0;j<4;j++)
-      {
-          X_sol(i,j) = X.real()(i,j);
-      }
-  }
-
-  return X_sol;
-
-}
 
 
 
