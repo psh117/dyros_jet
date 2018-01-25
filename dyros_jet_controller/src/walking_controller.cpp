@@ -1912,32 +1912,27 @@ void WalkingController::modifiedPreviewControl()
       px_ref(i) = ref_zmp_(i,0);
       py_ref(i) = ref_zmp_(i,1);
   }
-  double ux, uy, ux_1 = 0.0, uy_1 = 0.0;
-  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, ux_1, uy_1, ux, uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
+  double _ux, _uy, _ux_1 = 0.0, _uy_1 = 0.0;
+  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, _ux_1, _uy_1, _ux, _uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
 
-  Eigen::Vector3d xs_matrix, ys_matrix;
+  Eigen::Vector3d xs_matrix, ys_matrix, _xs, _ys;
   for (int i=0; i<3; i++)
       xs_matrix(i) = _xd(i);
   for (int i=0; i<3; i++)
       ys_matrix(i) = _yd(i);
 
-  double est_zmp_error_x, est_zmp_error_y, rx, ry;
+  double est_zmp_error_x, est_zmp_error_y, est_zmp;
   est_zmp_error_x = _c*xs_matrix;
   est_zmp_error_y = _c*ys_matrix;
 
-  rx = 0.0;
-  ry = 0.0;
+  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, _ux_1, _uy_1, _ux, _uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
 
-  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, ux_1, uy_1, ux, uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
+  _ux_1 = _ux;
+  _uy_1 = _uy;
 
-  ux_1 = ux;
-  uy_1 = uy;
-
-  Eigen::Vector3d _xs, _ys;
   _xs = _xd;
   _ys = _yd;
 
-  double est_zmp;
   est_zmp = _c(0)*_xs(0)+_c(1)*_xs(1)+_c(2)*_xs(2);
 
 }
@@ -1946,7 +1941,7 @@ void WalkingController::previewControl(
     double dt, int NL, int k_, Eigen::Matrix4d k, double x_i,
     double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
     Eigen::VectorXd px_ref, Eigen::VectorXd py_ref, double ux_1 ,
-    double uy_1 , double ux, double uy, double gi, Eigen::VectorXd gp_l,
+    double uy_1 , double& ux, double& uy, double gi, Eigen::VectorXd gp_l,
     Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
     Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd)
 { //Preview와 prameter에서 VectorXD로 되있는거 수정해야함
@@ -2087,6 +2082,83 @@ void WalkingController::previewControlParameter(
 
 }
 
+
+void WalkingController::hipCompensator()
+{
+  double left_hip_angle = 3.6*DEG2RAD, right_hip_angle = 4.2*DEG2RAD, left_hip_angle_first_step = 3.6*DEG2RAD, right_hip_angle_first_step = 4.2*DEG2RAD,
+         left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD, left_pitch_angle_temp = 0.0;
+
+  if (current_step_num_ == 0)
+  {
+    if(foot_step_(current_step_num_, 6) == 1)
+    {
+      if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD, 0.0, left_hip_angle_first_step, 0.0);
+      else if(walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,left_hip_angle_first_step, 0.0, 0.0, 0.0);
+      else
+        left_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else if (foot_step_(current_step_num_, 6) == 0)
+    {
+      if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD, 0.0, right_hip_angle_first_step, 0.0);
+      else if(walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,right_hip_angle_first_step, 0.0, 0.0, 0.0);
+      else
+        right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else
+    {
+      left_hip_angle_temp = 0.0*DEG2RAD;
+      right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+  }
+  else
+  {
+    if(foot_step_(current_step_num_, 6) == 1)
+    {
+      if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+      {
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD,0.0,left_hip_angle,0.0);
+        left_pitch_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD,0.0,left_pitch_angle,0.0);
+      }
+      else if (walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+      {
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,left_hip_angle,0.0,0.0,0.0);
+        left_pitch_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,left_pitch_angle,0.0,0.0,0.0);
+      }
+      else
+        left_hip_angle_temp = 0.0*DEG2RAD;
+      if(walking_tick_ < t_start_+t_total_/2.0)
+      {
+        left_pitch_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+0.3*hz_,0.0,0.0,left_pitch_angle,0.0);
+      }
+      else
+      {
+        left_pitch_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_/2.0,t_start_+t_total_/2.0+0.4*hz_,left_pitch_angle,0.0,0.0,0.0);
+      }
+    }
+    else if(foot_step_(current_step_num_,6) == 0)
+    {
+      if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD,0.0,right_hip_angle,0.0);
+      else if(walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,left_hip_angle,0.0,0.0,0.0);
+      else
+        right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else
+    {
+      left_hip_angle_temp = 0.0*DEG2RAD;
+      right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+  }
+  desired_q_(1) = desired_q_(1) + left_hip_angle_temp;
+  desired_q_(7) = desired_q_(7) - right_hip_angle_temp;
+  joint_offset_angle_(1) = left_hip_angle_temp;
+  joint_offset_angle_(7) = -right_hip_angle_temp;
+}
 
 
 

@@ -59,14 +59,15 @@ public:
 
   //functions in compensator()
   void hipCompensator(); //reference Paper: http://dyros.snu.ac.kr/wp-content/uploads/2017/01/ICHR_2016_JS.pdf
-  
+  void hipCompensation();
+
   //PreviewController
   void modifiedPreviewControl();
   void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k,
                       double x_i, double y_i, Eigen::Vector3d xs,
                       Eigen::Vector3d ys, Eigen::VectorXd px_ref,
                       Eigen::VectorXd py_ref, double ux_1 , double uy_1 ,
-                      double ux, double uy, double gi, Eigen::VectorXd gp_l,
+                      double& ux, double& uy, double gi, Eigen::VectorXd gp_l,
                       Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
                       Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd);
   void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_,
@@ -226,6 +227,9 @@ private:
   Eigen::Vector3d p_ref_;
   Eigen::Vector3d l_ref_;
 
+  //Gravitycompensate
+  Eigen::Vector12d joint_offset_angle_;
+  Eigen::Vector12d grav_ground_torque_;
 
 
 

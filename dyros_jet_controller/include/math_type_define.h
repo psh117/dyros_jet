@@ -9,7 +9,8 @@
 
 #define GRAVITY 9.80665
 #define MAX_DOF 50U
-#define RAD2DEG 1/RAD2DEG
+#define RAD2DEG 1/DEG2RAD
+
 
 namespace Eigen
 {
