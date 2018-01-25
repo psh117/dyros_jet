@@ -43,6 +43,7 @@ public:
   void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q_dot);
   void compensator();
   void hipCompensation();
+  void hipCompensator();
 
   void supportToFloatPattern();
   void updateNextStepTime();

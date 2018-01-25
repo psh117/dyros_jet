@@ -2,14 +2,14 @@
 #define MATH_TYPE_DEFINE_H
 
 
-#define RAD2DEG (0.01745329251994329576923690768489)
+#define DEG2RAD (0.01745329251994329576923690768489)
 // constexpr size_t MAX_DOF=50;
 
 #include <Eigen/Dense>
 
 #define GRAVITY 9.80665
 #define MAX_DOF 50U
-#define DEG2RAD 1/RAD2DEG
+#define RAD2DEG 1/DEG2RAD
 
 namespace Eigen
 {

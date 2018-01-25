@@ -2187,7 +2187,7 @@ Eigen::Matrix4d WalkingController::discreteRiccatiEquation(Eigen::Matrix4d a, Ei
 
 void WalkingController::hipCompensation()
 {
-  double a_total=-0.0012, b_total=0.00087420, rising=1.0; robotweightforce=46.892*GRAVITY, alpha, alpha_1, fromright, fromleft, f_l, f_r, k1 = 0.2, k = 0.2; //로봇무게 수정해야할듯
+  double a_total=-0.0012, b_total=0.00087420, rising=1.0, robotweightforce=46.892*GRAVITY, alpha, alpha_1, fromright, fromleft, f_l, f_r, k1 = 0.2, k = 0.2; //로봇무게 수정해야할듯
   fromright = com_float_current_(1)-rfoot_float_current_.translation()(1);
   fromleft = com_float_current_(1)-lfoot_float_current_.translation()(1);
   alpha = (fromleft)/(fromleft-fromright);
@@ -2232,12 +2232,12 @@ void WalkingController::hipCompensation()
 
  /* if (_mg_control_flag == false)
   {
-      desired_q_(2)=desired_q_(2)-(a_total*lTau(2)+b_total)*rising*k1;
-      desired_q_(3)=desired_q_(3)-(a_total*lTau(3)+b_total)*rising*0.3;
-      desired_q_(4)=desired_q_(4)-(a_total*lTau(4)+b_total)*rising*k1;
-      desired_q_(8)=desired_q_(8)-(a_total*rTau(2)+b_total)*rising*k;
-      desired_q_(9)=desired_q_(9)-(a_total*rTau(3)+b_total)*rising*0.3;
-      desired_q_(10)=desired_q_(10)-(a_total*rTau(4)+b_total)*rising*k;
+      desired_q_(2)=desired_q_(2)+(a_total*lTau(2)+b_total)*rising*k1;
+      desired_q_(3)=desired_q_(3)+(a_total*lTau(3)+b_total)*rising*0.3;
+      desired_q_(4)=desired_q_(4)+(a_total*lTau(4)+b_total)*rising*k1;
+      desired_q_(8)=desired_q_(8)+(a_total*rTau(2)+b_total)*rising*k;
+      desired_q_(9)=desired_q_(9)+(a_total*rTau(3)+b_total)*rising*0.3;
+      desired_q_(10)=desired_q_(10)+(a_total*rTau(4)+b_total)*rising*k;
   }*/
 
   joint_offset_angle_.setZero();
@@ -2255,6 +2255,83 @@ void WalkingController::hipCompensation()
       grav_ground_torque_(i+6) = rTau[i];
   }
 
+}
+
+void WalkingController::hipCompensator()
+{
+  double left_hip_angle = 3.6*DEG2RAD, right_hip_angle = 4.2*DEG2RAD, left_hip_angle_first_step = 3.6*DEG2RAD, right_hip_angle_first_step = 4.2*DEG2RAD,
+         left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD, left_pitch_angle_temp = 0.0;
+
+  if (current_step_num_ == 0)
+  {
+    if(foot_step_(current_step_num_, 6) == 1)
+    {
+      if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD, 0.0, left_hip_angle_first_step, 0.0);
+      else if(walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,left_hip_angle_first_step, 0.0, 0.0, 0.0);
+      else
+        left_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else if (foot_step_(current_step_num_, 6) == 0)
+    {
+      if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD, 0.0, right_hip_angle_first_step, 0.0);
+      else if(walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,right_hip_angle_first_step, 0.0, 0.0, 0.0);
+      else
+        right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else
+    {
+      left_hip_angle_temp = 0.0*DEG2RAD;
+      right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+  }
+  else
+  {
+    if(foot_step_(current_step_num_, 6) == 1)
+    {
+      if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+      {
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD,0.0,left_hip_angle,0.0);
+        left_pitch_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD,0.0,left_pitch_angle,0.0);
+      }
+      else if (walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+      {
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,left_hip_angle,0.0,0.0,0.0);
+        left_pitch_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,left_pitch_angle,0.0,0.0,0.0);
+      }
+      else
+        left_hip_angle_temp = 0.0*DEG2RAD;
+      if(walking_tick_ < t_start_+t_total_/2.0)
+      {
+        left_pitch_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+0.3*hz_,0.0,0.0,left_pitch_angle,0.0);
+      }
+      else
+      {
+        left_pitch_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_/2.0,t_start_+t_total_/2.0+0.4*hz_,left_pitch_angle,0.0,0.0,0.0);
+      }
+    }
+    else if(foot_step_(current_step_num_,6) == 0)
+    {
+      if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_,t_start_real_+t_double1_+temp_time,0.0*DEG2RAD,0.0,right_hip_angle,0.0);
+      else if(walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-temp_time,t_start_+t_total_-t_rest_last_,left_hip_angle,0.0,0.0,0.0);
+      else
+        right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else
+    {
+      left_hip_angle_temp = 0.0*DEG2RAD;
+      right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+  }
+  desired_q_(1) = desired_q_(1) + left_hip_angle_temp;
+  desired_q_(7) = desired_q_(7) - right_hip_angle_temp;
+  joint_offset_angle_(1) = left_hip_angle_temp;
+  joint_offset_angle_(7) = -right_hip_angle_temp;
 }
 
 
