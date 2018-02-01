@@ -9,13 +9,28 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   ui_update_count_(0), is_first_boot_(true), Hz_(Hz), control_mask_{}, total_dof_(DyrosJetModel::HW_TOTAL_DOF),
   task_controller_(model_, q_, Hz_, control_time_), joint_controller_(q_, control_time_), walking_controller_(model_, q_, Hz_, control_time_)
 {
+  //walking_cmd_sub_ = nh.subscribe
+  makeIDInverseList();
 
-  smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
+  joint_state_pub_.init(nh, "/dyros_jet/joint_state", 3);
+  joint_state_pub_.msg_.id.resize(DyrosJetModel::HW_TOTAL_DOF);
+  joint_state_pub_.msg_.angle.resize(DyrosJetModel::HW_TOTAL_DOF);
+  joint_state_pub_.msg_.velocity.resize(DyrosJetModel::HW_TOTAL_DOF);
+  joint_state_pub_.msg_.current.resize(DyrosJetModel::HW_TOTAL_DOF);
+  joint_state_pub_.msg_.error.resize(DyrosJetModel::HW_TOTAL_DOF);
+  for (int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
+  {
+    joint_state_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
+  }
+
+  smach_pub_.init(nh, "/transition", 1);
+  smach_sub_ = nh.subscribe("/Jimin_machine/smach/container_status", 3, &ControlBase::smachCallback, this);
+  //smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
   walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
   parameterInitialize();
-  model_.test();
+  // model_.test();
 }
 
 bool ControlBase::checkStateChanged()
@@ -29,7 +44,7 @@ bool ControlBase::checkStateChanged()
 }
 void ControlBase::makeIDInverseList()
 {
-  for(int i=0;i<total_dof_; i++)
+  for(int i=0;i<DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     joint_id_[i] = DyrosJetModel::JOINT_ID[i];
     joint_id_inversed_[DyrosJetModel::JOINT_ID[i]] = i;
@@ -75,10 +90,28 @@ void ControlBase::compute()
 
   tick_ ++;
   control_time_ = tick_ / Hz_;
+
+  /*
+  if ((tick_ % 200) == 0 )
+  {
+    ROS_INFO ("1 sec, %lf sec", control_time_);
+  }
+  */
 }
 
 void ControlBase::reflect()
 {
+  for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
+  {
+    joint_state_pub_.msg_.angle[i] = q_(i);
+    joint_state_pub_.msg_.velocity[i] = q_dot_(i);
+    joint_state_pub_.msg_.current[i] = torque_(i);
+  }
+
+  if(joint_state_pub_.trylock())
+  {
+    joint_state_pub_.unlockAndPublish();
+  }
 }
 
 void ControlBase::parameterInitialize()
@@ -123,7 +156,7 @@ void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr&
 
 void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg)
 {
-  for (unsigned int i=0; i<total_dof_; i++)
+  for (unsigned int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     if (msg->enable[i])
     {

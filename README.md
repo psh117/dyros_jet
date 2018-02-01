@@ -7,6 +7,9 @@
 ```sh
 sudo apt-get install ros-kinetic-qt-build
 sudo apt-get install ros-kinetic-realtime-tools
+cd ~/catkin_ws/src
+git clone https://github.com/KumarRobotics/imu_3dm_gx4
+git clone https://github.com/psh117/rt_dynamixel_msgs
 ```
 
 ### RBDL Setup ###
@@ -24,4 +27,29 @@ sudo make install
 * and remove this line
 ```cpp
 #include <ros.h>
+```
+
+### How do I run the simulation? ###
+
+* Launch V-Rep
+* Open `dyros_jet_new_api.ttt`
+```
+dyros_jet_vrep/scene/dyros_jet_new_api.ttt
+```
+* roslaunch
+```sh
+roslaunch dyros_jet_launch simulation.launch
+```
+* GUI
+```sh
+rosrun dyros_jet_gui dyros_jet_gui
+```
+* Prepare a simple test (Once)
+```sh
+chmod +x dyros_jet_mission_commander/src/commander.py
+catkin_make
+```
+* Run the simple test
+```sh
+rosrun dyros_jet_mission_commander commander.py
 ```

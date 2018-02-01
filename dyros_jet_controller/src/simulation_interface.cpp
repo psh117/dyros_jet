@@ -3,15 +3,19 @@
 namespace dyros_jet_controller
 {
 
-SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz): ControlBase(nh, Hz), rate_(200)
+SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz):
+  ControlBase(nh, Hz), rate_(Hz), simulation_step_done_(false)
 {
   simulation_running_= true;
   simulation_time_ = 0.0f; // set initial simulation time
 
   vrep_sim_start_pub_ = nh.advertise<std_msgs::Bool>("/startSimulation", 5);
   vrep_sim_stop_pub_ = nh.advertise<std_msgs::Bool>("/stopSimulation", 5);
-  vrep_sim_step_done_pub_ = nh.advertise<std_msgs::Bool>("/triggerNextStep", 100);
+  vrep_sim_step_trigger_pub_ = nh.advertise<std_msgs::Bool>("/triggerNextStep", 100);
   vrep_sim_enable_syncmode_pub_ = nh.advertise<std_msgs::Bool>("/enableSyncMode", 5);
+
+
+  vrep_sim_step_done_sub_ = nh.subscribe("/simulationStepDone", 100, &SimulationInterface::simulationStepDoneCallback, this);
 
   imu_sub_ = nh.subscribe("/vrep_ros_interface/imu", 100, &SimulationInterface::imuCallback, this);
   joint_sub_ = nh.subscribe("/vrep_ros_interface/joint_state", 100, &SimulationInterface::jointCallback, this);
@@ -55,11 +59,11 @@ void SimulationInterface::vrepStop()
   vrep_sim_stop_pub_.publish(msg);
 }
 
-void SimulationInterface::vrepStepDone()
+void SimulationInterface::vrepStepTrigger()
 {
   std_msgs::Bool msg;
   msg.data = true;
-  vrep_sim_step_done_pub_.publish(msg);
+  vrep_sim_step_trigger_pub_.publish(msg);
 }
 
 void SimulationInterface::vrepEnableSyncMode()
@@ -88,12 +92,18 @@ void SimulationInterface::writeDevice()
   }
 
   vrep_joint_set_pub_.publish(joint_set_msg_);
-  vrepStepDone();
+  vrepStepTrigger();
 
 }
 
 void SimulationInterface::wait()
 {
+  // Wait for step done
+  while(ros::ok() && !simulation_step_done_)
+  {
+    ros::spinOnce();
+  }
+  simulation_step_done_ = false;
   rate_.sleep();
 }
 
@@ -107,6 +117,11 @@ void SimulationInterface::wait()
 void SimulationInterface::simulationTimeCallback(const std_msgs::Float32ConstPtr& msg)
 {
   simulation_time_ = msg->data;
+}
+
+void SimulationInterface::simulationStepDoneCallback(const std_msgs::BoolConstPtr &msg)
+{
+  simulation_step_done_ = msg->data;
 }
 
 void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& msg)

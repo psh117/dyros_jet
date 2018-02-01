@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package>
+  <name>dyros_jet_smach</name>
+  <version>0.0.1</version>
+  <description>The dyros_jet_smach package</description>
+
+  <maintainer email="psh117@snu.ac.kr">Suhan Park</maintainer>
+
+  <license>BSD</license>
+
+  <author email="jmpechem@snu.ac.kr">Jimin Lee</author>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>smach</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>turtlesim</build_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>smach</run_depend>
+  <run_depend>std_srvs</run_depend>
+  <run_depend>turtlesim</run_depend>
+
+
+  <export>
+
+  </export>
+</package>
