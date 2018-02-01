@@ -39,7 +39,7 @@ private:
 
   // motion time
   const double hz_;
-  const double &current_time_; // updated by control_base
+  const double &control_time_; // updated by control_base
   double start_time_[4];
   double end_time_[4];
   bool target_arrived_[4];
