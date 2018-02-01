@@ -100,6 +100,8 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
   q_ = q;
   // std::cout << A_ << std::endl<< std::endl<< std::endl<< std::endl;
 
+  getCenterOfMassPosition(&com_);
+
   for(unsigned int i=0; i<4; i++)
   {
     getTransformEndEffector((EndEffector)i, &currnet_transform_[i]);
@@ -164,7 +166,8 @@ void DyrosJetModel::getTransformEndEffector
 }
 
 
-void DyrosJetModel::getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 6, 6> *jacobian)
+void DyrosJetModel::getJacobianMatrix6DoF
+(EndEffector ee, Eigen::Matrix<double, 6, 6> *jacobian)
 {
   Eigen::MatrixXd full_jacobian(6,MODEL_DOF);
   full_jacobian.setZero();
@@ -181,12 +184,14 @@ void DyrosJetModel::getJacobianMatrix6DoF(EndEffector ee, Eigen::Matrix<double, 
     break;
   case EE_LEFT_HAND:
   case EE_RIGHT_HAND:
-    //*jacobian = full_jacobian.block<6, 7>(0, joint_start_index_[ee]);
+  //*jacobian = full_jacobian.block<6, 7>(0, joint_start_index_[ee]);
     ROS_ERROR("Arm is 7 DoF. Please call getJacobianMatrix7DoF");
     break;
   }
 }
-void DyrosJetModel::getJacobianMatrix7DoF(EndEffector ee, Eigen::Matrix<double, 6, 7> *jacobian)
+
+void DyrosJetModel::getJacobianMatrix7DoF
+(EndEffector ee, Eigen::Matrix<double, 6, 7> *jacobian)
 {
   Eigen::MatrixXd full_jacobian(6,MODEL_DOF);
   full_jacobian.setZero();
@@ -197,16 +202,32 @@ void DyrosJetModel::getJacobianMatrix7DoF(EndEffector ee, Eigen::Matrix<double, 
   {
   case EE_LEFT_FOOT:
   case EE_RIGHT_FOOT:
-    // swap
-    ROS_ERROR("Leg is 6 DoF. Please call getJacobianMatrix7DoF");
-    break;
+  // swap
+  ROS_ERROR("Leg is 6 DoF. Please call getJacobianMatrix7DoF");
+  break;
   case EE_LEFT_HAND:
   case EE_RIGHT_HAND:
-    //*jacobian = full_jacobian.block<6, 7>(0, joint_start_index_[ee]);
-    jacobian->block<3, 7>(0, 0) = full_jacobian.block<3, 7>(3, joint_start_index_[ee]);
-    jacobian->block<3, 7>(3, 0) = full_jacobian.block<3, 7>(0, joint_start_index_[ee]);
-    break;
+  //*jacobian = full_jacobian.block<6, 7>(0, joint_start_index_[ee]);
+  jacobian->block<3, 7>(0, 0) = full_jacobian.block<3, 7>(3, joint_start_index_[ee]);
+  jacobian->block<3, 7>(3, 0) = full_jacobian.block<3, 7>(0, joint_start_index_[ee]);
+  break;
   }
+}
+
+void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
+{
+  RigidBodyDynamics::Math::Vector3d position_temp;
+  position_temp.setZero();
+  Eigen::Vector28d qdot;
+  qdot.setZero();
+  Eigen::Vector3d com_vel;
+  Eigen::Vector3d angular_momentum;
+  double mass;
+
+  RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp, NULL, NULL, false);
+  //RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp);
+
+  *position = position_temp;
 }
 
 }

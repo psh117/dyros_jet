@@ -64,7 +64,6 @@ void JointController::updateControlMask(unsigned int *mask)
       mask[i] = (mask[i] & ~PRIORITY);
     }
   }
-
 }
 
 void JointController::writeDesired(const unsigned int *mask, VectorQd& desired_q)

@@ -2,13 +2,16 @@
 #define MATH_TYPE_DEFINE_H
 
 
-#define RAD2DEG (0.01745329251994329576923690768489)
+#define DEG2RAD (0.01745329251994329576923690768489)
 // constexpr size_t MAX_DOF=50;
 
 #include <Eigen/Dense>
 
 #define GRAVITY 9.80665
 #define MAX_DOF 50U
+#define RAD2DEG 1/DEG2RAD
+
+
 namespace Eigen
 {
 
@@ -23,21 +26,33 @@ typedef double	rScalar;
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 5, 5)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 6, 6)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 7, 7)
+EIGEN_MAKE_TYPEDEFS(rScalar, d, 8, 8)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 12, 12)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 28, 28)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 30, 30)
 
 // typedef Transform<rScalar, 3, Eigen::Isometry> HTransform;  // typedef Transform< double, 3, Isometry > 	Eigen::Isometry3d
 
+typedef Matrix<rScalar, 1, 3>	Matrix1x3d;
+typedef Matrix<rScalar, 1, 4>	Matrix1x4d;
+typedef Matrix<rScalar, 4, 3>	Matrix4x3d;
 typedef Matrix<rScalar, 6, 3>	Matrix6x3d;
 typedef Matrix<rScalar, 6, 7>	Matrix6x7d;
+typedef Matrix<rScalar, 8, 4>	Matrix8x4d;
 typedef Matrix<rScalar, -1, 1, 0, MAX_DOF, 1> VectorJXd;
+typedef Matrix<rScalar, -1, 1, 0, 12, 1> VectorLXd; //Leg IK
 typedef Matrix<rScalar, -1, -1, 0, MAX_DOF, MAX_DOF> MatrixJXd;
+
+//Complex
+typedef Matrix<std::complex<double>,8,4> Matrix8x4cd;
 
 }
 
 namespace DyrosMath
 {
+
+//constexpr double GRAVITY {9.80665};
+//constexpr double DEG2RAD {};
 
 static double cubic(double time,     ///< Current time
              double time_0,   ///< Start time
@@ -81,6 +96,49 @@ static double cubic(double time,     ///< Current time
   return x_t;
 }
 
+static double cubicDot(double time,     ///< Current time
+             double time_0,   ///< Start time
+             double time_f,   ///< End time
+             double x_0,      ///< Start state
+             double x_f,      ///< End state
+             double x_dot_0,  ///< Start state dot
+             double x_dot_f,   ///< End state dot
+             double hz         ///< control frequency
+             )
+{
+  double x_t;
+
+  if (time < time_0)
+  {
+    x_t = x_0;
+  }
+  else if (time > time_f)
+  {
+    x_t = x_f;
+  }
+  else
+  {
+    double elapsed_time = time - time_0;
+    double total_time = time_f - time_0;
+    double total_time2 = total_time * total_time;  // pow(t,2)
+    double total_time3 = total_time2 * total_time; // pow(t,3)
+    double total_x    = x_f - x_0;
+
+    x_t = x_dot_0
+
+        + 2*(3 * total_x / total_time2
+           - 2 * x_dot_0 / total_time
+           - x_dot_f / total_time)
+        * elapsed_time
+
+        + 3*(-2 * total_x / total_time3 +
+           (x_dot_0 + x_dot_f) / total_time2)
+        * elapsed_time * elapsed_time;
+  }
+
+  return x_t;
+}
+
 template <int N>
 static Eigen::Matrix<double, N, 1> cubicVector(double time,     ///< Current time
                                                 double time_0,   ///< Start time
@@ -99,6 +157,7 @@ static Eigen::Matrix<double, N, 1> cubicVector(double time,     ///< Current tim
   }
   return res;
 }
+
 static Eigen::Vector3d getPhi(Eigen::Matrix3d current_rotation,
                        Eigen::Matrix3d desired_rotation)
 {
@@ -115,6 +174,231 @@ static Eigen::Vector3d getPhi(Eigen::Matrix3d current_rotation,
 
   return phi;
 }
+
+static Eigen::Isometry3d multiplyIsometry3d(Eigen::Isometry3d A,
+                                      Eigen::Isometry3d B)
+{
+  Eigen::Isometry3d AB;
+
+  AB.linear() = A.linear()*B.linear();
+  AB.translation() = A.linear()*B.translation() + A.translation();
+  return AB;
 }
 
+static Eigen::Isometry3d inverseIsometry3d(Eigen::Isometry3d A)
+{
+  Eigen::Isometry3d A_inv;
+
+  A_inv.linear() = A.linear().transpose();
+  A_inv.translation() = -A.linear().transpose()*A.translation();
+  return A_inv;
+}
+
+static Eigen::Matrix3d rotateWithZ(double yaw_angle)
+{
+  Eigen::Matrix3d rotate_wth_z(3, 3);
+
+  rotate_wth_z(0, 0) = cos(yaw_angle);
+  rotate_wth_z(1, 0) = sin(yaw_angle);
+  rotate_wth_z(2, 0) = 0.0;
+
+  rotate_wth_z(0, 1) = -sin(yaw_angle);
+  rotate_wth_z(1, 1) = cos(yaw_angle);
+  rotate_wth_z(2, 1) = 0.0;
+
+  rotate_wth_z(0, 2) = 0.0;
+  rotate_wth_z(1, 2) = 0.0;
+  rotate_wth_z(2, 2) = 1.0;
+
+  return rotate_wth_z;
+}
+
+static Eigen::Matrix3d rotateWithY(double pitch_angle)
+{
+  Eigen::Matrix3d rotate_wth_y(3, 3);
+
+  rotate_wth_y(0, 0) = cos(pitch_angle);
+  rotate_wth_y(1, 0) = 0.0;
+  rotate_wth_y(2, 0) = -sin(pitch_angle);
+
+  rotate_wth_y(0, 1) = 0.0;
+  rotate_wth_y(1, 1) = 1.0;
+  rotate_wth_y(2, 1) = 0.0;
+
+  rotate_wth_y(0, 2) = sin(pitch_angle);
+  rotate_wth_y(1, 2) = 0.0;
+  rotate_wth_y(2, 2) = cos(pitch_angle);
+
+  return rotate_wth_y;
+}
+
+static Eigen::Matrix3d rotateWithX(double roll_angle)
+{
+  Eigen::Matrix3d rotate_wth_x(3, 3);
+
+  rotate_wth_x(0, 0) = 1.0;
+  rotate_wth_x(1, 0) = 0.0;
+  rotate_wth_x(2, 0) = 0.0;
+
+  rotate_wth_x(0, 1) = 0.0;
+  rotate_wth_x(1, 1) = cos(roll_angle);
+  rotate_wth_x(2, 1) = sin(roll_angle);
+
+  rotate_wth_x(0, 2) = 0.0;
+  rotate_wth_x(1, 2) = -sin(roll_angle);
+  rotate_wth_x(2, 2) = cos(roll_angle);
+
+  return rotate_wth_x;
+}
+
+static Eigen::Vector3d rot2Euler(Eigen::Matrix3d Rot)
+{
+    double beta;
+    Eigen::Vector3d angle;
+    beta = -asin(Rot(2,0));
+
+    if(abs(beta) < 90*DEG2RAD)
+        beta = beta;
+    else
+        beta = 180*DEG2RAD-beta;
+
+    angle(0) = atan2(Rot(2,1),Rot(2,2)+1E-37); //roll
+    angle(2) = atan2(Rot(1,0),Rot(0,0)+1E-37); //pitch
+    angle(1) = beta; //yaw
+
+    return angle;
+}
+
+template <typename _Matrix_Type_>
+_Matrix_Type_ pinv(const _Matrix_Type_ &a, double epsilon =std::numeric_limits<double>::epsilon())
+{
+    Eigen::JacobiSVD< _Matrix_Type_ > svd(a ,Eigen::ComputeThinU | Eigen::ComputeThinV);
+    double tolerance = epsilon * std::max(a.cols(), a.rows()) *svd.singularValues().array().abs()(0);
+
+    return svd.matrixV() *  (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
+}
+
+static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference, Eigen::Isometry3d new_trunk)
+{
+  Eigen::Vector3d rpy_ang;
+  rpy_ang = DyrosMath::rot2Euler(reference.linear());
+
+  Eigen::Matrix3d temp;
+  temp = DyrosMath::rotateWithZ(-rpy_ang(2));
+
+  new_trunk.linear() = temp*trunk.linear();
+  new_trunk.translation() = temp*(trunk.translation() - reference.translation());
+}
+
+
+template <int _State_Size_, int _Input_Size_>
+Eigen::Matrix<double, _State_Size_, _State_Size_> discreteRiccatiEquation(
+    Eigen::Matrix<double, _State_Size_, _State_Size_> a,
+    Eigen::Matrix<double, _State_Size_, _Input_Size_> b,
+    Eigen::Matrix<double, _Input_Size_, _Input_Size_> r,
+    Eigen::Matrix<double, _State_Size_, _State_Size_> q)
+{
+  Eigen::Matrix4d z11, z12, z21, z22;
+  z11 = a.inverse();
+  z12 = a.inverse()*b*r.inverse()*b.transpose();
+  z21 = q*a.inverse();
+  z22 = a.transpose() + q*a.inverse()*b*r.inverse()*b.transpose();
+
+  Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_> z;
+  z.setZero();
+  z.topLeftCorner(4,4) = z11;
+  z.topRightCorner(4,4) = z12;
+  z.bottomLeftCorner(4,4) = z21;
+  z.bottomRightCorner(4,4) = z22;
+
+  std::vector<double> eigVal_real(8);
+  std::vector<double> eigVal_img(8);
+  std::vector<Eigen::Vector8d> eigVec_real(8);
+  std::vector<Eigen::Vector8d> eigVec_img(8);
+
+  for(int i=0; i<8; i++)
+  {
+    eigVec_real[i].setZero();
+    eigVec_img[i].setZero();
+  }
+
+  Eigen::Matrix<double, 2*_State_Size_, 1> deigVal_real, deigVal_img;
+  Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_> deigVec_real, deigVec_img;
+  deigVal_real.setZero();
+  deigVal_img.setZero();
+  deigVec_real.setZero();
+  deigVec_img.setZero();
+  deigVal_real = z.eigenvalues().real();
+  deigVal_img = z.eigenvalues().imag();
+
+  Eigen::EigenSolver<Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_>> ev(z);
+  //EigenVector Solver
+  //Matrix3D ones = Matrix3D::Ones(3,3);
+  //EigenSolver<Matrix3D> ev(ones);
+  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << ev.eigenvectors().col(1) << endl;
+
+  for(int i=0;i<8; i++)
+  {
+    for(int j=0; j<8; j++)
+    {
+      deigVec_real(j,i) = ev.eigenvectors().col(i)(j).real();
+      deigVec_img(j,i) = ev.eigenvectors().col(i)(j).imag();
+    }
+  }
+
+  //Order the eigenvectors
+  //move e-vectors correspnding to e-value outside the unite circle to the left
+
+  Eigen::Matrix8x4d tempZ_real, tempZ_img;
+  tempZ_real.setZero();
+  tempZ_img.setZero();
+  int c=0;
+
+  for (int i=0;i<8;i++)
+  {
+    if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
+    {
+      for(int j=0; j<8; j++)
+      {
+        tempZ_real(j,c) = deigVec_real(j,i);
+        tempZ_img(j,c) = deigVec_img(j,i);
+      }
+      c++;
+    }
+  }
+
+  Eigen::Matrix8x4cd tempZ_comp;
+  for(int i=0;i<8;i++)
+  {
+    for(int j=0;j<4;j++)
+    {
+      tempZ_comp.real()(i,j) = tempZ_real(i,j);
+      tempZ_comp.imag()(i,j) = tempZ_img(i,j);
+    }
+  }
+
+  Eigen::Matrix4cd U11, U21, X;
+  for(int i=0;i<4;i++)
+  {
+    for(int j=0;j<4;j++)
+    {
+      U11(i,j) = tempZ_comp(i,j);
+      U21(i,j) = tempZ_comp(i+4,j);
+    }
+  }
+  X = U21*(U11.inverse());
+  Eigen::Matrix4d X_sol;
+  for(int i=0;i<4;i++)
+  {
+    for(int j=0;j<4;j++)
+    {
+      X_sol(i,j) = X.real()(i,j);
+    }
+  }
+
+  return X_sol;
+}
+
+
+}
 #endif

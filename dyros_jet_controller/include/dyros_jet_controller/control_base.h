@@ -29,7 +29,7 @@
 #include "dyros_jet_msgs/JointState.h"
 #include <dyros_jet_msgs/TaskCommand.h>
 #include <dyros_jet_msgs/JointCommand.h>
-//#include "dyros_jet_msgs/WalkingCmd.h"
+#include <dyros_jet_msgs/WalkingCommand.h>
 //#include "dyros_jet_msgs/RecogCmd.h"
 //#include "dyros_jet_msgs/TaskCmdboth.h"
 
@@ -38,7 +38,7 @@
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "dyros_jet_controller/task_controller.h"
 #include "dyros_jet_controller/joint_controller.h"
-// #include "Walking_Controller.h"
+#include "dyros_jet_controller/walking_controller.h"
 // #include "Upperbody_Controller.h"
 
 
@@ -99,6 +99,7 @@ protected:
   DyrosJetModel model_;
   TaskController task_controller_;
   JointController joint_controller_;
+  WalkingController walking_controller_;
 
 protected:
   string current_state_;
@@ -113,11 +114,11 @@ private:
 
 
   // ROS
-  ros::Subscriber walking_cmd_sub_;
   ros::Subscriber task_cmd_sub_;
   ros::Subscriber joint_cmd_sub_;
   ros::Subscriber task_comamnd_sub_;
   ros::Subscriber joint_command_sub_;
+  ros::Subscriber walking_command_sub_;
   //ros::Subscriber recog_point_sub_;
   // ros::Subscriber recog_cmd_sub_;
 
@@ -131,6 +132,7 @@ private:
   void smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg);
   void taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
   void jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg);
+  void walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg);
 private:
 
   void makeIDInverseList();

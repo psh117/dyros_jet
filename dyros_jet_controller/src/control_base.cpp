@@ -7,7 +7,7 @@ namespace dyros_jet_controller
 // Constructor
 ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   ui_update_count_(0), is_first_boot_(true), Hz_(Hz), control_mask_{}, total_dof_(DyrosJetModel::HW_TOTAL_DOF),
-  task_controller_(model_, q_, Hz, control_time_), joint_controller_(q_, control_time_)
+  task_controller_(model_, q_, Hz_, control_time_), joint_controller_(q_, control_time_), walking_controller_(model_, q_, Hz_, control_time_)
 {
   //walking_cmd_sub_ = nh.subscribe
   makeIDInverseList();
@@ -24,11 +24,11 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   }
 
   smach_pub_.init(nh, "/transition", 1);
-
   smach_sub_ = nh.subscribe("/Jimin_machine/smach/container_status", 3, &ControlBase::smachCallback, this);
   //smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
+  walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
   parameterInitialize();
   // model_.test();
 }
@@ -77,6 +77,7 @@ void ControlBase::stateChangeEvent()
 }
 void ControlBase::compute()
 {
+
   task_controller_.compute();
   joint_controller_.compute();
   // walking_controller.compute();
@@ -153,7 +154,7 @@ void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr&
   }
 }
 
-void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr &msg)
+void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg)
 {
   for (unsigned int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
   {
@@ -169,6 +170,27 @@ void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPt
   }
 }
 
+void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg)
+{
+  vector<bool> compensate_v;
+  compensate_v.reserve(2);
+
+  for (int i =0; i<2; i++)
+  {
+    compensate_v[i]=msg->compensator_mode[i];
+  }
+
+
+  if(msg->walk_mode == dyros_jet_msgs::WalkingCommand::STATIC_WALKING)
+  {
+    walking_controller_.setEnable(true);
+    walking_controller_.setTarget(msg->walk_mode, compensate_v, msg->ik_mode, msg->first_foot_step,
+    msg-> heel_toe, msg->x, msg->y, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
+  }
+  else
+  {
+    walking_controller_.setEnable(false);
+  }
 }
 
-
+}

@@ -42,7 +42,7 @@ file(GLOB BRIDGE_SRC
     #  "src/hardware_interface.cpp"
     )
 file(GLOB WALKING_SRC
-    "src/walking_controller/*.cpp"
+    "src/walking_controller.cpp"
     )
 file(GLOB CONTROLLER_SRC
     "src/dyros_jet_model.cpp"
@@ -54,7 +54,7 @@ file(GLOB CONTROLLER_SRC
 add_library(dyros_jet_controller_lib
     ${BRIDGE_SRC}
     ${CONTROLLER_SRC}
-    #  ${WALKING_SRC}
+    ${WALKING_SRC}
     #  ${UPPER_SRC}
     )
 
