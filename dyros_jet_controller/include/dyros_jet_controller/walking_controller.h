@@ -73,8 +73,7 @@ public:
   void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_,
                                double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
-  Eigen::Matrix4d discreteRiccatiEquation(Eigen::Matrix4d a, Eigen::Vector4d b, double r, Eigen::Matrix4d q);
-
+  void vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output);
 
 private:
 

@@ -69,7 +69,7 @@ void WalkingController::setTarget(int walk_mode, std::vector<bool> compensator_m
   step_length_y_ = step_length_y;
   ik_mode_ = ik_mode;
   walk_mode_ = walk_mode;
-  compensator_mode_ = compensator_mode;
+  compensator_mode_ = compensator_mode; //uint32 HIP_COMPENSTOR = 0    uint32 EXTERNAL_ENCODER = 1
   heel_toe_mode_ = heel_toe;
   is_right_foot_swing_ = is_right_foot_swing;
 
@@ -2040,7 +2040,6 @@ void WalkingController::previewControlParameter(
   Eigen::Matrix<double, 1,1> r;
   r(0,0) = 0.000001;
 
-
   Eigen::Matrix3d qx;
   qx.setZero();
   Eigen::Matrix4d q_bar;
@@ -2068,16 +2067,16 @@ void WalkingController::previewControlParameter(
   x_l_column = -ac_bar.transpose()*k*i_p;
   for(int i=0; i<NL; i++)
   {
-      x_l.block<4,1>(0,i) = x_l_column;
-      x_l_column = ac_bar.transpose()*x_l_column;
+    x_l.block<4,1>(0,i) = x_l_column;
+    x_l_column = ac_bar.transpose()*x_l_column;
   }
   double gp_l_column;
   gp_l_column = -gi;
   for(int i=0; i<NL; i++)
   {
-      gp_l(i) = gp_l_column;
-      gp_l_column = b_bar_tran*x_l.col(i);
-      gp_l_column = gp_l_column/temp_mat;
+    gp_l(i) = gp_l_column;
+    gp_l_column = b_bar_tran*x_l.col(i);
+    gp_l_column = gp_l_column/temp_mat;
   }
 
 }
@@ -2160,7 +2159,16 @@ void WalkingController::hipCompensator()
   joint_offset_angle_(7) = -right_hip_angle_temp;
 }
 
+/*
+void WalkingController::vibrationControl(const VectorQd desired_leg_q, VectorQd &output)
+{
+  if(walking_tick_ ==0)
+  {
 
+  }
+}
+
+*/
 
 }
 
