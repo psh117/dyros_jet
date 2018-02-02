@@ -80,13 +80,15 @@ void ControlBase::compute()
 
   task_controller_.compute();
   joint_controller_.compute();
-  // walking_controller.compute();
+  walking_controller_.compute();
 
   task_controller_.updateControlMask(control_mask_);
   joint_controller_.updateControlMask(control_mask_);
+  walking_controller_.updateControlMask(control_mask_);
 
   task_controller_.writeDesired(control_mask_, desired_q_);
   joint_controller_.writeDesired(control_mask_, desired_q_);
+  walking_controller_.writeDesired(control_mask_, desired_q_);
 
   tick_ ++;
   control_time_ = tick_ / Hz_;
@@ -185,7 +187,7 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   {
     walking_controller_.setEnable(true);
     walking_controller_.setTarget(msg->walk_mode, compensate_v, msg->ik_mode, msg->first_foot_step,
-    msg-> heel_toe, msg->x, msg->y, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
+    msg-> heel_toe, msg->x, msg->y, msg->z, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
   }
   else
   {

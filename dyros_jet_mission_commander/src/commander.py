@@ -44,26 +44,6 @@ def commander():
     pub.publish(msg)
     rospy.sleep(.5)
 
-
-    task_msg = TaskCommand()
-
-
-    task_msg.end_effector=[False, False, False, True]
-    task_msg.mode=[0, 0, 0, 0]
-    task_msg.pose[3].position = Point(0.3, 0.0, 0.0)
-    task_msg.pose[3].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
-    task_msg.duration = [0.0, 0.0, 0.0, 5.0]
-    task_pub.publish(task_msg);
-
-
-    rospy.sleep(5.0);
-    
-    task_msg.end_effector=[True, False, False, False]
-    task_msg.mode=[0, 0, 0, 0]
-    task_msg.pose[0].position = Point(0.0, 0.0, 0.2)
-    task_msg.pose[0].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
-    task_msg.duration = [5.0, 0.0, 0.0, 0.0]
-    task_pub.publish(task_msg);
     
     rospy.sleep(5.0);
     
@@ -84,17 +64,18 @@ def commander():
 
     walk_msg= WalkingCommand()
 
-    walk_msg.walk_mode = 0
-    walk_msg.compensator_mode = [True, True]
+    walk_msg.walk_mode = 1
+    walk_msg.compensator_mode = [True, False]
     walk_msg.ik_mode = 0
     walk_msg.first_foot_step = True
     walk_msg.heel_toe = False
-    walk_msg.x = 0.0
-    walk_msg.y = 0.0
-    walk_msg.z = 0.75
+    walk_msg.x = 20.0
+    walk_msg.y = 18.0
+    walk_msg.z = 0.0
+    walk_msg.height = 0.75
     walk_msg.theta = 0
-    walk_msg.step_length_x =0.15
-    walk_msg.step_length_y =0.00
+    walk_msg.step_length_x =0.20
+    walk_msg.step_length_y =0.18
 
     walk_pub.publish(walk_msg);
 

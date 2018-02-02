@@ -6,28 +6,42 @@ namespace dyros_jet_controller
 
 
 
-void WalkingController::compute(VectorQd* desired_q)
+void WalkingController::compute()
 {
   if(walking_enable_)
   {
+    std::cout<<"Check point1"<<endl;
+
+    updateInitialState();
+    std::cout<<"Check point2"<<endl;
+
+    getRobotState();
+    std::cout<<"Check point3"<<endl;
+
     if(current_step_num_< total_step_num_)
     {
-      updateInitialState();
-      getRobotState();
-      getFootStep();
+
       getZmpTrajectory();
+      std::cout<<"check point 4"<<endl;
+
       getComTrajectory();
+      std::cout<<"check point 5"<<endl;
+
       getFootTrajectory();
+      std::cout<<"check point 6"<<endl;
+
       supportToFloatPattern();
+      std::cout<<"check point 7"<<endl;
 
       //////compute//////////////////
       if (ik_mode_ == 0)
       {
         computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_,desired_leg_q_);
-        for(int i=0; i<6; i++)
+        std::cout<<"check point 8"<<endl;
+
+        for(int i=0; i<12; i++)
         {
           desired_q_(i) = desired_leg_q_(i);
-          desired_q_(i+6) = desired_leg_q_(i+6);
         }
       }
       else if (ik_mode_ == 1)
@@ -35,7 +49,8 @@ void WalkingController::compute(VectorQd* desired_q)
         computeJacobianControl(lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_dot_);
         for(int i=0; i<6; i++)
         {
-          if(walking_tick_ == 0){
+          if(walking_tick_ == 0)
+          {
             desired_q_(i) = q_init_(i);
             desired_q_(i+6) = q_init_(i+6);
           }
@@ -44,9 +59,13 @@ void WalkingController::compute(VectorQd* desired_q)
         }
       }
       ///////////////////////////////////
-    //compensator();
+      //compensator();
+      //std::cout<<"check point 9"<<endl;
+
 
       updateNextStepTime();
+      std::cout<<"check point 10"<<endl;
+
 
       walking_tick_ ++;
 
@@ -57,13 +76,14 @@ void WalkingController::compute(VectorQd* desired_q)
 }
 
 void WalkingController::setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
-                                  bool is_right_foot_swing, double x, double y, double z, double theta,
+                                  bool is_right_foot_swing, double x, double y, double z, double height, double theta,
                                   double step_length_x, double step_length_y)
 {
 
   target_x_ = x;
   target_y_ = y;
   target_z_ = z;
+  com_height_ = height;
   target_theta_ = theta;
   step_length_x_ = step_length_x;
   step_length_y_ = step_length_y;
@@ -74,6 +94,8 @@ void WalkingController::setTarget(int walk_mode, std::vector<bool> compensator_m
   is_right_foot_swing_ = is_right_foot_swing;
 
   parameterSetting();
+  calculateFootStepTotal();
+  total_step_num_ = foot_step_.col(1).size();
 }
 
 
@@ -130,6 +152,10 @@ void WalkingController::parameterSetting()
 
   t_start_real_ = t_start_ + t_rest_init_;
 
+  current_step_num_ = 0;
+  walking_tick_ = 0;
+  walking_time_ = 0;
+
   foot_height_ = 0.05;
   com_update_flag_ = true; // frome A to B
   gyro_frame_flag_ = false;
@@ -167,15 +193,6 @@ void WalkingController::getRobotState()
 
 }
 
-void WalkingController::getFootStep()
-{
-  calculateFootStepTotal();
-
-  total_step_num_ = foot_step_.col(1).size();
-
-  floatToSupportFootstep();
-}
-  
 
 void WalkingController::calculateFootStepTotal()
 {
@@ -260,9 +277,12 @@ void WalkingController::calculateFootStepTotal()
       number_of_foot_step = number_of_foot_step+del_size;
   }
 
-
-  foot_step_.resize(number_of_foot_step,7);
+  foot_step_.resize(number_of_foot_step, 7);
   foot_step_.setZero();
+  foot_step_support_frame_.resize(number_of_foot_step, 7);
+  foot_step_support_frame_.setZero();
+  foot_step_support_frame_offset_.resize(number_of_foot_step, 7);
+  foot_step_support_frame_offset_.setZero();
 
   int index = 0;
   int temp = -1; //right foot will take off first
@@ -467,6 +487,7 @@ void WalkingController::calculateFootStepTotal()
       index++;
     }
   }
+
 }
 
 void WalkingController::calculateFootStepSeparate()
@@ -500,7 +521,7 @@ void WalkingController::calculateFootStepSeparate()
   double x_residual = x-x_number*dx;
   double y_residual = y-y_number*dy;
   double theta_residual = alpha-theta_number*dtheta;
-  int number_of_foot_step = 0;
+  unsigned int number_of_foot_step = 0;
   int temp = -1;
 
   if(x_number!=0 || abs(x_residual)>=0.001)
@@ -573,6 +594,10 @@ void WalkingController::calculateFootStepSeparate()
 
   foot_step_.resize(number_of_foot_step, 7);
   foot_step_.setZero();
+  foot_step_support_frame_.resize(number_of_foot_step, 7);
+  foot_step_support_frame_.setZero();
+  foot_step_support_frame_offset_.resize(number_of_foot_step, 7);
+  foot_step_support_frame_offset_.setZero();
 
   //int temp = -1;
   temp = 1; //fisrt support step is left foot
@@ -757,6 +782,7 @@ void WalkingController::getZmpTrajectory()
   if(current_step_num_ == 0)
     norm_size = norm_size + t_temp_+1;
 
+  cout<<"norm_size:"<<norm_size <<endl;
   addZmpOffset();
   zmpGenerator(norm_size, planning_step_number);
 }
@@ -764,6 +790,7 @@ void WalkingController::getZmpTrajectory()
 void WalkingController::floatToSupportFootstep()
 {
   Eigen::Isometry3d reference;
+  //foot_step_support_frame_.resize(total_step_num_, 6);
 
   if(current_step_num_ == 0)
   {
@@ -839,6 +866,7 @@ void WalkingController::floatToSupportFootstep()
 
   swingfoot_support_init_(3) = swingfoot_float_init_(3);
   swingfoot_support_init_(4) = swingfoot_float_init_(4);
+  swingfoot_support_init_(4) = swingfoot_float_init_(4);
 
   if(current_step_num_ == 0)
     swingfoot_support_init_(5) = swingfoot_float_init_(5) - supportfoot_float_init_(5);
@@ -862,6 +890,7 @@ void WalkingController::floatToSupportFootstep()
       supportfoot_support_init_(5) = 0;
   else
       supportfoot_support_init_(5) = supportfoot_float_init_(5) - foot_step_(current_step_num_-1,5);
+
 }
 
 void WalkingController::updateInitialState()
@@ -1235,6 +1264,7 @@ void WalkingController::getComTrajectory()
     xs_(2) = COB_acc(0);
     ys_(2) = COB_acc(1);
   }
+  std::cout<<"check point 5-1"<<endl;
 
   if(com_update_flag_ == true)
   {
@@ -1255,7 +1285,11 @@ void WalkingController::getComTrajectory()
 
   ////PreviewControl_basic(_cnt-_init_info.t, _K, Frequency2,  16*Hz2/10, 0.6802, _Gx, _Gi, _Gp_I, _A, _BBB, &_sum_px_err, &_sum_py_err, _px_ref, _py_ref, _xi, _yi, xs_, ys_, xd_, yd_, x_err, y_err);
 
+  std::cout<<"check point 5-2"<<endl;
+
   modifiedPreviewControl();
+  std::cout<<"check point 5-3"<<endl;
+
   xs_=xd_;
   ys_=yd_;
 
@@ -1673,7 +1707,7 @@ void WalkingController::supportToFloatPattern()
 }
 
 
-void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q)
+void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q)
 {
  /* for (int i=2; i<4; i++)
   {
@@ -1703,6 +1737,7 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
   Eigen::Vector3d lr, rr;
   lr = lp + ld;
   rr = rp + rd;
+  std::cout<<"check point 8-1"<<endl;
 
   double l_upper = 0.3729; // direct length from hip to knee
   double l_lower = 0.3728; //direct length from knee to ankle
@@ -1724,6 +1759,7 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
   Eigen::Matrix3d r_l2l3;
   Eigen::Matrix3d r_l3l4;
   Eigen::Matrix3d r_l4l5;
+  std::cout<<"check point 8-2"<<endl;
 
   r_tl2.setZero();
   r_l2l3.setZero();
@@ -1747,6 +1783,7 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
   {
     c_lq5 = -1.0;
   }
+  std::cout<<"check point 8-3"<<endl;
 
   desired_leg_q(0) = -asin(c_lq5);
   desired_leg_q(2) = -asin(r_tl2(2,0)/cos(desired_leg_q(7)))+offset_hip_pitch;
@@ -1779,6 +1816,7 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
   r_tr2 = trunk_rleg_rotation * r_r4r5.transpose() * r_r3r4.transpose() * r_r2r3.transpose();
 
   desired_leg_q(7) = asin(r_tr2(2,1));
+  std::cout<<"check point 8-4"<<endl;
 
   double c_rq5 = -r_tr2(0,1)/cos(desired_leg_q(7));
   if (c_rq5 > 1.0)
@@ -1798,7 +1836,7 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
 }
 
 
-void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q_dot)
+void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q_dot)
 {
 
 
@@ -1900,20 +1938,9 @@ void WalkingController::modifiedPreviewControl()
     zmp_start_time_ = 0.0;
   else
     zmp_start_time_ = t_start_;
-  int norm_size;
-  norm_size = ref_zmp_.col(1).size();
 
-  Eigen::VectorXd px_ref, py_ref;
-  px_ref.resize(norm_size);
-  py_ref.resize(norm_size);
-
-  for (int i=0; i<norm_size; i++)
-  {
-      px_ref(i) = ref_zmp_(i,0);
-      py_ref(i) = ref_zmp_(i,1);
-  }
   double _ux, _uy, _ux_1 = 0.0, _uy_1 = 0.0;
-  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, _ux_1, _uy_1, _ux, _uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
+  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, _ux_1, _uy_1, _ux, _uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
 
   Eigen::Vector3d xs_matrix, ys_matrix, _xs, _ys;
   for (int i=0; i<3; i++)
@@ -1925,7 +1952,7 @@ void WalkingController::modifiedPreviewControl()
   est_zmp_error_x = _c*xs_matrix;
   est_zmp_error_y = _c*ys_matrix;
 
-  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, px_ref, py_ref, _ux_1, _uy_1, _ux, _uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
+  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, _k, xi_, yi_, xs_, ys_, _ux_1, _uy_1, _ux, _uy, _gi, _gp_l, _gx, _a, _b, _c, _xd, _yd);
 
   _ux_1 = _ux;
   _uy_1 = _uy;
@@ -1939,17 +1966,31 @@ void WalkingController::modifiedPreviewControl()
 
 void WalkingController::previewControl(
     double dt, int NL, int k_, Eigen::Matrix4d k, double x_i,
-    double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
-    Eigen::VectorXd px_ref, Eigen::VectorXd py_ref, double ux_1 ,
+    double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys, double ux_1 ,
     double uy_1 , double& ux, double& uy, double gi, Eigen::VectorXd gp_l,
     Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
     Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd)
 { //Preview와 prameter에서 VectorXD로 되있는거 수정해야함
+  int norm_size;
+  norm_size = ref_zmp_.col(1).size();
+
+  Eigen::VectorXd px_ref, py_ref;
+  px_ref.resize(norm_size);
+  py_ref.resize(norm_size);
+
+  for (int i=0; i<norm_size; i++)
+  {
+    px_ref(i) = ref_zmp_(i,0);
+    py_ref(i) = ref_zmp_(i,1);
+  }
+
   Eigen::Vector3d x, y, x_1, y_1;
   x.setZero();
   y.setZero();
   x_1.setZero();
   y_1.setZero();
+
+
 
   if(k_==0 && current_step_num_ == 0)
   {
@@ -1958,8 +1999,8 @@ void WalkingController::previewControl(
   }
   else
   {
-   x = xs;
-   y = ys;
+    x = xs;
+    y = ys;
   }
 
   x_1(0) = x(0)-x(1)*dt;
@@ -1970,18 +2011,19 @@ void WalkingController::previewControl(
   y_1(2) = y(2);
 
   double xzmp_err =0.0, yzmp_err = 0.0;
+  std::cout<<"check!!"<<endl;
 
-  double px, py;
-  px = c*x;
-  py = c*y;
-  xzmp_err = px - px_ref(k_);
-  yzmp_err = py - py_ref(k_);
+  Eigen::Matrix<double, 1, 1> px, py;
+  px = (c*x);
+  py = (c*y);
+  xzmp_err = px(0) - px_ref(k_);
+  yzmp_err = py(0) - py_ref(k_);
 
   double sum_gp_px_ref = 0.0, sum_gp_py_ref =0.0;
   for(int i = 0; i < NL; i++)
   {
-      sum_gp_px_ref = sum_gp_px_ref + gp_l(i)*(px_ref(k_+1+i)-px_ref(k_+i));
-      sum_gp_py_ref = sum_gp_py_ref + gp_l(i)*(py_ref(k_+1+i)-py_ref(k_+i));
+    sum_gp_px_ref = sum_gp_px_ref + gp_l(i)*(px_ref(k_+1+i)-px_ref(k_+i));
+    sum_gp_py_ref = sum_gp_py_ref + gp_l(i)*(py_ref(k_+1+i)-py_ref(k_+i));
   }
   double gx_x, gx_y, del_ux, del_uy;
   gx_x = gx*(x-x_1);

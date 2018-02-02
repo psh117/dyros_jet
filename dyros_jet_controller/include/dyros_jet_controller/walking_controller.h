@@ -23,9 +23,9 @@ public:
 
 
 
-  void compute(VectorQd* desired_q);
+  void compute();
   void setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
-                 bool is_right_foot_swing, double x, double y, double z, double theta,
+                 bool is_right_foot_swing, double x, double y, double z, double height, double theta,
                  double step_length, double step_length_y);
   void setEnable(bool enable);
   void updateControlMask(unsigned int *mask);
@@ -34,13 +34,12 @@ public:
   void parameterSetting();
   //functions in compute
   void getRobotState();
-  void getFootStep();
   void getComTrajectory();
   void getZmpTrajectory();
   void getPelvTrajectory();
   void getFootTrajectory();
-  void computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q);
-  void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::VectorLXd& desired_leg_q_dot);
+  void computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q);
+  void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q_dot);
   void compensator();
 
   void supportToFloatPattern();
@@ -65,8 +64,7 @@ public:
   void modifiedPreviewControl();
   void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k,
                       double x_i, double y_i, Eigen::Vector3d xs,
-                      Eigen::Vector3d ys, Eigen::VectorXd px_ref,
-                      Eigen::VectorXd py_ref, double ux_1 , double uy_1 ,
+                      Eigen::Vector3d ys, double ux_1 , double uy_1 ,
                       double& ux, double& uy, double gi, Eigen::VectorXd gp_l,
                       Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
                       Eigen::Matrix1x3d c, Eigen::Vector3d &xd, Eigen::Vector3d &yd);
@@ -94,6 +92,7 @@ private:
   double t_double2_;
   double t_total_;
   double foot_height_;
+  double com_height_;
 
   bool com_control_mode_;
   bool com_update_flag_; // frome A to B
@@ -179,8 +178,8 @@ private:
 
 
   //desired variables
-  Eigen::VectorLXd desired_leg_q_;
-  Eigen::VectorLXd desired_leg_q_dot_;
+  Eigen::Vector12d desired_leg_q_;
+  Eigen::Vector12d desired_leg_q_dot_;
   Eigen::Vector3d com_desired_;
   Eigen::Vector3d com_dot_desired_;
   Eigen::Vector2d zmp_desired_;

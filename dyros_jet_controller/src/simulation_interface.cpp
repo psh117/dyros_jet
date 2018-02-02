@@ -108,8 +108,6 @@ void SimulationInterface::wait()
 }
 
 
-
-
 // Callback functions
 
 
