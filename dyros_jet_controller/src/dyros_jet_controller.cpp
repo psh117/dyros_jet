@@ -23,10 +23,12 @@ int main(int argc, char **argv)
     double Hz;
     nh.param<double>("control_frequency", Hz, 200.0);
 
-
+    /*
+    // FOR DEBUG ATTACHMENT
     char g;
     cout << "press something \n";
     cin >> g;
+    */
     if(mode == "simulation")
     {
         ROS_INFO("DYROS JET MAIN CONTROLLER - !!! SIMULATION MODE !!!");
