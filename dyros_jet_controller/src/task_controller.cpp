@@ -175,10 +175,11 @@ void TaskController::computeCLIK()
              J * J.transpose()).inverse();
 
 
-        auto tmp = (J_inverse * (x_dot_desired + x_error * kp)) / hz_;
         desired_q_.segment<7>(model_.joint_start_index_[i]) =
             (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
 
+        /*
+        auto tmp = (J_inverse * (x_dot_desired + x_error * kp)) / hz_;
 
           std::cout << "Jacobian : " << std::endl;
           std::cout << J << std::endl;
@@ -193,7 +194,7 @@ void TaskController::computeCLIK()
           std::cout << "x_cubic : " << std::endl << x_cubic << std::endl;
           std::cout << "x_error : " << std::endl << x_error << std::endl;
           std::cout << "x_dot_desired : " << std::endl << x_dot_desired << std::endl;
-
+        */
       }
     }
   }
