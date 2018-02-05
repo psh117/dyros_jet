@@ -37,6 +37,12 @@ public:
   const unsigned int joint_start_index_[4];
 
   void test();
+
+  std::map<std::string, size_t> joint_name_map_;
+  size_t getIndex(const std::string& joint_name)
+  {
+    return joint_name_map_[joint_name];
+  }
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
 

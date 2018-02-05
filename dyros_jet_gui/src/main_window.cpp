@@ -762,6 +762,7 @@ void MainWindow::updateLoggingView() {
 }
 
 void MainWindow::updateJointView() {
+  /*
   for (int i=0; i<qnode.joint_msg_.id.size(); i++)
   {
     double degree = qnode.joint_msg_.angle[i] * 57.295791433;
@@ -803,6 +804,7 @@ void MainWindow::updateJointView() {
     ui.motor_table->setItem(qnode.joint_msg_.id[i]-1, 3, newItem);
 
   }
+  */
   /*
     for(int i=0;i<qnode.joint_msg.id.size(); i++)
     {

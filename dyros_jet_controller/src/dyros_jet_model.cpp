@@ -73,6 +73,11 @@ DyrosJetModel::DyrosJetModel() :
     ROS_INFO("%s: id - %d",EE_NAME[i], end_effector_id_[i]);
     std::cout << model_.mBodies[end_effector_id_[i]].mCenterOfMass << std::endl;
   }
+
+  for (size_t i=0; i<HW_TOTAL_DOF; i++)
+  {
+    joint_name_map_[JOINT_NAME[i]] = i;
+  }
 }
 
 

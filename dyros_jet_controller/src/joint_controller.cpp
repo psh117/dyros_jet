@@ -16,7 +16,15 @@ void JointController::compute()
   {
     if(joint_enable_[i])
     {
-      desired_q_(i) = DyrosMath::cubic(current_time_, start_time_[i], end_time_[i], start_q_(i), target_q_(i), 0, 0);
+      if (current_time_ >= end_time_[i])
+      {
+        desired_q_(i) = target_q_(i);
+        joint_enable_[i] = false;
+      }
+      else
+      {
+        desired_q_(i) = DyrosMath::cubic(current_time_, start_time_[i], end_time_[i], start_q_(i), target_q_(i), 0, 0);
+      }
     }
   }
 }

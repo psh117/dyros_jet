@@ -10,7 +10,7 @@ uint32 RESERVED_ERROR		=64
 uint32 NOT_UPDATED		=128
 
 
-uint8[] id
+string[] name
 float64[] angle
 float64[] velocity
 float64[] current

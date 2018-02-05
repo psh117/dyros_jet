@@ -7,20 +7,24 @@ namespace dyros_jet_controller
 // Constructor
 ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   ui_update_count_(0), is_first_boot_(true), Hz_(Hz), control_mask_{}, total_dof_(DyrosJetModel::HW_TOTAL_DOF),
-  task_controller_(model_, q_, Hz_, control_time_), joint_controller_(q_, control_time_), walking_controller_(model_, q_, Hz_, control_time_)
+  joint_controller_(q_, control_time_),
+  task_controller_(model_, q_, Hz, control_time_),
+  walking_controller_(model_, q_, Hz, control_time_)
 {
   //walking_cmd_sub_ = nh.subscribe
   makeIDInverseList();
 
   joint_state_pub_.init(nh, "/dyros_jet/joint_state", 3);
-  joint_state_pub_.msg_.id.resize(DyrosJetModel::HW_TOTAL_DOF);
+  joint_state_pub_.msg_.name.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.angle.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.velocity.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.current.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.error.resize(DyrosJetModel::HW_TOTAL_DOF);
+
   for (int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
   {
-    joint_state_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
+    joint_state_pub_.msg_.name[i] = DyrosJetModel::JOINT_NAME[i];
+    //joint_state_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
   }
 
   smach_pub_.init(nh, "/transition", 1);
@@ -156,17 +160,10 @@ void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr&
 
 void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg)
 {
-  for (unsigned int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
+  for (unsigned int i=0; i<msg->name.size(); i++)
   {
-    if (msg->enable[i])
-    {
-      joint_controller_.setEnable(i, true);
-      joint_controller_.setTarget(i, msg->position[i], msg->duration[i]);
-    }
-    else
-    {
-      joint_controller_.setEnable(i, false);
-    }
+    joint_controller_.setTarget(model_.getIndex(msg->name[i]), msg->position[i], msg->duration[i]);
+    joint_controller_.setEnable(model_.getIndex(msg->name[i]), true);
   }
 }
 
