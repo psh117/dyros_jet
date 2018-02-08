@@ -80,8 +80,8 @@ def commander():
     walk_msg.ik_mode = 0
     walk_msg.first_foot_step = True
     walk_msg.heel_toe = False
-    walk_msg.x = 20.0
-    walk_msg.y = 18.0
+    walk_msg.x = 0.5
+    walk_msg.y = 0.0
     walk_msg.z = 0.0
     walk_msg.height = 0.75
     walk_msg.theta = 0

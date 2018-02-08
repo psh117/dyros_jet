@@ -139,16 +139,28 @@ void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired
 }
 
 void WalkingController::parameterSetting()
-{
+{ /*
   t_last_ = 0.1*hz_;
   t_start_= 0.1*hz_;
-  t_temp_= 0.1*hz_;
-  t_rest_init_ = 0.1*hz_;
-  t_rest_last_= 0.1*hz_;
+  t_temp_= 0.1*hz_; /
+  t_rest_init_ = 0.1*hz_; /
+  t_rest_last_= 0.1*hz_; /
+  t_double1_= 0.1*hz_; /
+  t_double2_= 0.1*hz_; /
+  t_total_= 1.3*hz_; /
+  t_temp_ = 3.0*hz_; /
+*/
   t_double1_= 0.1*hz_;
   t_double2_= 0.1*hz_;
-  t_total_= 1.3*hz_;
+  t_rest_init_ = 0.1*hz_;
+  t_rest_last_= 0.1*hz_;
+  t_total_= 1.2*hz_;
   t_temp_ = 3.0*hz_;
+  t_last_ = t_total_ + t_temp_;
+  t_start_ = t_temp_+1;
+
+  //initialize (should revise)
+
 
   t_start_real_ = t_start_ + t_rest_init_;
 
@@ -775,14 +787,15 @@ void WalkingController::getZmpTrajectory()
   unsigned int norm_size = 0;
 
   if(current_step_num_ >= total_step_num_ - planning_step_number)
-    norm_size = (t_last_-t_start_+1)*(total_step_num_-current_step_num_)+20*hz_;
+    {norm_size = (t_last_-t_start_+1)*(total_step_num_-current_step_num_)+20*hz_;
+    cout<<"norm_size1:"<<norm_size <<endl;}
   else
-    norm_size = (t_last_-t_start_+1)*(planning_step_number);
-
+    {norm_size = (t_last_-t_start_+1)*(planning_step_number);
+    cout<<"norm_size2:"<<norm_size <<endl;}
   if(current_step_num_ == 0)
-    norm_size = norm_size + t_temp_+1;
-
-  cout<<"norm_size:"<<norm_size <<endl;
+    {norm_size = norm_size + t_temp_+1;
+    cout<<"norm_size3:"<<norm_size <<endl;}
+    cout<<"norm_size:"<<norm_size <<endl;
   addZmpOffset();
   zmpGenerator(norm_size, planning_step_number);
 }
@@ -1015,6 +1028,8 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
 
   unsigned int index =0;
 
+
+
   if(current_step_num_ ==0)
   {
     for (int i=0; i<= t_temp_; i++) //200 tick
@@ -1040,9 +1055,8 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
       index++;
     }
   }
-
   if(current_step_num_ >= total_step_num_-planning_step_num)
-  {
+  {cout << "step_num=total-plan" << endl;
     for(unsigned int i = current_step_num_; i<total_step_num_ ; i++)
     {
       onestepZmp(i,temp_px,temp_py);
@@ -1054,7 +1068,6 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
       }
       index = index+t_total_;
     }
-
     for (unsigned int j=0; j<20*hz_; j++)
     {
       ref_zmp_(index+j,0) = ref_zmp_(index-1,0);
@@ -1067,7 +1080,7 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
     for(unsigned int i=current_step_num_; i < current_step_num_+planning_step_num; i++)
     {
       onestepZmp(i,temp_px,temp_py);
-
+      cout << "ERROR3" << endl;
       for (unsigned int j=0; j<t_total_; j++)
       {
         ref_zmp_(index+j,0) = temp_px(j);
@@ -1076,6 +1089,7 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
       index = index+t_total_;
     }
   }
+
 }
 
 void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py)

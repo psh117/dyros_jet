@@ -276,7 +276,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -1993,7 +1993,7 @@ DOWN</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>25</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
