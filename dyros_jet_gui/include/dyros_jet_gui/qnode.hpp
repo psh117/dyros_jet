@@ -25,9 +25,12 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/String.h>
 
 #include <dyros_jet_msgs/JointState.h>
-
+#include <dyros_jet_msgs/JointCommand.h>
+#include <dyros_jet_msgs/TaskCommand.h>
+#include <dyros_jet_msgs/WalkingCommand.h>
 #endif
 
 
@@ -67,7 +70,11 @@ public:
 
     void send_ft_calib(float time);
     void send_transition(std::string str);
-    void send_joint_ctrl(int id, double angle);
+    void send_joint_ctrl(int id, const char* jointName, double angle);
+    void send_task_ctrl();
+    void publish_joint_ctrl();
+    void send_walk_ctrl();
+    void send_data_cb();
 
     // void send_walking_cmd(thormang_ctrl_msgs::WalkingCmd& walking_msg);
     // void send_recog_cmd(thormang_ctrl_msgs::RecogCmd& recog_msg);
@@ -76,7 +83,13 @@ public:
 
     // thormang_ctrl_msgs::JointState joint_msg;
     dyros_jet_msgs::JointState joint_msg_;
+    dyros_jet_msgs::JointCommand joint_cmd_msg_;
+    dyros_jet_msgs::TaskCommand task_cmd_msg_;
+    dyros_jet_msgs::WalkingCommand walk_cmd_msg_;
+
     std_msgs::Float32MultiArray recog_info_msg_;
+    std_msgs::String controlbase_data_;
+
 
 
 Q_SIGNALS:
@@ -93,6 +106,7 @@ private:
     ros::Publisher joint_ctrl_publisher;
 
     ros::Publisher walking_cmd_publisher;
+    ros::Publisher controlbase_publisher;
     ros::Publisher task_cmd_publisher;
     ros::Publisher recog_cmd_publisher;
 

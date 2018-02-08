@@ -16,12 +16,36 @@
 #include <fstream>
 #include <string>
 #include "dyros_jet_gui/main_window.hpp"
+#include <qpixmap.h>
+#include <QQuaternion>
+#include <QVector3D>
 
 /*****************************************************************************
 ** Namespaces
 *****************************************************************************/
 
 namespace dyros_jet_gui {
+
+const char *jointName[32] = { "HeadYaw", "HeadPitch"
+                   , "WaistPitch", "WaistYaw"
+                   , "R_ShoulderPitch", "R_ShoulderRoll", "R_ShoulderYaw", "R_ElbowRoll", "R_WristYaw", "R_WristRoll", "R_HandYaw", "R_Gripper"
+                   , "L_ShoulderPitch", "L_ShoulderRoll", "L_ShoulderYaw", "L_ElbowRoll", "L_WristYaw", "L_WristRoll", "L_HandYaw", "L_Gripper"
+                   , "R_HipYaw", "R_HipRoll", "R_HipPitch", "R_KneePitch", "R_AnklePitch", "R_AnkleRoll"
+                   , "L_HipYaw", "L_HipRoll", "L_HipPitch", "L_KneePitch", "L_AnklePitch", "L_AnkleRoll"};
+
+const char *disarranged_jointName[32] = {"L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll"
+    ,"R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll"
+    ,"WaistPitch","WaistYaw"
+    ,"L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw"
+    ,"R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw"
+    ,"HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"};
+
+const int MainWindow::head_id_index[2] = {29, 30};
+const int MainWindow::waist_id_index[2] = {13, 14};
+const int MainWindow::right_arm_id_index[8] = {22, 23, 24, 25, 26, 27, 28, 31};
+const int MainWindow::left_arm_id_index[8] = {15, 16, 17, 18, 19, 20, 21, 32};
+const int MainWindow::right_leg_id_index[6] = {7, 8, 9, 10, 11, 12};
+const int MainWindow::left_leg_id_index[6] = {1, 2, 3, 4, 5, 6};
 
 using namespace Qt;
 
@@ -37,6 +61,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
 {
   ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
   QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt())); // qApp is a global variable for the application
+
+  ui.groupBox_3->setStyleSheet("#groupBox_3 {background-image: url(:/images/robot_with_no_background.png); background-repeat: none; background-position: center;}");
 
   ReadSettings();
   setWindowIcon(QIcon(":/images/icon_2.png"));
@@ -69,17 +95,27 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
   if ( ui.checkbox_remember_settings->isChecked() ) {
     on_button_connect_clicked(true);
   }
-  QStringList horizonHeaderLabel;
-  horizonHeaderLabel.append("Name");
-  horizonHeaderLabel.append("Pos");
-  horizonHeaderLabel.append("Torque");
-  horizonHeaderLabel.append("Error");
-  ui.motor_table->setHorizontalHeaderLabels(horizonHeaderLabel);
+//  QStringList horizonHeaderLabel;
+//  horizonHeaderLabel.append("Name");
+//  horizonHeaderLabel.append("Pos");
+//  horizonHeaderLabel.append("Torque");
+//  horizonHeaderLabel.append("Error");
+//  ui.motor_table->setHorizontalHeaderLabels(horizonHeaderLabel);
   for(int i=0; i<32; i++)
   {
     jointID.push_back(i+1);
   }
 
+  // -- ID Arrangement
+    for(int i = 0; i < 32; i++)
+    {
+      if(i < 2) arranged_id[i] = head_id_index[i];
+      else if(i < 4) arranged_id[i] = waist_id_index[i-2];
+      else if(i < 12) arranged_id[i] = right_arm_id_index[i-4];
+      else if(i < 20) arranged_id[i] = left_arm_id_index[i-12];
+      else if(i < 26) arranged_id[i] = right_leg_id_index[i-20];
+      else arranged_id[i] = left_leg_id_index[i-26];
+    }
   // -- State
 
   autoMissionSelectVisible(0);
@@ -146,6 +182,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
   QObject::connect(ui.button_scan,SIGNAL(clicked()),this,SLOT(on_button_scan_clicked()));
 
   // -- Joint Control Set
+  QString tempName;
   for (int i = 0; i < 32; i++)
   {
     button_joint_ctrl[i][0] = new QPushButton("-1");
@@ -153,8 +190,15 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     button_joint_ctrl[i][2] = new QPushButton("SET");
     doubleSpin_joint_ctrl[i] = new QDoubleSpinBox;
 
-    QString text = tr("-- [%1] --").arg(i+1);
-    label_joint_ctrl[i] = new QLabel(text);
+    if(i < 2) tempName = ui.h_table->item(i, 0)->text();
+    else if(i < 4) tempName = ui.w_table->item(i-2, 0)->text();
+    else if(i < 12) tempName = ui.ra_table->item(i-4, 0)->text();
+    else if(i < 20) tempName = ui.la_table->item(i-12, 0)->text();
+    else if(i < 26) tempName = ui.rl_table->item(i-20, 0)->text();
+    else tempName = ui.ll_table->item(i-26, 0)->text();
+
+    label_joint_ctrl[i] = new QLabel(tempName);
+
     //labels_joint_ctrl_ids[i].setText(text);
 
     button_joint_ctrl[i][0]->setMaximumWidth(40);
@@ -170,7 +214,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     doubleSpin_joint_ctrl[i]->setMinimum(-20.0);
     doubleSpin_joint_ctrl[i]->setMaximum(20.0);
 
-    label_joint_ctrl[i]->setMaximumWidth(60);
+    label_joint_ctrl[i]->setMaximumWidth(500);
     label_joint_ctrl[i]->setAlignment(Qt::AlignCenter);
 
 
@@ -184,13 +228,28 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     QObject::connect(button_joint_ctrl[i][1], SIGNAL(clicked()), this, SLOT(jointCtrlPlusClicked()));
     QObject::connect(button_joint_ctrl[i][2], SIGNAL(clicked()), this, SLOT(jointCtrlSetClicked()));
   }
-  // -- Task Control Set
-  for (int i = 0; i < 12; i++)
-  {
-    button_task_ctrl[i][0] = new QPushButton("<");
-    button_task_ctrl[i][1] = new QPushButton(">");
 
-    doubleSpin_task_ctrl[i] = new QDoubleSpinBox;
+  // -- Task Control Set
+  for (int i = 0; i < 24; i++)
+  {
+
+    if(i < 12)
+    {
+      button_task_ctrl[i][0] = new QPushButton("<");
+      button_task_ctrl[i][1] = new QPushButton(">");
+
+      doubleSpin_task_ctrl[i] = new QDoubleSpinBox;
+    }
+    else
+    {
+      button_task_ctrl_2[i-12][0] = new QPushButton("<");
+      button_task_ctrl_2[i-12][1] = new QPushButton(">");
+
+      doubleSpin_task_ctrl_2[i-12] = new QDoubleSpinBox;
+    }
+
+
+
 
     QString text = "";
     switch(i)
@@ -205,50 +264,112 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
       text = "left arm z";
       break;
     case 3:
-      text = "left arm roll";
+      text = "left arm r";
       break;
     case 4:
-      text = "left arm pitch";
+      text = "left arm p";
       break;
     case 5:
-      text = "left arm yaw";
+      text = "left arm y";
       break;
     case 6:
-      text = "right arm x";
+      text = "left leg x";
       break;
     case 7:
-      text = "right arm y";
+      text = "left leg y";
       break;
     case 8:
-      text = "right arm z";
+      text = "left leg z";
       break;
     case 9:
-      text = "right arm roll";
+      text = "left leg r";
       break;
     case 10:
-      text = "right arm pitch";
+      text = "left leg p";
       break;
     case 11:
-      text = "right arm yaw";
+      text = "left leg y";
+      break;
+    case 12:
+      text = "right arm x";
+      break;
+    case 13:
+      text = "right arm y";
+      break;
+    case 14:
+      text = "right arm z";
+      break;
+    case 15:
+      text = "right arm r";
+      break;
+    case 16:
+      text = "right arm p";
+      break;
+    case 17:
+      text = "right arm y";
+      break;
+    case 18:
+      text = "right leg x";
+      break;
+    case 19:
+      text = "right leg y";
+      break;
+    case 20:
+      text = "right leg z";
+      break;
+    case 21:
+      text = "right leg r";
+      break;
+    case 22:
+      text = "right leg p";
+      break;
+    case 23:
+      text = "right leg y";
       break;
     }
 
-    label_task_ctrl[i] = new QLabel(text);
-    //labels_joint_ctrl_ids[i].setText(text);
 
-    button_task_ctrl[i][0]->setMaximumWidth(40);
-    button_task_ctrl[i][1]->setMaximumWidth(40);
+    if(i < 12)
+    {
+      label_task_ctrl[i] = new QLabel(text);
+      //labels_joint_ctrl_ids[i].setText(text);
 
-    button_task_ctrl[i][0]->setObjectName(tr("%1").arg(i+1));
-    button_task_ctrl[i][1]->setObjectName(tr("%1").arg(i+1));
+      button_task_ctrl[i][0]->setMaximumWidth(40);
+      button_task_ctrl[i][1]->setMaximumWidth(40);
 
-    doubleSpin_task_ctrl[i]->setMinimumWidth(80);
-    doubleSpin_task_ctrl[i]->setValue(0.0);
-    doubleSpin_task_ctrl[i]->setMinimum(0.0);
-    doubleSpin_task_ctrl[i]->setMaximum(30.0);
+      button_task_ctrl[i][0]->setObjectName(tr("%1").arg(i+1));
+      button_task_ctrl[i][1]->setObjectName(tr("%1").arg(i+1));
 
-    label_task_ctrl[i]->setMaximumWidth(100);
-    //label_task_ctrl[i]->setAlignment(Qt::AlignCenter);
+      doubleSpin_task_ctrl[i]->setMinimumWidth(80);
+      doubleSpin_task_ctrl[i]->setValue(0.0);
+      doubleSpin_task_ctrl[i]->setMinimum(0.0);
+      doubleSpin_task_ctrl[i]->setMaximum(30.0);
+
+      label_task_ctrl[i]->setMaximumWidth(200);
+      //label_task_ctrl[i]->setAlignment(Qt::AlignCenter);
+    }
+    else
+    {
+      label_task_ctrl_2[i-12] = new QLabel(text);
+      //labels_joint_ctrl_ids[i].setText(text);
+
+      button_task_ctrl_2[i-12][0]->setMaximumWidth(40);
+      button_task_ctrl_2[i-12][1]->setMaximumWidth(40);
+
+      button_task_ctrl_2[i-12][0]->setObjectName(tr("%1").arg(i+1));
+      button_task_ctrl_2[i-12][1]->setObjectName(tr("%1").arg(i+1));
+
+      doubleSpin_task_ctrl_2[i-12]->setMinimumWidth(80);
+      doubleSpin_task_ctrl_2[i-12]->setValue(0.0);
+      doubleSpin_task_ctrl_2[i-12]->setMinimum(0.0);
+      doubleSpin_task_ctrl_2[i-12]->setMaximum(30.0);
+
+      label_task_ctrl_2[i-12]->setMaximumWidth(200);
+      //label_task_ctrl[i]->setAlignment(Qt::AlignCenter);
+    }
+
+
+
 
     if(i<6)
     {
@@ -257,22 +378,50 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
       ui.gridLayout_task_ctrl->addWidget(button_task_ctrl[i][0] , i, 2, Qt::AlignTop);
       ui.gridLayout_task_ctrl->addWidget(button_task_ctrl[i][1] , i, 3, Qt::AlignTop);
     }
-    else
+    else if(i<12)
     {
       ui.gridLayout_task_ctrl->addWidget(label_task_ctrl[i]     , i+1, 0, Qt::AlignTop);
       ui.gridLayout_task_ctrl->addWidget(doubleSpin_task_ctrl[i], i+1, 1, Qt::AlignTop);
       ui.gridLayout_task_ctrl->addWidget(button_task_ctrl[i][0] , i+1, 2, Qt::AlignTop);
       ui.gridLayout_task_ctrl->addWidget(button_task_ctrl[i][1] , i+1, 3, Qt::AlignTop);
     }
+    else if(i<18)
+    {
+      ui.gridLayout_task_ctrl_2->addWidget(label_task_ctrl_2[i-12]     , i-12, 0, Qt::AlignTop);
+      ui.gridLayout_task_ctrl_2->addWidget(doubleSpin_task_ctrl_2[i-12], i-12, 1, Qt::AlignTop);
+      ui.gridLayout_task_ctrl_2->addWidget(button_task_ctrl_2[i-12][0] , i-12, 2, Qt::AlignTop);
+      ui.gridLayout_task_ctrl_2->addWidget(button_task_ctrl_2[i-12][1] , i-12, 3, Qt::AlignTop);
+    }
+    else
+    {
+      ui.gridLayout_task_ctrl_2->addWidget(label_task_ctrl_2[i-12]     , i-11, 0, Qt::AlignTop);
+      ui.gridLayout_task_ctrl_2->addWidget(doubleSpin_task_ctrl_2[i-12], i-11, 1, Qt::AlignTop);
+      ui.gridLayout_task_ctrl_2->addWidget(button_task_ctrl_2[i-12][0] , i-11, 2, Qt::AlignTop);
+      ui.gridLayout_task_ctrl_2->addWidget(button_task_ctrl_2[i-12][1] , i-11, 3, Qt::AlignTop);
+    }
+
+    if(i < 12)
+    {
+      QObject::connect(button_task_ctrl[i][0], SIGNAL(clicked()), this, SLOT(taskCtrlMinusClicked()));
+      QObject::connect(button_task_ctrl[i][1], SIGNAL(clicked()), this, SLOT(taskCtrlPlusClicked()));
+    }
+    else
+    {
+      QObject::connect(button_task_ctrl_2[i-12][0], SIGNAL(clicked()), this, SLOT(taskCtrlMinusClicked()));
+      QObject::connect(button_task_ctrl_2[i-12][1], SIGNAL(clicked()), this, SLOT(taskCtrlPlusClicked()));
+    }
 
 
-    QObject::connect(button_task_ctrl[i][0], SIGNAL(clicked()), this, SLOT(taskCtrlMinusClicked()));
-    QObject::connect(button_task_ctrl[i][1], SIGNAL(clicked()), this, SLOT(taskCtrlPlusClicked()));
   }
   label_task_ctrl[12] = new QLabel("");
+  label_task_ctrl_2[12] = new QLabel("");
+
   ui.gridLayout_task_ctrl->addWidget(label_task_ctrl[12] , 6, 0, Qt::AlignTop);
+  ui.gridLayout_task_ctrl_2->addWidget(label_task_ctrl_2[12], 6, 0, Qt::AlignTop);
 
   ui.gridLayout_task_ctrl->setColumnStretch(1,1);
+  ui.gridLayout_task_ctrl_2->setColumnStretch(1,1);
+
 
   //ui.button_estop->text()
   updateUI();
@@ -369,17 +518,6 @@ void MainWindow::on_button_power_on_clicked(bool check)
     qnode.send_transition("power_on");
 }
 */
-/*
-void MainWindow::on_button_plus_clicked(bool check)
-{
-    qnode.send_joint_ctrl(1,1.0); // degree
-}
-
-void MainWindow::on_button_minus_clicked(bool check)
-{
-    qnode.send_joint_ctrl(1,-1.0);
-}
-*/
 void MainWindow::on_checkbox_use_environment_stateChanged(int state) {
   bool enabled;
   if ( state == 0 ) {
@@ -392,45 +530,109 @@ void MainWindow::on_checkbox_use_environment_stateChanged(int state) {
   //ui.line_edit_topic->setEnabled(enabled);
 }
 
-
 void MainWindow::on_button_walk_start_clicked()
 {
-  /*
-  thormang_ctrl_msgs::WalkingCmd msg;
-    msg.command = "start";
-    msg.planner = ui.comboBox_walk_planner->currentText().toStdString();
-    msg.walking_alg = ui.comboBox_walk_algorithm->currentText().toStdString();
-    msg.x = ui.doubleSpinBox_walk_x->value();
-    msg.y = ui.doubleSpinBox_walk_y->value();
-    msg.height = ui.doubleSpinBox_walk_height->value();
-    msg.theta = ui.doubleSpinBox_walk_theta->value();
-    msg.imp_time = ui.doubleSpinBox_walk_imp_time->value();
-    msg.recov_time= ui.doubleSpinBox_walk_recov_time->value();
+  qnode.walk_cmd_msg_.walk_mode = 1;
 
-    qnode.send_walking_cmd(msg);
-    */
+  if(std::strcmp(ui.comboBox_compensator->currentText().toStdString().c_str(), "Hip Compensator") == 0)
+  {
+    qnode.walk_cmd_msg_.compensator_mode[0] = true;
+    qnode.walk_cmd_msg_.compensator_mode[1] = false;
+  }
+  else if(std::strcmp(ui.comboBox_compensator->currentText().toStdString().c_str(), "External Encoder") == 0)
+  {
+    qnode.walk_cmd_msg_.compensator_mode[0] = false;
+    qnode.walk_cmd_msg_.compensator_mode[1] = true;
+  }
+  else
+  {
+    qnode.walk_cmd_msg_.compensator_mode[0] = true;
+    qnode.walk_cmd_msg_.compensator_mode[1] = true;
+  }
+
+  if(std::strcmp(ui.comboBox_method->currentText().toStdString().c_str(), "Inverse Kinematics") == 0)
+  {
+    qnode.walk_cmd_msg_.ik_mode = 0;
+  } else qnode.walk_cmd_msg_.ik_mode = 1;
+
+  if(std::strcmp(ui.comboBox_first_step->currentText().toStdString().c_str(), "Left") == 0)
+  {
+    qnode.walk_cmd_msg_.first_foot_step = false;
+  } else qnode.walk_cmd_msg_.first_foot_step =true;
+
+  if(std::strcmp(ui.comboBox_heel_toe->currentText().toStdString().c_str(), "Yes") == 0)
+  {
+    qnode.walk_cmd_msg_.heel_toe =true;
+  } else qnode.walk_cmd_msg_.heel_toe = false;
+
+  qnode.walk_cmd_msg_.x = ui.doubleSpinBox_walk_x->value();
+  qnode.walk_cmd_msg_.y = ui.doubleSpinBox_walk_y->value();
+  qnode.walk_cmd_msg_.z = ui.doubleSpinBox_walk_z->value();
+  qnode.walk_cmd_msg_.height = ui.doubleSpinBox_walk_height->value();
+  qnode.walk_cmd_msg_.theta = ui.doubleSpinBox_walk_theta->value();
+  qnode.walk_cmd_msg_.step_length_x = ui.doubleSpinBox_walk_step_x->value();
+  qnode.walk_cmd_msg_.step_length_y = ui.doubleSpinBox_walk_step_y->value();
+
+  qnode.send_walk_ctrl();
+
+  std::string tempString;
+
+  if(ui.checkBox_send_data_cb->isChecked())
+  {
+    tempString = "clicked";
+  } else tempString = "unclicked";
+
+  qnode.controlbase_data_.data = tempString;
+
+  qnode.send_data_cb();
 }
 
 void MainWindow::on_button_walk_init_clicked()
 {
-  /*
-    thormang_ctrl_msgs::WalkingCmd msg;
-    msg.command = "init";
-    msg.planner = ui.comboBox_walk_planner->currentText().toStdString();
-    msg.walking_alg = ui.comboBox_walk_algorithm->currentText().toStdString();
-    msg.x = ui.doubleSpinBox_walk_x->value();
-    msg.y = ui.doubleSpinBox_walk_y->value();
-    msg.height = ui.doubleSpinBox_walk_height->value();
-    msg.theta = ui.doubleSpinBox_walk_theta->value();
-    msg.imp_time = ui.doubleSpinBox_walk_imp_time->value();
-    msg.recov_time= ui.doubleSpinBox_walk_recov_time->value();
+  const char *tempName[32] = {"L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll"
+                               ,"R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll"
+                               ,"WaistPitch","WaistYaw"
+                               ,"L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw"
+                               ,"R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw"
+                               ,"HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"};
 
-    qnode.send_walking_cmd(msg);
-*/
+  const double tempNum[32] = {0 , 0.034906585 , -0.3490658504 , 0.6981317008 , -0.3490658504 , -0.034906585
+                                   , 0 , -0.034906585 , 0.3490658504 , -0.6981317008 , 0.3490658504 , 0.034906585
+                                   , 0 , 0
+                                   , 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252
+                                   , -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 1.7453292519
+                                   , 0 , 0 , 0 , 0};
+
+  const double tempDuration[32] = {5 , 5 , 5 , 5 , 5 , 5
+                                   , 5 , 5 , 5 , 5 , 5 , 5
+                                   , 5 , 5
+                                   , 5 , 5 , 5 , 5 , 5 , 5 , 5
+                                   , 5 , 5 , 5 , 5 , 5 , 5 , 5
+                                   , 0 , 0 , 0 , 0};
+
+  for(int i = 0; i < 32; i ++)
+  {
+    qnode.joint_cmd_msg_.name[i] = tempName[i];
+    qnode.joint_cmd_msg_.position[i] = tempNum[i];
+    qnode.joint_cmd_msg_.duration[i] = tempDuration[i];
+  }
+  qnode.publish_joint_ctrl();
+
+  for(int i = 0; i < 32; i ++)
+  {
+    qnode.joint_cmd_msg_.name[i] = "";
+  }
 }
 
 void MainWindow::on_button_walk_stop_clicked()
 {
+
+}
+
+void MainWindow::on_button_walk_quit_clicked()
+{
+
+
   //    thormang_ctrl_msgs::WalkingCmd msg;
   //    msg.command = "stop";
   //    msg.planner = ui.comboBox_walk_planner->currentText().toStdString();
@@ -445,9 +647,9 @@ void MainWindow::on_button_walk_stop_clicked()
   //    qnode.send_walking_cmd(msg);
 
   //    // temp stop state
-  //    std::string state;
-  //    state = "shutdown";
-  //    qnode.send_transition(state);
+      std::string state;
+      state = "shutdown";
+      qnode.send_transition(state);
 
 }
 
@@ -586,14 +788,14 @@ void MainWindow::jointCtrlMinusClicked()
 {
   int id = sender()->objectName().toInt();
 
-  //qnode.send_joint_ctrl(id,-1.0); // degree
+  qnode.send_joint_ctrl(arranged_id[id-1], jointName[id-1], -1.0); // degree
 }
 
 void MainWindow::jointCtrlPlusClicked()
 {
   int id = sender()->objectName().toInt();
 
-  //qnode.send_joint_ctrl(id,1.0); // degree
+  qnode.send_joint_ctrl(arranged_id[id-1], jointName[id-1], 1.0); // degree
 }
 
 void MainWindow::jointCtrlSetClicked()
@@ -601,151 +803,407 @@ void MainWindow::jointCtrlSetClicked()
   int id = sender()->objectName().toInt();
   double deg = doubleSpin_joint_ctrl[id-1]->value();
 
-  // qnode.send_joint_ctrl(id, deg); // degree
+  qnode.send_joint_ctrl(arranged_id[id-1], jointName[id-1], deg); // degree
 }
 
 void MainWindow::taskCtrlMinusClicked()
 {
   int id = sender()->objectName().toInt();
   double pos = -doubleSpin_task_ctrl[id-1]->value();
-  /*
-    thormang_ctrl_msgs::TaskCmd task_msg;
-    task_msg.x = 0.0f;
-    task_msg.y = 0.0f;
-    task_msg.z = 0.0f;
-    task_msg.roll = 0.0f;
-    task_msg.pitch = 0.0f;
-    task_msg.yaw = 0.0f;
-    if(id <= 6)
+  QVector3D axis;
+  QQuaternion quat;
+  int offset = 1.0;
+
+
+  for(int i = 0; i < 4; i++)
+  {
+    qnode.task_cmd_msg_.end_effector[i] = false;
+
+    qnode.task_cmd_msg_.pose[i].position.x = 0.0;
+    qnode.task_cmd_msg_.pose[i].position.y = 0.0;
+    qnode.task_cmd_msg_.pose[i].position.z = 0.0;
+
+    qnode.task_cmd_msg_.pose[i].orientation.x = 0.0;
+    qnode.task_cmd_msg_.pose[i].orientation.y = 0.0;
+    qnode.task_cmd_msg_.pose[i].orientation.z = 0.0;
+    qnode.task_cmd_msg_.pose[i].orientation.w = 0.0;
+
+    qnode.task_cmd_msg_.duration[i] = 0.0;
+  }
+
+  if(id <= 6)
+  {
+    qnode.task_cmd_msg_.end_effector[2] = true;
+    qnode.task_cmd_msg_.mode[2] = 0;
+
+
+    switch(id)
     {
-        task_msg.arm = task_msg.LEFT_ARM;
-        task_msg.rel = task_msg.REL;
-        switch(id)
-          {
-            case 1:
-                task_msg.x = pos;
-                break;
-            case 2:
-            task_msg.y = pos;
-                break;
-            case 3:
-                task_msg.z = pos;
-                break;
-            case 4:
-                task_msg.roll = pos;
-                break;
-            case 5:
-                task_msg.pitch = pos;
-                break;
-            case 6:
-                task_msg.yaw = pos;
-                break;
-            default:
-                break;
-          }
-
-
+    case 1:
+      qnode.task_cmd_msg_.pose[2].position.x = pos;
+      break;
+    case 2:
+      qnode.task_cmd_msg_.pose[2].position.y = pos;
+      break;
+    case 3:
+      qnode.task_cmd_msg_.pose[2].position.z = pos;
+      break;
+    case 4:
+      axis = QVector3D(1, 0, 0);
+      qnode.task_cmd_msg_.pose[2].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[2].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[2].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[2].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 5:
+      axis = QVector3D(0, 1, 0);
+      qnode.task_cmd_msg_.pose[2].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[2].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[2].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[2].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 6:
+      axis = QVector3D(0, 0, 1);
+      qnode.task_cmd_msg_.pose[2].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[2].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[2].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[2].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    default:
+      break;
     }
-    else if(id >= 7)
+    qnode.task_cmd_msg_.duration[2] = 1 - pos*offset;
+    qnode.send_task_ctrl();
+  }
+  else if(id <= 12)
+  {
+    qnode.task_cmd_msg_.end_effector[0] = true;
+    qnode.task_cmd_msg_.mode[0] = 0;
+
+    switch(id)
     {
-        task_msg.arm = task_msg.RIGHT_ARM;
-        task_msg.rel = task_msg.REL;
-        switch(id)
-          {
-            case 7:
-                task_msg.x = pos;
-                break;
-            case 8:
-                task_msg.y = pos;
-                break;
-            case 9:
-                task_msg.z = pos;
-                break;
-            case 10:
-                task_msg.roll = pos;
-                break;
-            case 11:
-                task_msg.pitch = pos;
-                break;
-            case 12:
-                task_msg.yaw = pos;
-                break;
-            default:
-                break;
-          }
+    case 7:
+      qnode.task_cmd_msg_.pose[0].position.x = pos;
+      break;
+    case 8:
+      qnode.task_cmd_msg_.pose[0].position.y = pos;
+      break;
+    case 9:
+      qnode.task_cmd_msg_.pose[0].position.z = pos;
+      break;
+    case 10:
+      axis = QVector3D(1, 0, 0);
+      qnode.task_cmd_msg_.pose[0].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[0].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[0].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[0].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 11:
+      axis = QVector3D(0, 1, 0);
+      qnode.task_cmd_msg_.pose[0].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[0].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[0].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[0].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 12:
+      axis = QVector3D(0, 0, 1);
+      qnode.task_cmd_msg_.pose[0].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[0].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[0].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[0].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    default:
+      break;
     }
-    task_msg.subtask = task_msg.ARM_TASK;
-    qnode.send_task_cmd(task_msg);
+    qnode.task_cmd_msg_.duration[0] = 1 - pos*offset;
+    qnode.send_task_ctrl();
+  }
+  else if(id <= 18)
+  {
+    qnode.task_cmd_msg_.end_effector[3] = true;
+    qnode.task_cmd_msg_.mode[3] = 0;
 
-    */
+    switch(id)
+    {
+    case 13:
+      qnode.task_cmd_msg_.pose[3].position.x = pos;
+      break;
+    case 14:
+      qnode.task_cmd_msg_.pose[3].position.y = pos;
+      break;
+    case 15:
+      qnode.task_cmd_msg_.pose[3].position.z = pos;
+      break;
+    case 16:
+      axis = QVector3D(1, 0, 0);
+      qnode.task_cmd_msg_.pose[3].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[3].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[3].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[3].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 17:
+      axis = QVector3D(0, 1, 0);
+      qnode.task_cmd_msg_.pose[3].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[3].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[3].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[3].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 18:
+      axis = QVector3D(0, 0, 1);
+      qnode.task_cmd_msg_.pose[3].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[3].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[3].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[3].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    default:
+      break;
+    }
+    qnode.task_cmd_msg_.duration[3] = 1 - pos*offset;
+    qnode.send_task_ctrl();
+  }
+  else
+  {
+    qnode.task_cmd_msg_.end_effector[1] = true;
+    qnode.task_cmd_msg_.mode[1] = 0;
+
+    switch(id)
+    {
+    case 19:
+      qnode.task_cmd_msg_.pose[1].position.x = pos;
+      break;
+    case 20:
+      qnode.task_cmd_msg_.pose[1].position.y = pos;
+      break;
+    case 21:
+      qnode.task_cmd_msg_.pose[1].position.z = pos;
+      break;
+    case 22:
+      axis = QVector3D(1, 0, 0);
+      qnode.task_cmd_msg_.pose[1].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[1].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[1].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[1].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 23:
+      axis = QVector3D(0, 1, 0);
+      qnode.task_cmd_msg_.pose[1].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[1].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[1].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[1].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 24:
+      axis = QVector3D(0, 0, 1);
+      qnode.task_cmd_msg_.pose[1].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[1].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[1].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[1].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    default:
+      break;
+    }
+    qnode.task_cmd_msg_.duration[1] = 1 - pos*offset;
+    qnode.send_task_ctrl();
+  }
 }
+
 void MainWindow::taskCtrlPlusClicked()
 {
   int id = sender()->objectName().toInt();
   double pos = doubleSpin_task_ctrl[id-1]->value();
-  /*
-  thormang_ctrl_msgs::TaskCmd task_msg;
+  QVector3D axis;
+  QQuaternion quat;
+  int offset = 1.0;
+
+
+  for(int i = 0; i < 4; i++)
+  {
+    qnode.task_cmd_msg_.end_effector[i] = false;
+
+    qnode.task_cmd_msg_.pose[i].position.x = 0.0;
+    qnode.task_cmd_msg_.pose[i].position.y = 0.0;
+    qnode.task_cmd_msg_.pose[i].position.z = 0.0;
+
+    qnode.task_cmd_msg_.pose[i].orientation.x = 0.0;
+    qnode.task_cmd_msg_.pose[i].orientation.y = 0.0;
+    qnode.task_cmd_msg_.pose[i].orientation.z = 0.0;
+    qnode.task_cmd_msg_.pose[i].orientation.w = 0.0;
+
+    qnode.task_cmd_msg_.duration[i] = 0.0;
+  }
+
   if(id <= 6)
   {
-      task_msg.arm = task_msg.LEFT_ARM;
-      task_msg.rel = task_msg.REL;
-      switch(id)
-        {
-          case 1:
-              task_msg.x = pos;
-              break;
-          case 2:
-              task_msg.y = pos;
-              break;
-          case 3:
-              task_msg.z = pos;
-              break;
-          case 4:
-              task_msg.roll = pos;
-              break;
-          case 5:
-              task_msg.pitch = pos;
-              break;
-          case 6:
-              task_msg.yaw = pos;
-              break;
-          default:
-              break;
-        }
+    qnode.task_cmd_msg_.end_effector[2] = true;
+    qnode.task_cmd_msg_.mode[2] = 0;
 
 
+    switch(id)
+    {
+    case 1:
+      qnode.task_cmd_msg_.pose[2].position.x = pos;
+      break;
+    case 2:
+      qnode.task_cmd_msg_.pose[2].position.y = pos;
+      break;
+    case 3:
+      qnode.task_cmd_msg_.pose[2].position.z = pos;
+      break;
+    case 4:
+      axis = QVector3D(1, 0, 0);
+      qnode.task_cmd_msg_.pose[2].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[2].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[2].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[2].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 5:
+      axis = QVector3D(0, 1, 0);
+      qnode.task_cmd_msg_.pose[2].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[2].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[2].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[2].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 6:
+      axis = QVector3D(0, 0, 1);
+      qnode.task_cmd_msg_.pose[2].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[2].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[2].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[2].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    default:
+      break;
+    }
+    qnode.task_cmd_msg_.duration[2] = 1 + pos*offset;
+    qnode.send_task_ctrl();
   }
-  else if(id >= 7)
+  else if(id <= 12)
   {
-      task_msg.arm = task_msg.RIGHT_ARM;
-      task_msg.rel = task_msg.REL;
-      switch(id)
-        {
-          case 7:
-              task_msg.x = pos;
-              break;
-          case 8:
-              task_msg.y = pos;
-              break;
-          case 9:
-              task_msg.z = pos;
-              break;
-          case 10:
-              task_msg.roll = pos;
-              break;
-          case 11:
-              task_msg.pitch = pos;
-              break;
-          case 12:
-              task_msg.yaw = pos;
-              break;
-          default:
-              break;
-        }
+    qnode.task_cmd_msg_.end_effector[0] = true;
+    qnode.task_cmd_msg_.mode[0] = 0;
+
+    switch(id)
+    {
+    case 7:
+      qnode.task_cmd_msg_.pose[0].position.x = pos;
+      break;
+    case 8:
+      qnode.task_cmd_msg_.pose[0].position.y = pos;
+      break;
+    case 9:
+      qnode.task_cmd_msg_.pose[0].position.z = pos;
+      break;
+    case 10:
+      axis = QVector3D(1, 0, 0);
+      qnode.task_cmd_msg_.pose[0].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[0].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[0].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[0].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 11:
+      axis = QVector3D(0, 1, 0);
+      qnode.task_cmd_msg_.pose[0].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[0].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[0].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[0].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 12:
+      axis = QVector3D(0, 0, 1);
+      qnode.task_cmd_msg_.pose[0].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[0].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[0].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[0].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    default:
+      break;
+    }
+    qnode.task_cmd_msg_.duration[0] = 1 + pos*offset;
+    qnode.send_task_ctrl();
   }
-  task_msg.subtask = task_msg.ARM_TASK;
-  qnode.send_task_cmd(task_msg);
-  */
+  else if(id <= 18)
+  {
+    qnode.task_cmd_msg_.end_effector[3] = true;
+    qnode.task_cmd_msg_.mode[3] = 0;
+
+    switch(id)
+    {
+    case 13:
+      qnode.task_cmd_msg_.pose[3].position.x = pos;
+      break;
+    case 14:
+      qnode.task_cmd_msg_.pose[3].position.y = pos;
+      break;
+    case 15:
+      qnode.task_cmd_msg_.pose[3].position.z = pos;
+      break;
+    case 16:
+      axis = QVector3D(1, 0, 0);
+      qnode.task_cmd_msg_.pose[3].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[3].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[3].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[3].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 17:
+      axis = QVector3D(0, 1, 0);
+      qnode.task_cmd_msg_.pose[3].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[3].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[3].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[3].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 18:
+      axis = QVector3D(0, 0, 1);
+      qnode.task_cmd_msg_.pose[3].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[3].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[3].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[3].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    default:
+      break;
+    }
+    qnode.task_cmd_msg_.duration[3] = 1 + pos*offset;
+    qnode.send_task_ctrl();
+  }
+  else
+  {
+    qnode.task_cmd_msg_.end_effector[1] = true;
+    qnode.task_cmd_msg_.mode[1] = 0;
+
+    switch(id)
+    {
+    case 19:
+      qnode.task_cmd_msg_.pose[1].position.x = pos;
+      break;
+    case 20:
+      qnode.task_cmd_msg_.pose[1].position.y = pos;
+      break;
+    case 21:
+      qnode.task_cmd_msg_.pose[1].position.z = pos;
+      break;
+    case 22:
+      axis = QVector3D(1, 0, 0);
+      qnode.task_cmd_msg_.pose[1].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[1].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[1].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[1].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 23:
+      axis = QVector3D(0, 1, 0);
+      qnode.task_cmd_msg_.pose[1].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[1].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[1].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[1].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    case 24:
+      axis = QVector3D(0, 0, 1);
+      qnode.task_cmd_msg_.pose[1].orientation.x = quat.fromAxisAndAngle(axis, pos).x();
+      qnode.task_cmd_msg_.pose[1].orientation.y = quat.fromAxisAndAngle(axis, pos).y();
+      qnode.task_cmd_msg_.pose[1].orientation.z = quat.fromAxisAndAngle(axis, pos).z();
+      qnode.task_cmd_msg_.pose[1].orientation.w = quat.fromAxisAndAngle(axis, pos).scalar();
+      break;
+    default:
+      break;
+    }
+    qnode.task_cmd_msg_.duration[1] = 1 + pos*offset;
+    qnode.send_task_ctrl();
+  }
 }
 
 /*****************************************************************************
@@ -761,18 +1219,38 @@ void MainWindow::updateLoggingView() {
   ui.view_logging->scrollToBottom();
 }
 
+void MainWindow::setTable(int i, int column, QTableWidgetItem *newItem)
+{
+
+  if(i < 6) ui.ll_table->setItem(i, column, newItem);
+  else if(i < 12) ui.rl_table->setItem(i-6, column, newItem);
+  else if(i < 14) ui.w_table->setItem(i-12, column, newItem);
+  else if(i < 21) ui.la_table->setItem(i-14, column, newItem);
+  else if(i < 28) ui.ra_table->setItem(i-21, column, newItem);
+  else if(i < 30) ui.h_table->setItem(i-28, column, newItem);
+  else if(i == 30) ui.ra_table->setItem(7, column, newItem);
+  else ui.la_table->setItem(7, column, newItem);
+
+}
+
 void MainWindow::updateJointView() {
-  /*
-  for (int i=0; i<qnode.joint_msg_.id.size(); i++)
+
+  for (int i=0; i<32; i++)
   {
+
     double degree = qnode.joint_msg_.angle[i] * 57.295791433;
     if (fabs(degree) < 0.01) degree = 0.0; // +, - preventing
 
     QTableWidgetItem *newItem = new QTableWidgetItem(
                 QString::number(degree,'f',2));
-    ui.motor_table->setItem(qnode.joint_msg_.id[i]-1, 1, newItem);
+
+
+//    ui.ra_table->setItem(arranged_id[i],1,newItem);
+    setTable(i, 1, newItem);
+//    ui.motor_table->setItem(qnode.joint_msg_.id[i]-1, 1, newItem);
     newItem = new QTableWidgetItem(
                 QString::number(qnode.joint_msg_.current[i],'f',2));
+
 
     const int lowThres = 20.0;
     const int highThres = 40.0;
@@ -792,8 +1270,8 @@ void MainWindow::updateJointView() {
         newItem->setBackgroundColor(QColor(255,255 / (highThres-lowThres) * ((highThres-lowThres) - c + lowThres), 0));
     }
 
-
-    ui.motor_table->setItem(qnode.joint_msg_.id[i]-1, 2, newItem);
+//    ui.motor_table->setItem(qnode.joint_msg_.id[i]-1, 2, newItem);
+    setTable(i, 2, newItem);
     newItem = new QTableWidgetItem(
                 QString::number(qnode.joint_msg_.error[i]));
 
@@ -801,49 +1279,10 @@ void MainWindow::updateJointView() {
     {
        newItem->setBackgroundColor(Qt::yellow);
     }
-    ui.motor_table->setItem(qnode.joint_msg_.id[i]-1, 3, newItem);
+//    ui.motor_table->setItem(qnode.joint_msg_.id[i]-1, 3, newItem);
+    setTable(i, 3, newItem);
 
   }
-  */
-  /*
-    for(int i=0;i<qnode.joint_msg.id.size(); i++)
-    {
-        double degree = qnode.joint_msg.angle[i] * 57.295791433;
-        if (fabs(degree) < 0.01) degree = 0.0; // +, - preventing
-
-        QTableWidgetItem *newItem = new QTableWidgetItem(
-                    QString::number(degree,'f',2));
-        ui.motor_table->setItem(qnode.joint_msg.id[i]-1, 1, newItem);
-        newItem = new QTableWidgetItem(
-                    QString::number(qnode.joint_msg.current[i],'f',2));
-
-        const int lowThres = 20.0;
-        const int highThres = 40.0;
-        double c = fabs(qnode.joint_msg.current[i]);
-        if(c < lowThres)
-        {
-            newItem->setBackgroundColor(QColor(255,255,255 / lowThres * (lowThres - c)));
-        }
-        else if(c > highThres)
-        {
-            newItem->setBackgroundColor(QColor(255,0,0));
-        }
-        else
-        {
-            newItem->setBackgroundColor(QColor(255,255 / (highThres-lowThres) * ((highThres-lowThres) - c + lowThres), 0));
-        }
-
-        ui.motor_table->setItem(qnode.joint_msg.id[i]-1, 2, newItem);
-        newItem = new QTableWidgetItem(
-                    QString::number(qnode.joint_msg.error[i]));
-
-        if(qnode.joint_msg.error[i] != 0)
-        {
-           newItem->setBackgroundColor(Qt::yellow);
-        }
-        ui.motor_table->setItem(qnode.joint_msg.id[i]-1, 3, newItem);
-    }
-    */
 }
 
 void MainWindow::updateRecogInfo() {
@@ -938,4 +1377,143 @@ void MainWindow::on_button_joint_save_clicked()
 */
 }
 
+void MainWindow::on_button_motor_save_clicked()
+{
+
+  if(ui.h_table->item(0,1)->text() != NULL)
+  {
+
+  std::string homeDir(getenv("HOME"));
+  std::string fullDir = homeDir + "/" + ui.line_edit_motor_save_file_name->text().toStdString(); //+ path of which data should be saved
+  std::ofstream outFile(fullDir.c_str());
+
+  outFile << "Data of Joint Position" << std::endl;
+  outFile << "Name" << "\t" << "Pos" << std::endl;
+
+    for(int i = 0; i <32; i++)
+    {
+      if(i < 2) outFile << ui.h_table->item(i, 0)->text().toStdString() << "\t" << ui.h_table->item(i, 1)->text().toStdString() << std::endl;
+      else if(i < 4) outFile << ui.w_table->item(i-2, 0)->text().toStdString() << "\t" << ui.w_table->item(i-2, 1)->text().toStdString() << std::endl;
+      else if(i < 12) outFile << ui.ra_table->item(i-4, 0)->text().toStdString() << "\t" << ui.ra_table->item(i-4, 1)->text().toStdString() << std::endl;
+      else if(i < 20) outFile << ui.la_table->item(i-12, 0)->text().toStdString() << "\t" << ui.la_table->item(i-12, 1)->text().toStdString() << std::endl;
+      else if(i < 26) outFile << ui.rl_table->item(i-20, 0)->text().toStdString() << "\t" << ui.rl_table->item(i-20, 1)->text().toStdString() << std::endl;
+      else outFile << ui.ll_table->item(i-26, 0)->text().toStdString() << "\t" << ui.ll_table->item(i-26, 1)->text().toStdString() << std::endl;
+    }
+
+    outFile.close();
+  } else QMessageBox::warning(this, "Error", "No Data Has Been Found!!!");
+}
+
+void MainWindow::on_all_checkBox_clicked()
+{
+  QCheckBox *checkbox_array[6] = {ui.h_checkBox, ui.w_checkBox, ui.ra_checkBox, ui.la_checkBox, ui.rl_checkBox, ui.ll_checkBox};
+
+  if(ui.all_checkBox->isChecked())
+  {
+    for(int i = 0; i < 6; i ++)
+    {
+      checkbox_array[i]->setCheckable(false);
+      checkbox_array[i]->setDisabled(true);
+    }
+  }
+  else
+  {
+    for(int i = 0; i < 6; i++)
+    {
+      checkbox_array[i]->setCheckable(true);
+      checkbox_array[i]->setDisabled(false);
+    }
+  }
+}
+
+void MainWindow::ConfineChecklist()
+{
+  int i;
+
+  if(ui.all_checkBox->isChecked())
+  {
+    for(i = 0; i < 32; i ++) qnode.joint_cmd_msg_.name[i] = disarranged_jointName[i];
+  }
+  else
+  {
+    for(i = 0; i < 32; i++) qnode.joint_cmd_msg_.name[i] = ""; //Initiallize
+
+    if(ui.h_checkBox->isChecked())
+    {
+      for(i = 0; i < 2; i++) qnode.joint_cmd_msg_.name[arranged_id[i]-1] = jointName[i];
+    }
+    if(ui.w_checkBox->isChecked())
+    {
+      for(i = 2; i < 4; i++) qnode.joint_cmd_msg_.name[arranged_id[i]-1] = jointName[i];
+    }
+    if(ui.ra_checkBox->isChecked())
+    {
+      for(i = 4; i < 12; i++) qnode.joint_cmd_msg_.name[arranged_id[i]-1] = jointName[i];
+    }
+    if(ui.la_checkBox->isChecked())
+    {
+      for(i = 12; i < 20; i++) qnode.joint_cmd_msg_.name[arranged_id[i]-1] = jointName[i];
+    }
+    if(ui.rl_checkBox->isChecked())
+    {
+      for(i = 20; i < 26; i++) qnode.joint_cmd_msg_.name[arranged_id[i]-1] = jointName[i];
+    }
+    if(ui.ll_checkBox->isChecked())
+    {
+      for(i = 26; i < 32; i++) qnode.joint_cmd_msg_.name[arranged_id[i]-1] = jointName[i];
+    }
+  }
+}
+
+void MainWindow::on_button_motor_load_clicked()
+{
+
+  std::string homeDir(getenv("HOME"));
+  std::string fullDir = homeDir + "/" + ui.line_edit_motor_load_file_name->text().toStdString(); //+ path of which data should be saved
+  std::ifstream inFile(fullDir.c_str());
+
+  double loaded_pos[32];
+  char name[32][10];
+  char trash[30];
+
+
+  if(inFile)
+  {
+
+    inFile.getline(trash, 30);
+    inFile.getline(trash, 30);
+
+    for(int i = 0; i < 32; i++)
+    {
+
+      inFile >> name[i] >> loaded_pos[i];
+
+    }
+    inFile.close();
+
+
+  } else {
+  QMessageBox::warning(this, "Error", "No Saved File Has Been Found!!!");
+  inFile.close();
+  }
+
+  ConfineChecklist();
+
+  for(int i = 0; i < 32; i++)
+  {
+    qnode.joint_cmd_msg_.position[arranged_id[i]-1] = loaded_pos[i] / 57.295791433;
+    qnode.joint_cmd_msg_.duration[arranged_id[i]-1] = 5.0;
+  }
+
+
+  qnode.publish_joint_ctrl();
+//  ROS_INFO("Help");
+//  qnode.joint_cmd_msg_.enable[0] = true;
+//  qnode.joint_cmd_msg_.position[0] = 3.141592;
+//  qnode.joint_cmd_msg_.duration[0] = 3.0;
+//  ConfineChecklist();
+//  qnode.pubJointCommandMessage(arranged_id, loaded_pos);
+}
+
 }  // namespace dyros_jet_gui
+

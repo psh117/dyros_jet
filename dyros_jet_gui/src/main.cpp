@@ -24,6 +24,12 @@ int main(int argc, char **argv) {
     **********************/
     QApplication app(argc, argv);
     dyros_jet_gui::MainWindow w(argc,argv);
+
+    int width_offset = 80;
+    int height_offset = 60;
+
+    w.setGeometry(0, 0, QDesktopWidget().width()/2, QDesktopWidget().height()/2 - height_offset);
+
     w.show();
     app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
     int result = app.exec();

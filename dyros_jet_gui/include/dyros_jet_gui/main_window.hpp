@@ -60,6 +60,7 @@ public Q_SLOTS:
     void on_checkbox_use_environment_stateChanged(int state);
     void on_button_walk_start_clicked();
     void on_button_walk_init_clicked();
+    void on_button_walk_quit_clicked();
     void on_button_walk_stop_clicked();
 
     void on_button_scan_clicked();
@@ -82,7 +83,11 @@ public Q_SLOTS:
     void updateLoggingView(); // no idea why this can't connect automatically
     void updateJointView();
     void updateRecogInfo();
-
+    void setTable(int i, int column, QTableWidgetItem *newItem);
+    void on_button_motor_save_clicked();
+    void on_button_motor_load_clicked();
+    void ConfineChecklist();
+    void on_all_checkBox_clicked();
 
 private:
 	Ui::MainWindowDesign ui;
@@ -90,6 +95,15 @@ private:
     std::vector<int> jointID;
     bool isConnected;
 
+public:
+  static const int head_id_index[2];
+  static const int waist_id_index[2];
+  static const int right_arm_id_index[8];
+  static const int left_arm_id_index[8];
+  static const int right_leg_id_index[6];
+  static const int left_leg_id_index[6];
+
+  int arranged_id[32];
 
     // -- UI
     // ---- Joint Ctrl
@@ -99,10 +113,14 @@ private:
 
     // ---- Task Ctrl
     QPushButton *button_task_ctrl[12][2];
+    QPushButton *button_task_ctrl_2[12][2];
     QDoubleSpinBox *doubleSpin_task_ctrl[12];
+    QDoubleSpinBox *doubleSpin_task_ctrl_2[12];
     QLabel *label_task_ctrl[13];
+    QLabel *label_task_ctrl_2[13];
 
     QPushButton *button_recog_ctrl;
+
 
 };
 }  // namespace dyros_jet_gui

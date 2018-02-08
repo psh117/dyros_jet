@@ -31,7 +31,15 @@ QNode::QNode(int argc, char** argv ) :
   init_argc(argc),
   init_argv(argv),
   isConnected(false)
-{}
+{
+  joint_cmd_msg_.position.resize(32);
+  joint_cmd_msg_.name.resize(32);
+  joint_cmd_msg_.duration.resize(32);
+
+  joint_msg_.angle.resize(32);
+  joint_msg_.current.resize(32);
+  joint_msg_.error.resize(32);
+}
 
 QNode::~QNode() {
   if(ros::isStarted()) {
@@ -72,6 +80,10 @@ void QNode::init_nh()
   // Add your ros communications here.
 
   smach_publisher = nh->advertise<std_msgs::String>("/transition", 5);
+  joint_ctrl_publisher = nh->advertise<dyros_jet_msgs::JointCommand>("/dyros_jet/joint_command", 5);
+  task_cmd_publisher = nh->advertise<dyros_jet_msgs::TaskCommand>("/dyros_jet/task_command", 5);
+  walking_cmd_publisher = nh->advertise<dyros_jet_msgs::WalkingCommand>("/dyros_jet/walking_command", 5);
+  controlbase_publisher = nh->advertise<std_msgs::String>("/dyros_jet/controlbase_bool", 5);
   /*
     joint_ctrl_publisher = nh->advertise<thormang_ctrl_msgs::JointSet>("joint_ctrl",5);
     task_cmd_publisher = nh->advertise<thormang_ctrl_msgs::TaskCmd>("task_cmd",5);
@@ -117,6 +129,48 @@ void QNode::jointStateCallback(const dyros_jet_msgs::JointStateConstPtr &msg)
 {
   joint_msg_ = *msg;
   jointStateUpdated();
+}
+
+void QNode::send_joint_ctrl(int id, const char* jointName, double angle)
+{
+  if(isConnected)
+  {
+    double rad = angle / 57.295791433;
+    double offset = 0.5;
+    double current_position;
+
+    current_position = joint_msg_.angle[id-1];
+
+
+    joint_cmd_msg_.position[id-1] = current_position + rad;
+    if(angle > 0) joint_cmd_msg_.duration[id-1] = 0.5 + rad*offset;
+    else joint_cmd_msg_.duration[id-1] = 0.5 - rad*offset;
+    joint_cmd_msg_.name[id-1] = jointName;
+
+    joint_ctrl_publisher.publish(joint_cmd_msg_);
+
+    joint_cmd_msg_.name[id-1] = " ";
+  }
+}
+
+void QNode::publish_joint_ctrl()
+{
+  joint_ctrl_publisher.publish(joint_cmd_msg_);
+}
+
+void QNode::send_task_ctrl()
+{
+  task_cmd_publisher.publish(task_cmd_msg_);
+}
+
+void QNode::send_walk_ctrl()
+{
+  walking_cmd_publisher.publish(walk_cmd_msg_);
+}
+
+void QNode::send_data_cb()
+{
+  controlbase_publisher.publish(controlbase_data_);
 }
 /*
 void QNode::send_ft_calib(float time)
