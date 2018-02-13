@@ -53,3 +53,7 @@ catkin_make
 ```sh
 rosrun dyros_jet_mission_commander commander.py
 ```
+
+
+### How do I contribuite to this repo? ###
+* Read this http://wiki.ros.org/CppStyleGuide
