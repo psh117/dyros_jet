@@ -33,38 +33,39 @@ def commander():
 
     msg = JointCommand()
     msg.name = ["L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll","R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll","WaistPitch","WaistYaw", "L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw", "R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw","HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"]
-    #msg.enable = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, False, False]
+    #msg.enable = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, False, False, False, False]
     msg.position = [0 , 0.034906585 , -0.3490658504 , 0.6981317008 , -0.3490658504 , -0.034906585 , 0 , -0.034906585 , 0.3490658504 , -0.6981317008 , 0.3490658504 , 0.034906585 , 0 , 0 , 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252 , -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 1.7453292519 , 0 , 0 , 0 , 0 ]
     msg.duration = [5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 0 , 0 , 0 , 0]
     pub.publish(msg)
     time = 0
-    rospy.sleep(8.)
-
-    task_msg = TaskCommand()
+    rospy.sleep(5.)
 
 
-    task_msg.end_effector=[False, False, False, True]
-    task_msg.mode=[0, 0, 0, 0]
-    task_msg.pose[3].position = Point(0.3, 0.0, 0.0)
-    task_msg.pose[3].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
-    task_msg.duration = [0.0, 0.0, 0.0, 5.0]
-    task_pub.publish(task_msg);
-
-
-    rospy.sleep(5.0);
-    
-    task_msg.end_effector=[True, False, False, False]
-    task_msg.mode=[0, 0, 0, 0]
-    task_msg.pose[0].position = Point(0.0, 0.0, 0.2)
-    task_msg.pose[0].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
-    task_msg.duration = [5.0, 0.0, 0.0, 0.0]
-    task_pub.publish(task_msg);
-
-    rospy.sleep(5.0);
+    #task_msg = TaskCommand()
+    #
+    #
+    #task_msg.end_effector=[False, False, False, True]
+    #task_msg.mode=[0, 0, 0, 0]
+    #task_msg.pose[3].position = Point(0.3, 0.0, 0.0)
+    #task_msg.pose[3].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
+    #task_msg.duration = [0.0, 0.0, 0.0, 5.0]
+    #task_pub.publish(task_msg);
+    #
+    #
+    #rospy.sleep(5.0);
+    #
+    #task_msg.end_effector=[True, False, False, False]
+    #task_msg.mode=[0, 0, 0, 0]
+    #task_msg.pose[0].position = Point(0.0, 0.0, 0.2)
+    #task_msg.pose[0].orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
+    #task_msg.duration = [5.0, 0.0, 0.0, 0.0]
+    #task_pub.publish(task_msg);
+    #
+    #rospy.sleep(5.0);
     
     msg = JointCommand()
     msg.name = ["L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll","R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll","WaistPitch","WaistYaw", "L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw", "R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw","HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"]
-    msg.position = [0 , 0.034906585 , -0.3490658504 , 0.6981317008 , -0.3490658504 , -0.034906585 , 0 , -0.034906585 , 0.3490658504 , -0.6981317008 , 0.3490658504 , 0.034906585 , 0 , 0 , 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252 , -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 1.7453292519 , 0 , 0 , 0 , 0 ]
+    msg.position = [0 , 0.034906585 , -0.034906585 , 0.733038286 , -0.698131701 , -0.034906585 , 0 , -0.034906585 , 0.034906585 , -0.733038286 , 0.698131701 , 0.034906585 , 0 , 0 , 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252 , -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 1.7453292519 , 0 , 0 , 0 , 0 ]
     msg.duration = [5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 0 , 0 , 0 , 0]
 
     rospy.sleep(0.5)
@@ -80,7 +81,7 @@ def commander():
     walk_msg.ik_mode = 0
     walk_msg.first_foot_step = True
     walk_msg.heel_toe = False
-    walk_msg.x = 0.5
+    walk_msg.x = 1.0
     walk_msg.y = 0.0
     walk_msg.z = 0.0
     walk_msg.height = 0.75

@@ -5,6 +5,22 @@
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "math_type_define.h"
 #include <vector>
+#include <fstream>
+#include <stdio.h>
+#include <iostream>
+
+
+const int FILE_CNT = 6;
+
+const std::string FILE_NAMES[FILE_CNT] =
+{
+  "/home/dg/data/walking/0_desired_zmp_.txt",
+  "/home/dg/data/walking/1_desired_com_.txt",
+  "/home/dg/data/walking/2_desired_q_.txt",
+  "/home/dg/data/walking/3_real_q_.txt",
+  "/home/dg/data/walking/4_desired_swingfoot_.txt",
+  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt"
+};
 
 using namespace std;
 namespace dyros_jet_controller
@@ -13,13 +29,35 @@ namespace dyros_jet_controller
 class WalkingController
 {
 public:
+  fstream file[FILE_CNT];
 
 
   static constexpr unsigned int PRIORITY = 8;
 
 
   WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{} {}
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}
+  {
+
+    for(int i=0; i<FILE_CNT;i++)
+    {
+      file[i].open(FILE_NAMES[i].c_str(),ios_base::out);
+    }
+    file[0]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"zmp_desired_(0)"<<"\t"<<"zmp_desired_(1)"<<endl;
+    file[1]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"com_desired_(0)"<<"\t"<<"com_desired_(1)"<<"\t"<<"com_desired_(2)"<<"\t"<<"com_dot_desired_(0)"<<"\t"<<"com_dot_desired_(1)"<<"\t"<<"com_dot_desired_(2)"<<endl;
+    file[2]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"desired_leg_q_(0)"<<"\t"<<"desired_leg_q_(1)"<<"\t"<<"desired_leg_q_(2)"<<"\t"<<"desired_leg_q_(3)"<<"\t"<<"desired_leg_q_(4)"<<"\t"<<"desired_leg_q_(5)"<<"\t"<<"desired_leg_q_(6)"<<"\t"<<"desired_leg_q_(7)"<<"\t"<<"desired_leg_q_(8)"<<"\t"<<"desired_leg_q_(9)"<<"\t"<<"desired_leg_q_(10)"<<"\t"<<"desired_leg_q_(11)"<<endl;
+    file[3]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"current_q_(0)"<<"\t"<<"current_q_(1)"<<"\t"<<"current_q_(2)"<<"\t"<<"current_q_(3)"<<"\t"<<"current_q_(4)"<<"\t"<<"current_q_(5)"<<"\t"<<"current_q_(6)"<<"\t"<<"current_q_(7)"<<"\t"<<"current_q_(8)"<<"\t"<<"current_q_(9)"<<"\t"<<"current_q_(10)"<<"\t"<<"current_q_(11)"<<endl;
+    file[4]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"rfoot_trajectory_support_.translation()(0)"<<"\t"<<"rfoot_trajectory_support_.translation()(1)"<<"\t"<<"rfoot_trajectory_support_.translation()(2)"<<"\t"<<"lfoot_trajectory_support_.translation()(0)"<<"\t"<<"lfoot_trajectory_support_.translation()(1)"<<"\t"<<"lfoot_trajectory_support_.translation()(2)"<<endl;
+    file[5]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"pelv_trajectory_support_.translation()(0)"<<"\t"<<"pelv_trajectory_support_.translation()(1)"<<"\t"<<"pelv_trajectory_support_.translation()(2)"<<endl;
+  }
+  //WalkingController::~WalkingController()
+  //{
+  //  for(int i=0; i<FILE_CNT;i++)
+  //  {
+  //    if(file[i].is_open())
+  //      file[i].close();
+  //  }
+  //}
 
 
 
@@ -62,8 +100,7 @@ public:
 
   //PreviewController
   void modifiedPreviewControl();
-  void previewControl(double dt, int NL, int k_, Eigen::Matrix4d k,
-                      double x_i, double y_i, Eigen::Vector3d xs,
+  void previewControl(double dt, int NL, int k_, double x_i, double y_i, Eigen::Vector3d xs,
                       Eigen::Vector3d ys, double ux_1 , double uy_1 ,
                       double& ux, double& uy, double gi, Eigen::VectorXd gp_l,
                       Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b,
@@ -188,8 +225,8 @@ private:
   Eigen::Isometry3d lfoot_trajectory_support_;
   Eigen::Vector3d rfoot_trajectory_euler_support_;
   Eigen::Vector3d lfoot_trajectory_euler_support_;
-  Eigen::Vector3d rfoot_trajectory_dot_support_;
-  Eigen::Vector3d lfoot_trajectory_dot_support_;
+  Eigen::Vector6d rfoot_trajectory_dot_support_; //x,y,z translation velocity & roll, pitch, yaw velocity
+  Eigen::Vector6d lfoot_trajectory_dot_support_;
 
   Eigen::Isometry3d pelv_trajectory_support_; //local frame
   Eigen::Isometry3d pelv_trajectory_float_; //pelvis frame
@@ -211,14 +248,14 @@ private:
 
   //Preview Control
   double zc;
-  double _gi;
+  double gi_;
   double zmp_start_time_; //원래 코드에서는 start_time, zmp_ref 시작되는 time같음
-  Eigen::Matrix4d _k;
-  Eigen::VectorXd _gp_l;
-  Eigen::Matrix1x3d _gx;
-  Eigen::Matrix3d _a;
-  Eigen::Vector3d _b, _xd, _yd;
-  Eigen::Matrix1x3d _c;
+  Eigen::Matrix4d k_;
+  Eigen::VectorXd gp_l_;
+  Eigen::Matrix1x3d gx_;
+  Eigen::Matrix3d a_;
+  Eigen::Vector3d b_;
+  Eigen::Matrix1x3d c_;
 
 
   //resolved momentum control
