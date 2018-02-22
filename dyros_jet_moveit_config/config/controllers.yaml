@@ -1,6 +1,6 @@
 controller_list:
-  - name: "jet_control_test"
-    action_ns: follow_joint_trajectory
+  - name: ""
+    action_ns: joint_action_server
     type: FollowJointTrajectory
     joints: [L_HipYaw, L_HipRoll, L_HipPitch, L_KneePitch, L_AnklePitch, L_AnkleRoll, R_HipYaw,
   R_HipRoll, R_HipPitch, R_KneePitch, R_AnklePitch, R_AnkleRoll, WaistPitch, WaistYaw,

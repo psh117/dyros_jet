@@ -3,6 +3,7 @@
   <!-- using the ROS-Industrial interface. -->
   <node name="dyros_jet_moveit_depend" pkg="dyros_jet_moveit_depend" type="dyros_jet_moveit_depend" respawn="false" output="screen"/>
  
+ 
   <!-- Non-standard joint names:
        - Create a file dyros_jet_moveit_config/config/joint_names.yaml
            controller_joint_names: [joint_1, joint_2, ... joint_N] 

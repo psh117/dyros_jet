@@ -7,6 +7,11 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
+  actionlib_msgs
+  actionlib
+  control_msgs
+  sensor_msgs
+  dyros_jet_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -100,12 +105,21 @@ catkin_package(
 #  LIBRARIES ui_simple
 #  CATKIN_DEPENDS tf roscpp visualization_msgs
 #  DEPENDS system_lib
+   DEPENDS 
+   dyros_jet_msgs
 )
 
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ./include/dyros_jet_moveit_depend
 )
 
 add_executable(dyros_jet_moveit_depend src/basic_tf.cpp)
 target_link_libraries(dyros_jet_moveit_depend ${catkin_LIBRARIES})
+
+add_executable(interactive src/interactive.cpp)
+target_link_libraries(interactive ${catkin_LIBRARIES})
+
+add_executable(taskserver src/taskserver.cpp)
+target_link_libraries(taskserver ${catkin_LIBRARIES})
