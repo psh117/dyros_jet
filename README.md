@@ -54,6 +54,17 @@ catkin_make
 rosrun dyros_jet_mission_commander commander.py
 ```
 
+### About Moveit ###
+
+* Launch moveit
+```sh
+roslaunch dyros_jet_moveit_config dyros_jet_moveit.launch
+```
+
+* traj action test server 
+```sh
+rosrun dyros_jet_moveit_depend taskserver
+```
 
 ### How do I contribuite to this repo? ###
 * Read this http://wiki.ros.org/CppStyleGuide
