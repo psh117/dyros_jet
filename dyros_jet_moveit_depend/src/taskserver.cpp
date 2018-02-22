@@ -1,4 +1,22 @@
+/**
+  Dyros Jet moveit trajectory action server.
+  receive goal from moveit.
+
+  Status is randomly selected.
+  Report Succeeded  / Report Abort / Report nothing/
+
+  by JH Ahn
+
+
+*/
+
+
+
 #include "taskserver.h"
+
+
+
+
 
 int randTest;
 
