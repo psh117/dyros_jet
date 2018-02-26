@@ -92,13 +92,13 @@ void WalkingController::compute()
       file[0]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<zmp_desired_(0)<<"\t"<<zmp_desired_(1)<<"\t"<<foot_step_(current_step_num_, 0)<<"\t"<<foot_step_(current_step_num_, 1)<<"\t"<<
                foot_step_support_frame_(current_step_num_, 0)<<"\t"<<foot_step_support_frame_(current_step_num_, 1)<<endl;
       file[1]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<com_desired_(0)<<"\t"<<com_desired_(1)<<"\t"<<com_desired_(2)<<"\t"<<com_dot_desired_(0)<<"\t"<<com_dot_desired_(1)<<"\t"<<
-               com_dot_desired_(2)<<endl;
+               com_dot_desired_(2)<<"\t"<<com_support_init_(0)<<"\t"<<com_support_init_(0)<<"\t"<<com_support_init_(0)<<endl;
       file[2]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<desired_leg_q_(0)<<"\t"<<desired_leg_q_(1)<<"\t"<<desired_leg_q_(2)<<"\t"<<desired_leg_q_(3)<<"\t"<<desired_leg_q_(4)<<"\t"<<
                desired_leg_q_(5)<<"\t"<<desired_leg_q_(6)<<"\t"<<desired_leg_q_(7)<<"\t"<<desired_leg_q_(8)<<"\t"<<desired_leg_q_(9)<<"\t"<<desired_leg_q_(10)<<"\t"<<desired_leg_q_(11)<<endl;
       file[3]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<current_q_(0)<<"\t"<<current_q_(1)<<"\t"<<current_q_(2)<<"\t"<<current_q_(3)<<"\t"<<current_q_(4)<<"\t"<<current_q_(5)<<"\t"<<
                current_q_(6)<<"\t"<<current_q_(7)<<"\t"<<current_q_(8)<<"\t"<<current_q_(9)<<"\t"<<current_q_(10)<<"\t"<<current_q_(11)<<endl;
       file[4]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_trajectory_support_.translation()(0)<<"\t"<<rfoot_trajectory_support_.translation()(1)<<"\t"<<
-               rfoot_trajectory_support_.translation()(2)<<"\t"<<lfoot_trajectory_support_.translation()(0)<<"\t"<<lfoot_trajectory_support_.translation()(1)<<"\t"<<
+               rfoot_trajectory_support_.translation()(2)<<"\t"<<lfoot_trajectory_support_.translation()(0)<<"\t"<<lfoot_trajectory_support_.translation()(1)<<"\t"<<lfoot_trajectory_support_.translation()(2)<<"\t"<<
                rfoot_support_init_.translation()(0)<<"\t"<<rfoot_support_init_.translation()(1)<<"\t"<<rfoot_support_init_.translation()(2)<<endl;
       file[5]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<pelv_trajectory_support_.translation()(0)<<"\t"<<pelv_trajectory_support_.translation()(1)<<"\t"<<pelv_trajectory_support_.translation()(2)
             <<endl;
@@ -191,7 +191,7 @@ void WalkingController::parameterSetting()
   t_double2_= 0.1*hz_;
   t_rest_init_ = 0.1*hz_;
   t_rest_last_= 0.1*hz_;
-  t_total_= 3.2*hz_;
+  t_total_= 3.0*hz_;
   t_temp_ = 0.50*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -209,6 +209,8 @@ void WalkingController::parameterSetting()
   com_update_flag_ = true; // frome A to B
   gyro_frame_flag_ = false;
   com_control_mode_ = false;
+
+  zc_ = 0.75;
 }
 
 /**Foot step related fuctions
@@ -1011,7 +1013,7 @@ void WalkingController::updateInitialState()
     supportfoot_float_init_(0) = 0.0;
     swingfoot_float_init_(0) = 0.0;
     }
-
+    std::cout<<"******Initial state updated******"<<endl;
     std::cout<<"lfoot_float_init_: "<<"\t"<<lfoot_float_init_.translation()<<endl;
     std::cout<<"rfoot_float_init_: "<<"\t"<<rfoot_float_init_.translation()<<endl;
     std::cout<<"com_float_init_: "<<"\t"<<com_float_init_<<endl;
@@ -1288,7 +1290,7 @@ void WalkingController::getComTrajectory()
 
     if(current_step_num_ == 1)
     {
-      temp = DyrosMath::rotateWithZ(-supportfoot_support_init_(5));
+      temp = DyrosMath::rotateWithZ(-supportfoot_float_init_(5));
 
       COB_vel_prev(0) = xs_(1);
       COB_vel_prev(1) = ys_(1);
@@ -1321,7 +1323,7 @@ void WalkingController::getComTrajectory()
     ys_(2) = COB_acc(1);
   }
 
-  if(com_update_flag_ == true)
+  if(walking_tick_ == t_start_ && current_step_num_ != 0)
   {
     if(com_control_mode_ == true)
     {
@@ -1340,7 +1342,7 @@ void WalkingController::getComTrajectory()
   xs_=xd_;
   ys_=yd_;
 
-  double start_time = 0;
+  double start_time;
 
   if(current_step_num_ == 0)
     start_time = 0;
@@ -1354,11 +1356,11 @@ void WalkingController::getComTrajectory()
   {
     com_desired_(0) = xd_(0);
     com_desired_(1) = yd_(0);
-    com_desired_(2) = pelv_support_init_.translation()(2);
+    com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), zc_, 0, 0);
 
     com_dot_desired_(0) = xd_(1);
     com_dot_desired_(1) = yd_(1);
-    com_dot_desired_(2) = 0;
+    com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), zc_, 0, 0, hz_);
 
     double k= 100.0;
     p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_current_(0));
@@ -1370,11 +1372,11 @@ void WalkingController::getComTrajectory()
   {
     com_desired_(0) = xd_(0);
     com_desired_(1) = yd_(0);
-    com_desired_(2) = pelv_support_init_.translation()(2);
+    com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), zc_, 0, 0);
 
     com_dot_desired_(0) = xd_(1);
     com_dot_desired_(1) = yd_(1);
-    com_dot_desired_(2) = 0;
+    com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), zc_, 0, 0, hz_);
 
     double k= 100.0;
     p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_current_(0));
@@ -1982,32 +1984,35 @@ void WalkingController::modifiedPreviewControl()
   for (int i=0; i<3; i++)
       ys_matrix(i) = yd_(i);
 
-  double est_zmp_error_x, est_zmp_error_y, est_zmp;
-  est_zmp_error_x = c_*xs_matrix;
-  est_zmp_error_y = c_*ys_matrix;
+  //double est_zmp_error_x, est_zmp_error_y, est_zmp;
+  //est_zmp_error_x = c_*xs_matrix;
+  //est_zmp_error_y = c_*ys_matrix;
 
   previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, xi_, yi_, xs_, ys_, ux_1_, uy_1_, ux_, uy_, gi_, gp_l_, gx_, a_, b_, c_, xd_, yd_);
 
   ux_1_ = ux_;
   uy_1_ = uy_;
 
+  xs_ = xd_;
+  ys_ = yd_;
+
 
 }
 
 void WalkingController::previewControl(
-    double dt, int NL, int k_, double x_i, double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
+    double dt, int NL, int tick, double x_i, double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
     double ux_1, double uy_1 , double& ux, double& uy, double gi, Eigen::VectorXd gp_l,
     Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c,
     Eigen::Vector3d &xd, Eigen::Vector3d &yd)
 {
-  int norm_size;
-  norm_size = ref_zmp_.col(1).size();
+  int zmp_size;
+  zmp_size = ref_zmp_.col(1).size();
 
   Eigen::VectorXd px_ref, py_ref;
-  px_ref.resize(norm_size);
-  py_ref.resize(norm_size);
+  px_ref.resize(zmp_size);
+  py_ref.resize(zmp_size);
 
-  for (int i=0; i<norm_size; i++)
+  for (int i=0; i<zmp_size; i++)
   {
     px_ref(i) = ref_zmp_(i,0);
     py_ref(i) = ref_zmp_(i,1);
@@ -2021,7 +2026,7 @@ void WalkingController::previewControl(
 
 
 
-  if(k_==0 && current_step_num_ == 0)
+  if(tick==0 && current_step_num_ == 0)
   {
     x(0) = x_i;
     y(0) = y_i;
@@ -2044,14 +2049,14 @@ void WalkingController::previewControl(
   Eigen::Matrix<double, 1, 1> px, py;
   px = (c*x);
   py = (c*y);
-  xzmp_err = px(0) - px_ref(k_);
-  yzmp_err = py(0) - py_ref(k_);
+  xzmp_err = px(0) - px_ref(tick);
+  yzmp_err = py(0) - py_ref(tick);
 
   double sum_gp_px_ref = 0.0, sum_gp_py_ref =0.0;
   for(int i = 0; i < NL; i++)
   {
-    sum_gp_px_ref = sum_gp_px_ref + gp_l(i)*(px_ref(k_+1+i)-px_ref(k_+i));
-    sum_gp_py_ref = sum_gp_py_ref + gp_l(i)*(py_ref(k_+1+i)-py_ref(k_+i));
+    sum_gp_px_ref = sum_gp_px_ref + gp_l(i)*(px_ref(tick+1+i)-px_ref(tick+i));
+    sum_gp_py_ref = sum_gp_py_ref + gp_l(i)*(py_ref(tick+1+i)-py_ref(tick+i));
   }
   double gx_x, gx_y, del_ux, del_uy;
   gx_x = gx*(x-x_1);
@@ -2073,17 +2078,22 @@ void WalkingController::previewControlParameter(
     double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx,
     Eigen::Matrix3d& a, Eigen::Vector3d& b, Eigen::Matrix1x3d& c)
 {
-  zc = com_support_init_(2);
+  //zc_ = com_support_init_(2);
   a.setIdentity();
   a(0,1) = dt;
   a(0,2) = dt*dt/2.0;
   a(1,2) = dt;
+
+  b.setZero();
   b(0) =dt*dt*dt/6.0;
   b(1) =dt*dt/2.0;
   b(2) =dt;
+
   c(0,0) = 1;
   c(0,1) = 0;
-  c(0,2) = zc/GRAVITY;
+  c(0,2) = -com_support_init_(2)/GRAVITY;
+
+  std::cout<<"com_support_init(2): "<<com_support_init_(2)<<endl;
 
   Eigen::Vector4d b_bar;
   b_bar(0) = c*b;
@@ -2127,7 +2137,7 @@ void WalkingController::previewControlParameter(
   ac_bar = a_bar - b_bar*b_bar_tran*k*a_bar/temp_mat;
 
   gi = b_bar_tran*k*i_p;
-  gi = gi/temp_mat;
+  gi *= 1/temp_mat;
   gx = b_bar_tran*k*f_bar/temp_mat;
 
   Eigen::MatrixXd x_l(4, NL);
