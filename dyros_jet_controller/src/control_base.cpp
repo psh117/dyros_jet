@@ -183,8 +183,8 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   if(msg->walk_mode == dyros_jet_msgs::WalkingCommand::STATIC_WALKING)
   {
     walking_controller_.setEnable(true);
-    walking_controller_.setTarget(msg->walk_mode, compensate_v, msg->ik_mode, msg->first_foot_step,
-    msg-> heel_toe, msg->x, msg->y, msg->z, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
+    walking_controller_.setTarget(msg->walk_mode, msg->compensator_mode[0], msg->compensator_mode[1], msg->ik_mode, msg->heel_toe, msg->first_foot_step,
+    msg->x, msg->y, msg->z, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
   }
   else
   {

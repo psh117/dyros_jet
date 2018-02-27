@@ -10,16 +10,19 @@
 #include <iostream>
 
 
-const int FILE_CNT = 6;
+const int FILE_CNT = 8;
 
 const std::string FILE_NAMES[FILE_CNT] =
 {
+  ///change this directory when you use this code on the other computer///
   "/home/dg/data/walking/0_desired_zmp_.txt",
   "/home/dg/data/walking/1_desired_com_.txt",
   "/home/dg/data/walking/2_desired_q_.txt",
   "/home/dg/data/walking/3_real_q_.txt",
   "/home/dg/data/walking/4_desired_swingfoot_.txt",
-  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt"
+  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/7_current_foot_trajectory_.txt"
 };
 
 using namespace std;
@@ -49,6 +52,11 @@ public:
     file[3]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"current_q_(0)"<<"\t"<<"current_q_(1)"<<"\t"<<"current_q_(2)"<<"\t"<<"current_q_(3)"<<"\t"<<"current_q_(4)"<<"\t"<<"current_q_(5)"<<"\t"<<"current_q_(6)"<<"\t"<<"current_q_(7)"<<"\t"<<"current_q_(8)"<<"\t"<<"current_q_(9)"<<"\t"<<"current_q_(10)"<<"\t"<<"current_q_(11)"<<endl;
     file[4]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"rfoot_trajectory_support_.translation()(0)"<<"\t"<<"rfoot_trajectory_support_.translation()(1)"<<"\t"<<"rfoot_trajectory_support_.translation()(2)"<<"\t"<<"lfoot_trajectory_support_.translation()(0)"<<"\t"<<"lfoot_trajectory_support_.translation()(1)"<<"\t"<<"lfoot_trajectory_support_.translation()(2)"<<"\t"<<"rfoot_support_init_.translation()(0)"<<"\t"<<"rfoot_support_init_.translation()(1)"<<"\t"<<"rfoot_support_init_.translation()(2)"<<endl;
     file[5]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"pelv_trajectory_support_.translation()(0)"<<"\t"<<"pelv_trajectory_support_.translation()(1)"<<"\t"<<"pelv_trajectory_support_.translation()(2)"<<endl;
+    file[6]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"com_support_current_(0)"<<"\t"<<"com_support_current_(1)"<<"\t"<<"com_support_current_(2)"
+          <<"\t"<<"pelv_support_current_.translation()(0)"<<"\t"<<"pelv_support_current_.translation()(1)"<<"\t"<<"pelv_support_current_.translation()(2)"<<endl;
+    file[7]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"rfoot_support_current_.translation()(0)"<<"\t"<<"rfoot_support_current_.translation()(1)"<<"\t"<<"rfoot_support_current_.translation()(2)"
+          <<"\t"<<"lfoot_support_current_.translation()(0)"<<"\t"<<"lfoot_support_current_.translation()(1)"<<"\t"<<"lfoot_support_current_.translation()(2)"<<endl;
+
   }
   //WalkingController::~WalkingController()
   //{
@@ -62,7 +70,7 @@ public:
 
 
   void compute();
-  void setTarget(int walk_mode, std::vector<bool> compensator_mode, int ik_mode, bool heel_toe,
+  void setTarget(int walk_mode, bool hip_compensation, bool lqr, int ik_mode, bool heel_toe,
                  bool is_right_foot_swing, double x, double y, double z, double height, double theta,
                  double step_length, double step_length_y);
   void setEnable(bool enable);
@@ -137,7 +145,8 @@ private:
 
   int ik_mode_;
   int walk_mode_;
-  std::vector<bool> compensator_mode_;
+  bool hip_compensator_mode_;
+  bool lqr_compensator_mode_;
   int heel_toe_mode_;
   int is_right_foot_swing_;
 
