@@ -1,0 +1,4 @@
+<launch>
+  <node name="dyros_jet_gui" pkg="dyros_jet_gui" type="dyros_jet_gui" respawn="false" output="screen" />
+</launch>
+
