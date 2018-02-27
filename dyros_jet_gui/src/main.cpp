@@ -11,7 +11,9 @@
 
 #include <QtGui>
 #include <QApplication>
-#include "dyros_jet_gui/main_window.hpp"
+#include "dyros_jet_gui/joint_window.hpp"
+#include "dyros_jet_gui/task_window.hpp"
+#include "dyros_jet_gui/status_window.hpp"
 
 /*****************************************************************************
 ** Main
@@ -23,14 +25,22 @@ int main(int argc, char **argv) {
     ** Qt
     **********************/
     QApplication app(argc, argv);
-    dyros_jet_gui::MainWindow w(argc,argv);
 
-    int width_offset = 80;
-    int height_offset = 60;
+      dyros_jet_gui::JointWindow w1(argc,argv);
+      dyros_jet_gui::TaskWindow w2(argc,argv);
+      dyros_jet_gui::StatusWindow w3(argc,argv);
 
-    w.setGeometry(0, 0, QDesktopWidget().width()/2, QDesktopWidget().height()/2 - height_offset);
+      int height_offset = 60;
+      int width_offset = 100;
 
-    w.show();
+      w1.setGeometry(0, 0, QDesktopWidget().width()/2, QDesktopWidget().height()/2 - height_offset);
+      w2.setGeometry(0, QDesktopWidget().height()/2 + height_offset, QDesktopWidget().width()/2, QDesktopWidget().height()/2 -height_offset);
+      w3.setGeometry(QDesktopWidget().width()/2 + width_offset, QDesktopWidget().height()/2 + height_offset, QDesktopWidget().width()/2 - width_offset, QDesktopWidget().height()/2 - height_offset);
+
+      w1.show();
+      w2.show();
+      w3.show();
+
     app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
     int result = app.exec();
 
