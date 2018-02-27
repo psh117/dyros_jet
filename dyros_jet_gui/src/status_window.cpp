@@ -16,6 +16,8 @@
 #include <fstream>
 #include <string>
 #include "dyros_jet_gui/status_window.hpp"
+#include "rt_dynamixel_msgs/ModeSetting.h"
+#include "rt_dynamixel_msgs/MotorSetting.h"
 #include <qpixmap.h>
 #include <QQuaternion>
 #include <QVector3D>
@@ -197,9 +199,15 @@ void StatusWindow::on_button_scan_clicked()
 
 void StatusWindow::on_button_estop_clicked()
 {
-  std::string state;
-  state = "shutdown";
-  qnode.send_transition(state);
+  qnode.changeDxlMode(rt_dynamixel_msgs::ModeSetting::Request::SETTING);
+  qnode.setTorque(0);
+}
+
+void StatusWindow::on_button_torque_on_clicked()
+{
+  qnode.changeDxlMode(rt_dynamixel_msgs::ModeSetting::Request::SETTING);
+  qnode.setTorque(1);
+  qnode.changeDxlMode(rt_dynamixel_msgs::ModeSetting::Request::CONTROL_RUN);
 }
 
 void StatusWindow::stateButtonClicked()

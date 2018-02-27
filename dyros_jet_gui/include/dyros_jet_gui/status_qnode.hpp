@@ -57,6 +57,10 @@ public:
   std_msgs::Float32MultiArray recog_info_msg_;
 
 
+  void changeDxlMode(int mode);
+  void setAimPosition(int id, double radian);
+  void setTorque(int value);
+
   std::string getCurrentState() const {return current_state;}
 
 Q_SIGNALS:
@@ -68,14 +72,15 @@ private:
   int init_argc;
   char** init_argv;
   ros::Publisher smach_publisher;
-
   ros::Publisher recog_cmd_publisher;
-
   ros::Publisher hello_cnt_publisher;
 
   ros::Subscriber recog_point_subscriber;
-
   ros::Subscriber smach_subscriber;
+
+
+  ros::ServiceClient dxl_mode_set_client_; ///< dynamixel mode select service
+  ros::ServiceClient dxl_motor_set_client_; ///< dynmamixel motor setting service
 
   ros::NodeHandle *nh;
 

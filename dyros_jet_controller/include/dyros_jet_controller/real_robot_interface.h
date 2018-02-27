@@ -31,9 +31,6 @@ private:  // CALLBACK
   void rightFootFTCallback(const geometry_msgs::WrenchStampedConstPtr msg);
 
 private:
-  void changeDxlMode(int mode);
-  void setAimPosition(int id, double radian);
-  void setTorque(int value);
 
 
 private:
