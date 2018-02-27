@@ -5,8 +5,7 @@
 ## How do I get set up? ##
 
 ```sh
-sudo apt-get install ros-kinetic-qt-build
-sudo apt-get install ros-kinetic-realtime-tools
+sudo apt-get install ros-kinetic-qt-build ros-kinetic-realtime-tools ros-kinetic-smach-viewer
 cd ~/catkin_ws/src
 git clone https://github.com/KumarRobotics/imu_3dm_gx4
 git clone https://github.com/psh117/rt_dynamixel_msgs
