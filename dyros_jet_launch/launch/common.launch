@@ -1,0 +1,3 @@
+<launch>
+  <node name="dyros_jet_smach" pkg="dyros_jet_smach" type="dyros_jet_smach.py" respawn="false" output="screen" />
+</launch>

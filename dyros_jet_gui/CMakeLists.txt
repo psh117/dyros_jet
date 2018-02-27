@@ -11,8 +11,13 @@ project(dyros_jet_gui)
 
 # qt_build provides the qt cmake glue, roscpp the comms for a default talker
 find_package(catkin REQUIRED COMPONENTS qt_build roscpp dyros_jet_msgs)
+find_package(Qt4 REQUIRED QtCore QtGui)
+
 include_directories(${catkin_INCLUDE_DIRS}
-    include)
+    include
+    include/qcustomplot)
+
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/qcustomplot)
 # Use this to define what the package will export (e.g. libs, headers).
 # Since the default here is to produce only a binary, we don't worry about
 # exporting anything. 
@@ -42,17 +47,15 @@ QT4_WRAP_CPP(QT_MOC_HPP ${QT_MOC})
 # Sources
 ##############################################################################
 
-file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.cpp)
+file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS  src/*.cpp )
 
 ##############################################################################
 # Binaries
 ##############################################################################
 
 add_executable(dyros_jet_gui ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP})
-target_link_libraries(dyros_jet_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
+target_link_libraries(dyros_jet_gui ${QT_LIBRARIES} ${catkin_LIBRARIES} 
+     ${QT_QTCORE_LIBRARIES} qcustomplot)
 install(TARGETS dyros_jet_gui RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 add_dependencies(dyros_jet_gui ${catkin_EXPORTED_TARGETS})
-
-
-set(CMAKE_BUILD_TYPE Debug)
