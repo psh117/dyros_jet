@@ -47,7 +47,7 @@ StatusQNode::~StatusQNode() {
 }
 
 bool StatusQNode::init() {
-  ros::init(init_argc,init_argv,"dyros_jet_gui");
+  ros::init(init_argc,init_argv,"dyros_jet_gui_status");
   if ( ! ros::master::check() ) {
     return false;
   }
@@ -65,14 +65,21 @@ void StatusQNode::init_nh()
   dxl_mode_set_client_ = nh->serviceClient<rt_dynamixel_msgs::ModeSetting>("/rt_dynamixel/mode");
   dxl_motor_set_client_ = nh->serviceClient<rt_dynamixel_msgs::MotorSetting>("/rt_dynamixel/motor_set");
 
+  shutdown_publisher = nh->advertise<std_msgs::String>("/dyros_jet/shutdown_command", 1);
   smach_publisher = nh->advertise<std_msgs::String>("/dyros_jet/smach/transition", 5);
+
   smach_subscriber = nh->subscribe("/dyros_jet/smach/container_status",1, &StatusQNode::stateCallback, this);
   hello_cnt_publisher = nh->advertise<std_msgs::Int32>("hello_cnt",5);
 
   isConnected = true;
 
 }
-
+void StatusQNode::shutdown()
+{
+  std_msgs::String msg;
+  msg.data = "Shut up, JET.";
+  shutdown_publisher.publish(msg);
+}
 void StatusQNode::run() {
   ros::Rate loop_rate(100);
   while ( ros::ok() ) {

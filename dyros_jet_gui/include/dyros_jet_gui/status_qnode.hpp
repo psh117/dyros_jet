@@ -53,6 +53,7 @@ public:
   void send_transition(std::string str);
 
   void send_hello_count(const int count);
+  void shutdown();
 
   std_msgs::Float32MultiArray recog_info_msg_;
 
@@ -74,6 +75,7 @@ private:
   ros::Publisher smach_publisher;
   ros::Publisher recog_cmd_publisher;
   ros::Publisher hello_cnt_publisher;
+  ros::Publisher shutdown_publisher;
 
   ros::Subscriber recog_point_subscriber;
   ros::Subscriber smach_subscriber;

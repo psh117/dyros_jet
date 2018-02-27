@@ -199,8 +199,14 @@ void StatusWindow::on_button_scan_clicked()
 
 void StatusWindow::on_button_estop_clicked()
 {
+  std::cout << "ESTOP...";
   qnode.changeDxlMode(rt_dynamixel_msgs::ModeSetting::Request::SETTING);
   qnode.setTorque(0);
+  std::cout << " DONE" << std::endl;
+  std::cout << "SHUTDOWN..." ;
+  usleep(1000000);
+  qnode.shutdown();
+  std::cout << " DONE" << std::endl;
 }
 
 void StatusWindow::on_button_torque_on_clicked()

@@ -7,7 +7,7 @@
 
 // System Library
 #include <termios.h>
- 
+
 // ROS Library
 #include <ros/ros.h>
 #include <realtime_tools/realtime_publisher.h>
@@ -62,6 +62,7 @@ public:
   virtual void reflect(); // reflect next step actuation such as motor angle else
   virtual void writeDevice()=0; // publish to actuate devices
   virtual void wait()=0;  // wait
+  bool isShuttingDown() const {return shutdown_flag_;}
 
   bool checkStateChanged();
 
@@ -112,6 +113,7 @@ private:
 
   string previous_state_;
 
+  bool shutdown_flag_;
 
   // ROS
   ros::Subscriber task_cmd_sub_;
@@ -119,6 +121,7 @@ private:
   ros::Subscriber task_comamnd_sub_;
   ros::Subscriber joint_command_sub_;
   ros::Subscriber walking_command_sub_;
+  ros::Subscriber shutdown_command_sub_;
   //ros::Subscriber recog_point_sub_;
   // ros::Subscriber recog_cmd_sub_;
 
@@ -133,6 +136,7 @@ private:
   void taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
   void jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg);
   void walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg);
+  void shutdownCommandCallback(const std_msgs::StringConstPtr& msg);
 private:
 
   void makeIDInverseList();
