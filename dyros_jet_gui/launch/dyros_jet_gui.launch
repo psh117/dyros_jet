@@ -1,0 +1,5 @@
+<launch>
+  <node name="dyros_jet_gui" pkg="dyros_jet_gui" type="dyros_jet_gui">
+    <param name="ros_master_uri" type="string" value="http://192.168.0.100:11311/"/>
+  </node>
+</launch>
