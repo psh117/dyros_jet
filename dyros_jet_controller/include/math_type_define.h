@@ -139,6 +139,20 @@ static double cubicDot(double time,     ///< Current time
   return x_t;
 }
 
+static Eigen::Matrix3d skew(Eigen::Vector3d src)
+{
+    Eigen::Matrix3d skew;
+    skew.setZero();
+    skew(0, 1) = -src[2];
+    skew(0, 2) = src[1];
+    skew(1, 0) = src[2];
+    skew(1, 2) = -src[0];
+    skew(2, 0) = -src[1];
+    skew(2, 1) = src[0];
+
+    return skew;
+}
+
 template <int N>
 static Eigen::Matrix<double, N, 1> cubicVector(double time,     ///< Current time
                                                 double time_0,   ///< Start time
@@ -400,6 +414,43 @@ Eigen::Matrix<double, _State_Size_, _State_Size_> discreteRiccatiEquation(
   return X_sol;
 }
 
+static Eigen::Vector3d legGetPhi(Eigen::Isometry3d rotation_matrix1, Eigen::Isometry3d active_r1, Eigen::Vector6d ctrl_pos_ori)
+{
+   Eigen::Matrix3d active_r, rotation_matrix, x_rot, y_rot, z_rot, d_rot, s1_skew, s2_skew, s3_skew;
+   x_rot.setZero();
+   y_rot.setZero();
+   z_rot.setZero();
+   d_rot.setZero();
+   s1_skew.setZero();
+   s2_skew.setZero();
+   s3_skew.setZero();
+
+   active_r = active_r1.linear();
+
+   x_rot=rotateWithX(ctrl_pos_ori(3));
+   y_rot=rotateWithY(ctrl_pos_ori(4));
+   z_rot=rotateWithZ(ctrl_pos_ori(5));
+   d_rot=active_r.inverse()*z_rot*y_rot*x_rot;
+
+   rotation_matrix = active_r.inverse() * rotation_matrix1.linear();
+
+   s1_skew=skew(rotation_matrix.col(0));
+   s2_skew=skew(rotation_matrix.col(1));
+   s3_skew=skew(rotation_matrix.col(2));
+
+   Eigen::Vector3d s1f, s2f, s3f, phi;
+   s1f.setZero();
+   s2f.setZero();
+   s3f.setZero();
+
+   s1f = s1_skew * d_rot.col(0);
+   s2f = s2_skew * d_rot.col(1);
+   s3f = s3_skew * d_rot.col(2);
+
+   phi = (s1f + s2f + s3f) * (-1.0/2.0);
+
+  return phi;
+}
 
 }
 #endif

@@ -68,7 +68,8 @@ void WalkingController::compute()
       }
       else if (ik_mode_ == 1)
       {
-        computeJacobianControl(lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_dot_);
+        cout << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"<<endl;
+        computeJacobianControl(lfoot_trajectory_float_, rfoot_trajectory_float_, lfoot_trajectory_euler_float_, rfoot_trajectory_euler_float_, desired_leg_q_dot_);
         for(int i=0; i<6; i++)
         {
           if(walking_tick_ == 0)
@@ -1915,7 +1916,7 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
 }
 
 
-void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q_dot)
+void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector3d float_lleg_transform_euler, Eigen::Vector3d float_rleg_transform_euler, Eigen::Vector12d& desired_leg_q_dot)
 {
 
 
@@ -1926,8 +1927,8 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
   lambda = 0.05;
   jacobian_temp_l=current_leg_jacobian_l_*current_leg_jacobian_l_.transpose();
   jacobian_temp_r=current_leg_jacobian_r_*current_leg_jacobian_r_.transpose();
-  wr = sqrt(jacobian_temp_l.determinant());
-  wl = sqrt(jacobian_temp_r.determinant());
+  wr = sqrt(jacobian_temp_r.determinant());
+  wl = sqrt(jacobian_temp_l.determinant());
 
   if (wr<=w0)
   { //Right Jacobi
@@ -1969,14 +1970,29 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
   kp(5,5) = 150;
 
 
-  Eigen::Vector6d lp, rp;
-  lp.setZero(); rp.setZero();
-  lp.topRows<3>() = float_lleg_transform.linear().transpose()*(-lfoot_float_current_.translation()+float_lleg_transform.translation()); //Foot_Trajectory should revise
+  Eigen::Vector6d lp, rp, cubic_xr, cubic_xl;
+  lp.setZero(); rp.setZero(), cubic_xr.setZero(), cubic_xl.setZero();
+/*  lp.topRows<3>() = float_lleg_transform.linear().transpose()*(-lfoot_float_current_.translation()+float_lleg_transform.translation()); //Foot_Trajectory should revise
   rp.topRows<3>() = float_rleg_transform.linear().transpose()*(-rfoot_float_current_.translation()+float_rleg_transform.translation());
+*/ // revise 2.29
+  lp.topRows<3>() = (-lfoot_float_current_.translation()+float_lleg_transform.translation()); //Foot_Trajectory should revise
+  rp.topRows<3>() = (-rfoot_float_current_.translation()+float_rleg_transform.translation());
 
+
+  for(int i=0;i<3;i++)
+  {
+      cubic_xr(i) = float_rleg_transform.translation()(i);
+      cubic_xr(i+3) = float_rleg_transform_euler(i);
+  }
+
+  for(int i=0;i<3;i++)
+  {
+      cubic_xl(i) = float_lleg_transform.translation()(i);
+      cubic_xl(i+3) = float_lleg_transform_euler(i);
+  }
   Eigen::Vector3d r_leg_phi, l_leg_phi;
-  /*r_leg_phi_ = DyrosMath::getPhi(currnet_leg_transform_r_.linear(),float_rleg_transform,translation());
-  l_leg_phi_ = DyrosMath::getPhi(currnet_leg_transform_l_.linear(),float_lleg_transform,translation());*/
+  r_leg_phi = DyrosMath::legGetPhi(rfoot_float_current_, rfoot_float_init_, cubic_xr);
+  l_leg_phi = DyrosMath::legGetPhi(lfoot_float_current_, lfoot_float_init_, cubic_xl);
   //1.15, Getphi의 phi 값 부호가 반대가 되야 할수도 있음
 
   lp.bottomRows<3>() = - l_leg_phi;
