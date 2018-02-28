@@ -1,0 +1,5 @@
+<launch>
+  <node name="dyros_jet_gui" pkg="dyros_jet_gui" type="dyros_jet_gui" respawn="false" output="screen" />
+  <node name="smach_viewer" pkg="smach_viewer" type="smach_viewer.py" respawn="false" output="screen" />
+</launch>
+

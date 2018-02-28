@@ -53,6 +53,10 @@ int main(int argc, char **argv)
         ctr_obj->reflect();
         ctr_obj->writeDevice();
         ctr_obj->wait();
+        if(ctr_obj->isShuttingDown())
+        {
+          break;
+        }
     }
 
     delete ctr_obj;

@@ -40,50 +40,6 @@ RealRobotInterface::RealRobotInterface(ros::NodeHandle &nh, double Hz):
 
 }
 
-void RealRobotInterface::changeDxlMode(int mode)
-{
-  if(dxl_mode_ != mode) // mode is changed
-  {
-    rt_dynamixel_msgs::ModeSettingRequest req;
-    rt_dynamixel_msgs::ModeSettingResponse res;
-
-    req.mode = mode;
-
-    dxl_mode_set_client_.call(req,res);
-    dxl_mode_ = mode;
-  }
-}
-
-void RealRobotInterface::setAimPosition(int id, double radian)
-{
-  if(dxl_mode_ == rt_dynamixel_msgs::ModeSettingRequest::SETTING) // Setting mode?
-  {
-    rt_dynamixel_msgs::MotorSettingRequest req;
-    rt_dynamixel_msgs::MotorSettingResponse res;
-
-    req.mode=rt_dynamixel_msgs::MotorSettingRequest::SET_GOAL_POSITION;
-    req.id = id;
-    req.fvalue = radian;
-
-    dxl_motor_set_client_.call(req,res);
-  }
-}
-
-void RealRobotInterface::setTorque(int value)
-{
-  if(dxl_mode_ == rt_dynamixel_msgs::ModeSettingRequest::SETTING) // Setting mode?
-    if(dxl_torque_ != value)  // value is changed
-    {
-      rt_dynamixel_msgs::MotorSettingRequest req;
-      rt_dynamixel_msgs::MotorSettingResponse res;
-
-      req.mode=rt_dynamixel_msgs::MotorSettingRequest::SET_TORQUE_ENABLE;
-      req.value = value;
-
-      dxl_motor_set_client_.call(req,res);
-      dxl_torque_ = value;
-    }
-}
 
 void RealRobotInterface::update()
 {
@@ -92,57 +48,12 @@ void RealRobotInterface::update()
 
 void RealRobotInterface::writeDevice()
 {
-  if(current_state_ == "Power_On")
+  for(int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
   {
-    //ROS_INFO("POWER ON!");
-    changeDxlMode(rt_dynamixel_msgs::ModeSettingRequest::SETTING);
-    setTorque(1);
-    for(int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
-    {
-      dxl_joint_set_pub_.msg_.angle[i] = desired_q_(i);
-    }
-    if (dxl_joint_set_pub_.trylock()) {
-      dxl_joint_set_pub_.unlockAndPublish();
-    }
+    dxl_joint_set_pub_.msg_.angle[i] = desired_q_(i);
   }
-  else if (current_state_ == "Auto")
-  {
-    changeDxlMode(rt_dynamixel_msgs::ModeSettingRequest::CONTROL_RUN);
-
-    for(int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
-    {
-      dxl_joint_set_pub_.msg_.angle[i] = desired_q_(i);
-    }
-    if (dxl_joint_set_pub_.trylock()) {
-      dxl_joint_set_pub_.unlockAndPublish();
-    }
-  }
-  else if (current_state_ == "Manual")
-  {
-    changeDxlMode(rt_dynamixel_msgs::ModeSettingRequest::CONTROL_RUN);
-
-    for(int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
-    {
-      dxl_joint_set_pub_.msg_.angle[i] = desired_q_(i);
-    }
-    if (dxl_joint_set_pub_.trylock()) {
-      dxl_joint_set_pub_.unlockAndPublish();
-    }
-  }
-  else if (current_state_ == "None")
-  {
-    changeDxlMode(rt_dynamixel_msgs::ModeSettingRequest::SETTING);
-    setTorque(0);
-  }
-  else
-  {
-    for(int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
-    {
-      dxl_joint_set_pub_.msg_.angle[i] = desired_q_(i);
-    }
-    if (dxl_joint_set_pub_.trylock()) {
-      dxl_joint_set_pub_.unlockAndPublish();
-    }
+  if (dxl_joint_set_pub_.trylock()) {
+    dxl_joint_set_pub_.unlockAndPublish();
   }
 }
 

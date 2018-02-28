@@ -7,6 +7,7 @@ namespace dyros_jet_controller
 // Constructor
 ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   ui_update_count_(0), is_first_boot_(true), Hz_(Hz), control_mask_{}, total_dof_(DyrosJetModel::HW_TOTAL_DOF),
+  shutdown_flag_(false),
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
   walking_controller_(model_, q_, Hz, control_time_)
@@ -27,12 +28,12 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
     //joint_state_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
   }
 
-  smach_pub_.init(nh, "/transition", 1);
-  smach_sub_ = nh.subscribe("/Jimin_machine/smach/container_status", 3, &ControlBase::smachCallback, this);
-  //smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
+  smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
+  smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
   walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
+  shutdown_command_sub_ = nh.subscribe("/dyros_jet/shutdown_command", 1, &ControlBase::shutdownCommandCallback,this);
   parameterInitialize();
   // model_.test();
 }
@@ -67,6 +68,7 @@ void ControlBase::stateChangeEvent()
   {
     if(current_state_ == "move1")
     {
+      /*
       task_controller_.setEnable(DyrosJetModel::EE_LEFT_HAND, true);
       task_controller_.setEnable(DyrosJetModel::EE_RIGHT_HAND, false);
       task_controller_.setEnable(DyrosJetModel::EE_LEFT_FOOT, false);
@@ -76,6 +78,7 @@ void ControlBase::stateChangeEvent()
       target.linear() = Eigen::Matrix3d::Identity();
       target.translation() << 1.0, 0.0, 1.0;
       task_controller_.setTarget(DyrosJetModel::EE_LEFT_HAND, target, 5.0);
+      */
     }
   }
 }
@@ -189,6 +192,14 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   else
   {
     walking_controller_.setEnable(false);
+  }
+}
+
+void ControlBase::shutdownCommandCallback(const std_msgs::StringConstPtr &msg)
+{
+  if (msg->data == "Shut up, JET.")
+  {
+    shutdown_flag_ = true;
   }
 }
 
