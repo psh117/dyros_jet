@@ -278,6 +278,7 @@ _Matrix_Type_ pinv(const _Matrix_Type_ &a, double epsilon =std::numeric_limits<d
     return svd.matrixV() *  (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
 }
 
+
 static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference, Eigen::Isometry3d new_trunk)
 {
   Eigen::Vector3d rpy_ang;

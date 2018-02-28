@@ -213,9 +213,9 @@ void WalkingController::parameterSetting()
   walking_time_ = 0;
 
   foot_height_ = 0.05;
-  com_update_flag_ = true; // frome A to B
+  //com_update_flag_ = true; // frome A to B
   gyro_frame_flag_ = false;
-  com_control_mode_ = false;
+  com_control_mode_ = true;
 
   //zc_ = 0.75;
 }
@@ -951,7 +951,7 @@ void WalkingController::floatToSupportFootstep()
 
 void WalkingController::updateInitialState()
 {  
-  if(walking_tick_ ==0)
+  if( walking_tick_ ==0)
   { 
     q_init_ = current_q_;
     lfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(0));
@@ -973,7 +973,8 @@ void WalkingController::updateInitialState()
     rfoot_support_euler_init_ = DyrosMath::rot2Euler(rfoot_support_init_.linear());
     lfoot_support_euler_init_ = DyrosMath::rot2Euler(lfoot_support_init_.linear());
 
-    zc_ = pelv_support_init_.translation()(2);
+    zc_ = com_support_init_(2);
+    pelv_suppprt_start_ = pelv_support_init_;
 
     calculateFootStepTotal();
     total_step_num_ = foot_step_.col(1).size();
@@ -1035,8 +1036,8 @@ void WalkingController::updateInitialState()
       for(int i=0; i<3; i++)
         swingfoot_float_init_(i+3) = DyrosMath::rot2Euler(rfoot_float_init_.linear())(i);
 
-      supportfoot_float_init_(0) = 0.0;
-      swingfoot_float_init_(0) = 0.0;
+     //supportfoot_float_init_(0) = 0.0;
+     //swingfoot_float_init_(0) = 0.0;
     }
     else
     {
@@ -1050,8 +1051,8 @@ void WalkingController::updateInitialState()
       for(int i=0; i<3; i++)
         swingfoot_float_init_(i+3) = DyrosMath::rot2Euler(lfoot_float_init_.linear())(i);
 
-    supportfoot_float_init_(0) = 0.0;
-    swingfoot_float_init_(0) = 0.0;
+    //supportfoot_float_init_(0) = 0.0;
+    //swingfoot_float_init_(0) = 0.0;
     }
     std::cout<<"******Initial state updated******"<<endl;
     std::cout<<"lfoot_float_init_: "<<"\t"<<lfoot_float_init_.translation()<<endl;
@@ -1396,11 +1397,11 @@ void WalkingController::getComTrajectory()
   {
     com_desired_(0) = xd_(0);
     com_desired_(1) = yd_(0);
-    com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), zc_, 0, 0);
+    com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), pelv_suppprt_start_.translation()(2), 0, 0);
 
     com_dot_desired_(0) = xd_(1);
     com_dot_desired_(1) = yd_(1);
-    com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), zc_, 0, 0, hz_);
+    com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), pelv_suppprt_start_.translation()(2), 0, 0, hz_);
 
     double k= 100.0;
     p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_current_(0));
@@ -1412,11 +1413,11 @@ void WalkingController::getComTrajectory()
   {
     com_desired_(0) = xd_(0);
     com_desired_(1) = yd_(0);
-    com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), zc_, 0, 0);
+    com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), pelv_suppprt_start_.translation()(2), 0, 0);
 
     com_dot_desired_(0) = xd_(1);
     com_dot_desired_(1) = yd_(1);
-    com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), zc_, 0, 0, hz_);
+    com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), pelv_suppprt_start_.translation()(2), 0, 0, hz_);
 
     double k= 100.0;
     p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_current_(0));
@@ -1433,7 +1434,7 @@ void WalkingController::getPelvTrajectory()
   //Trunk Position
   if(com_control_mode_ == true)
   {
-    double kp = 0.15;
+    double kp = 0.3;
 
    // kp = Cubic(abs(_COM_desired(0)-_COM_real_support(0)),0.0,0.05,1.0,0.0,3.0,0.0);
     pelv_trajectory_support_.translation()(0) = pelv_support_current_.translation()(0) + kp*(com_desired_(0) - com_support_current_(0));
@@ -1798,11 +1799,11 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
   Eigen::Vector3d ld, rd;
   ld.setZero(); rd.setZero();
   ld(0) = -0.0059;
-  ld(1) = 0.105262;
-  ld(2) = -0.137;
+  ld(1) = 0.105;
+  ld(2) = -0.1349;
   rd(0) = -0.0059;
   rd(1) = -0.105;
-  rd(2) = -0.137;
+  rd(2) = -0.1349;
 
   ld = trunk_lleg_rotation.transpose() * ld;
   rd = trunk_rleg_rotation.transpose() * rd;
@@ -1814,13 +1815,18 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
   double l_upper = 0.3715; //direct length from hip to knee
   double l_lower = 0.3728; //direct length from knee to ankle
 
-  double offset_hip_pitch = 24.6271*DEG2RAD;
-  double offset_knee_pitch = 15.3655*DEG2RAD;
-  double offset_ankle_pitch = 9.2602*DEG2RAD;
+  //double offset_hip_pitch = 24.6271*DEG2RAD;
+  //double offset_knee_pitch = 15.3655*DEG2RAD;
+  //double offset_ankle_pitch = 9.2602*DEG2RAD;
+
+  double offset_hip_pitch = 24.0762*DEG2RAD;
+  double offset_knee_pitch = 14.8148*DEG2RAD;
+  double offset_ankle_pitch = 9.2614*DEG2RAD;
+
 
   //////////////////////////// LEFT LEG INVERSE KINEMATICS ////////////////////////////
 
-  double lc = lr.norm();
+  double lc = sqrt(lr(0)*lr(0)+lr(1)*lr(1)+lr(2)*lr(2));
   desired_leg_q(3) = (- acos((l_upper*l_upper + l_lower*l_lower - lc*lc) / (2*l_upper*l_lower))+ M_PI); // - offset_knee_pitch //+ alpha_lower
 
   double l_ankle_pitch = asin((l_upper*sin(M_PI-desired_leg_q(3)))/lc);
@@ -1862,7 +1868,7 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
 
   //////////////////////////// RIGHT LEG INVERSE KINEMATICS ////////////////////////////
 
-  double rc = rr.norm();
+  double rc = sqrt(rr(0)*rr(0)+rr(1)*rr(1)+rr(2)*rr(2));
   desired_leg_q(9) = (-acos((l_upper*l_upper + l_lower*l_lower - rc*rc) / (2*l_upper*l_lower))+ M_PI); // - offset_knee_pitch //+ alpha_lower
 
   double r_ankle_pitch = asin((l_upper*sin(M_PI-desired_leg_q(9)))/rc);
@@ -1934,7 +1940,8 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
   }
   else
   {
-    current_leg_jacobian_r_inv = DyrosMath::pinv(current_leg_jacobian_r_);
+    //current_leg_jacobian_r_inv = DyrosMath::pinv(current_leg_jacobian_r_);
+    current_leg_jacobian_r_inv = (current_leg_jacobian_r_.transpose()*current_leg_jacobian_r_).inverse()*current_leg_jacobian_r_.transpose();
   }
 
   if (wl<=w0)
@@ -1948,7 +1955,8 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
   }
   else
   {
-    current_leg_jacobian_l_inv = DyrosMath::pinv(current_leg_jacobian_r_);
+    current_leg_jacobian_l_inv = (current_leg_jacobian_l_.transpose()*current_leg_jacobian_l_).inverse()*current_leg_jacobian_l_.transpose();
+    //current_leg_jacobian_l_inv = DyrosMath::pinv(current_leg_jacobian_r_);
   }
 
   Eigen::Matrix6d kp; // for setting CLIK gains
@@ -1980,7 +1988,7 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
   for (int i=0; i<6; i++)
   {
-    desired_leg_q_dot(i+6) = q_rfoot_dot(i+6);
+    desired_leg_q_dot(i+6) = q_rfoot_dot(i);
     desired_leg_q_dot(i) = q_lfoot_dot(i);
   }
 

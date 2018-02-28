@@ -122,7 +122,7 @@ private:
 
   const double hz_;
   const double &current_time_; // updated by control_base
-  double walking_tick_ = 0;
+  unsigned int walking_tick_ = 0;
   double walking_time_ = 0;
 
   //parameterSetting()
@@ -198,6 +198,8 @@ private:
   Eigen::Vector6d swingfoot_float_init_;
   Eigen::Vector6d swingfoot_support_init_;
   Eigen::Vector6d swingfoot_support_init_offset_;
+
+  Eigen::Isometry3d pelv_suppprt_start_;
 
   Eigen::Vector3d com_float_init_;
   Eigen::Vector3d com_support_init_;
