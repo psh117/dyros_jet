@@ -31,29 +31,6 @@ class StringTransitionState(smach.State):
             if trans_tag.data in self._outcomes:
                 return trans_tag.data
 
-#smach.StateMachine.add('TURN_MOTOR_ON',
- #                          ServiceState('service_name',
-  #                                      GripperSrv,
-   #                                     request = GripperSrv(9.0)),
-    #                       transitions={'succeeded':'APPROACH_PLUG'})
-
-
-#        req.mode=rt_dynamixel_msgs::MotorSettingRequest::SET_TORQUE_ENABLE;
-#        req.value = value;  # Constants
-#        uint8 SET_HOMING_OFFSET=17
-#        uint8 GET_HOMING_OFFSET=18
-#        uint8 SET_TORQUE_ENABLE=19
-#        uint8 SET_GOAL_POSITION=20
-
-#        int32 mode
-#        int32 id
-#        int64 value
-#        float64 fvalue
-#        ---
-#        int32 result
-#        int64 value
-
-
 
 
 def main():
@@ -112,8 +89,8 @@ def main():
             transitions={'succeeded':'READY', 'aborted':'SET_DXL_MODE_SETTING_MODE'})
 
         StateMachine.add('READY',
-            StringTransitionState(topic_name, outcomes=['initialize']),
-            transitions={'initialize':'SET_INIT_POSITION'})
+            StringTransitionState(topic_name, outcomes=['initialize_pose']),
+            transitions={'initialize_pose':'SET_INIT_POSITION'})
 
         StateMachine.add('SET_INIT_POSITION',
             SimpleActionState('/dyros_jet/joint_control', JointControlAction, goal=joint_init_goal),
@@ -121,7 +98,7 @@ def main():
 
         StateMachine.add('READY_TO_MOVE',
             StringTransitionState(topic_name, outcomes=['stair_mission', 'door_open']),
-            transitions={'stair_mission':'finished', 'door_open':'finished'})
+            transitions={'stair':'finished', 'door':'finished'})
 
 
     # Run state machine introspection server
