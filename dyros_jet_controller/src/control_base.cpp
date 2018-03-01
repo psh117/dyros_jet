@@ -11,12 +11,12 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
   walking_controller_(model_, q_, Hz, control_time_),
-  joint_control_as_(nh, "/dyros_jet/joint_control", true) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
+  joint_control_as_(nh, "/dyros_jet/joint_control", false) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
 {
   //walking_cmd_sub_ = nh.subscribe
   makeIDInverseList();
   //joint_control_as_.
-  //joint_control_as_.start();
+  joint_control_as_.start();
   joint_state_pub_.init(nh, "/dyros_jet/joint_state", 3);
   joint_state_pub_.msg_.name.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.angle.resize(DyrosJetModel::HW_TOTAL_DOF);

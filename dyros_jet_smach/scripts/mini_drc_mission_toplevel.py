@@ -97,7 +97,7 @@ def main():
             transitions={'succeeded':'READY_TO_MOVE'})
 
         StateMachine.add('READY_TO_MOVE',
-            StringTransitionState(topic_name, outcomes=['stair_mission', 'door_open']),
+            StringTransitionState(topic_name, outcomes=['stair', 'door']),
             transitions={'stair':'finished', 'door':'finished'})
 
 
