@@ -114,8 +114,12 @@ void WalkingController::compute()
       updateNextStepTime();
 
 
-      walking_tick_ ++;
 
+
+    }
+    else
+    {
+      desired_q_ = current_q_;
     }
   }
 }
@@ -289,10 +293,15 @@ void WalkingController::calculateFootStepTotal()
   unsigned int final_total_step_number = final_rot/final_drot;
   double final_residual_angle = final_rot-final_total_step_number*final_drot;
   double length_to_target = sqrt(target_x_*target_x_+target_y_*target_y_);
-  const double &dlength = step_length_x_; //footstep length;
+  double dlength = step_length_x_; //footstep length;
   unsigned int middle_total_step_number = length_to_target/(dlength);
   double middle_residual_length = length_to_target-middle_total_step_number*(dlength);
 
+  if(length_to_target == 0)
+  {
+    middle_total_step_number = 10; //walking on the spot 10 times
+    dlength = 0;
+  }
 
 
   unsigned int number_of_foot_step;
@@ -337,6 +346,8 @@ void WalkingController::calculateFootStepTotal()
       number_of_foot_step = number_of_foot_step+del_size;
   }
 
+
+
   foot_step_.resize(number_of_foot_step, 7);
   foot_step_.setZero();
   foot_step_support_frame_.resize(number_of_foot_step, 7);
@@ -345,7 +356,12 @@ void WalkingController::calculateFootStepTotal()
   foot_step_support_frame_offset_.setZero();
 
   int index = 0;
-  int temp = -1; //right foot will take off first
+  int temp;
+
+  if(is_right_foot_swing_ == true)
+    temp = -1; //right foot will be first swingfoot
+  else
+    temp = 1;
 
   if(initial_total_step_number!=0 || abs(initial_residual_angle)>=0.0001)
   {
@@ -1065,20 +1081,30 @@ void WalkingController::updateInitialState()
 
 void WalkingController::updateNextStepTime()
 {
-  if(walking_tick_ == t_last_ && current_step_num_ != total_step_num_-1)
+  if(walking_tick_ == t_last_)
   {
+    if(current_step_num_ != total_step_num_-1)
+    {
       t_start_ = t_last_ +1;
       t_start_real_ = t_start_ + t_rest_init_;
       t_last_ = t_start_ + t_total_ -1;
 
       current_step_num_ ++;
+    }
+    else if(current_step_num_ = total_step_num_-1)
+    {
+      walking_enable_ = false;
+    }
   }
+
+  walking_tick_ ++;
+
 }
 
 void WalkingController::addZmpOffset()
 {
-  lfoot_zmp_offset_ = 0;
-  rfoot_zmp_offset_ = 0;
+  lfoot_zmp_offset_ = -0.02;
+  rfoot_zmp_offset_ = 0.02;
 
   foot_step_support_frame_offset_ = foot_step_support_frame_;
 
@@ -1108,6 +1134,8 @@ void WalkingController::addZmpOffset()
 
 void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigned planning_step_num)
 {
+  std::cout<< "norm_size: "<< norm_size<<endl;
+
   ref_zmp_.resize(norm_size, 2);
 
   Eigen::VectorXd temp_px;

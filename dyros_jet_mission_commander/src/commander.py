@@ -79,9 +79,9 @@ def commander():
     walk_msg.walk_mode = 1
     walk_msg.compensator_mode = [False, False]
     walk_msg.ik_mode = 1
-    walk_msg.first_foot_step = True
+    walk_msg.first_foot_step = False
     walk_msg.heel_toe = False
-    walk_msg.x = 1.0
+    walk_msg.x = 0.0
     walk_msg.y = 0.0
     walk_msg.z = 0.0
     walk_msg.height = 0.75
