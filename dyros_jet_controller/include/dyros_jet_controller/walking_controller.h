@@ -85,7 +85,7 @@ public:
   void getPelvTrajectory();
   void getFootTrajectory();
   void computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q);
-  void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q_dot);
+  void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector3d float_lleg_transform_euler, Eigen::Vector3d float_rleg_transform_euler, Eigen::Vector12d& desired_leg_q_dot);
   void compensator();
 
   void supportToFloatPattern();
@@ -122,7 +122,7 @@ private:
 
   const double hz_;
   const double &current_time_; // updated by control_base
-  double walking_tick_ = 0;
+  unsigned int walking_tick_ = 0;
   double walking_time_ = 0;
 
   //parameterSetting()
@@ -198,6 +198,8 @@ private:
   Eigen::Vector6d swingfoot_float_init_;
   Eigen::Vector6d swingfoot_support_init_;
   Eigen::Vector6d swingfoot_support_init_offset_;
+
+  Eigen::Isometry3d pelv_suppprt_start_;
 
   Eigen::Vector3d com_float_init_;
   Eigen::Vector3d com_support_init_;
