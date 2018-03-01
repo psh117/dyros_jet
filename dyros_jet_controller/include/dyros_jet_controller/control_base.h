@@ -24,12 +24,14 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <smach_msgs/SmachContainerStatus.h>
+#include <actionlib/server/simple_action_server.h>
 
-#include "dyros_jet_msgs/JointSet.h"
-#include "dyros_jet_msgs/JointState.h"
+#include <dyros_jet_msgs/JointSet.h>
+#include <dyros_jet_msgs/JointState.h>
 #include <dyros_jet_msgs/TaskCommand.h>
 #include <dyros_jet_msgs/JointCommand.h>
 #include <dyros_jet_msgs/WalkingCommand.h>
+#include <dyros_jet_msgs/JointControlAction.h>
 //#include "dyros_jet_msgs/RecogCmd.h"
 //#include "dyros_jet_msgs/TaskCmdboth.h"
 
@@ -50,6 +52,7 @@ using namespace std;
 
 class ControlBase
 {
+  //typedef actionlib::SimpleActionServer<dyros_jet_msgs::JointControlAction> JointServer;
 
 public:
   ControlBase(ros::NodeHandle &nh, double Hz);
@@ -122,8 +125,11 @@ private:
   ros::Subscriber joint_command_sub_;
   ros::Subscriber walking_command_sub_;
   ros::Subscriber shutdown_command_sub_;
-  //ros::Subscriber recog_point_sub_;
-  // ros::Subscriber recog_cmd_sub_;
+
+  // TODO: realtime_tools
+  dyros_jet_msgs::JointControlFeedback joint_control_feedback_;
+  dyros_jet_msgs::JointControlResult joint_control_result_;
+  actionlib::SimpleActionServer<dyros_jet_msgs::JointControlAction>  joint_control_as_;  // Action Server
 
   // State Machine (SMACH)
   realtime_tools::RealtimePublisher<std_msgs::String> smach_pub_;
@@ -137,6 +143,8 @@ private:
   void jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg);
   void walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg);
   void shutdownCommandCallback(const std_msgs::StringConstPtr& msg);
+
+  void jointControlActionCallback(const dyros_jet_msgs::JointControlGoalConstPtr &goal);
 private:
 
   void makeIDInverseList();

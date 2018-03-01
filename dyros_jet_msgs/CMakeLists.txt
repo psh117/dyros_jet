@@ -6,6 +6,8 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   sensor_msgs
   std_msgs
+  actionlib_msgs
+  actionlib
 )
 
 
@@ -18,9 +20,11 @@ add_message_files(
   WalkingCommand.msg
 )
 
+add_action_files(DIRECTORY action FILES 
+  JointControl.action)
 
 generate_messages(
-  DEPENDENCIES std_msgs geometry_msgs
+  DEPENDENCIES std_msgs geometry_msgs actionlib_msgs
 )
 
 catkin_package(

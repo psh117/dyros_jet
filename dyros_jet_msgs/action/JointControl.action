@@ -1,0 +1,5 @@
+dyros_jet_msgs/JointCommand command
+---
+bool is_reached
+---
+float32 percent_complete

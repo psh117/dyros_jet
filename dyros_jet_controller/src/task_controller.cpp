@@ -116,6 +116,8 @@ void TaskController::computeCLIK()
       const auto &x = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).translation();
       const auto &rot = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).linear();
 
+      //debug_ << control_time_ << "\t" << x(0) << "\t" << x(1) << "\t" <<x(2) << std::endl;
+
       const auto &x_target = target_transform_[i].translation();
       const auto &rot_target = target_transform_[i].linear();
 

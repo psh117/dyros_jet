@@ -1,6 +1,7 @@
 #ifndef TASK_CONTROLLER_H
 #define TASK_CONTROLLER_H
 
+#include <fstream>
 #include <array>
 #include <Eigen/Geometry>
 #include "dyros_jet_controller/dyros_jet_model.h"
@@ -18,7 +19,9 @@ public:
   TaskController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
     total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model),
     current_q_(current_q), hz_(hz), control_time_(control_time),
-    start_time_{}, end_time_{}, target_arrived_{true,true,true,true} {}
+    start_time_{}, end_time_{}, target_arrived_{true,true,true,true} {
+    //debug_.open("/home/suhan/jet_test.txt");
+  }
   void compute();
   void setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double start_time, double end_time);
   void setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double duration);
@@ -58,6 +61,7 @@ private:
   const VectorQd &current_q_;  // updated by control_base
 
 
+  //std::ofstream debug_;
 
 };
 
