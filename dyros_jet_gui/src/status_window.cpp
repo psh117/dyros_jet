@@ -77,21 +77,22 @@ StatusWindow::StatusWindow(int argc, char** argv, QWidget *parent)
 
   autoMissionSelectVisible(0);
   QObject::connect(ui.button_power_on, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  QObject::connect(ui.button_initialize, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  QObject::connect(ui.button_mission, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
 
-  QObject::connect(ui.button_auto, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
 
-  QObject::connect(ui.button_auto_door_init, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_auto_door_init, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
   QObject::connect(ui.button_auto_door_open, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
   QObject::connect(ui.button_auto_door_push, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
   QObject::connect(ui.button_auto_door_reach, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
-  QObject::connect(ui.button_auto_door_ready, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_auto_door_ready, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
   QObject::connect(ui.button_auto_door_start, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
 
   QObject::connect(ui.button_auto_valve_approach, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
   QObject::connect(ui.button_auto_valve_close, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
-  QObject::connect(ui.button_auto_valve_init, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
-  QObject::connect(ui.button_auto_valve_reach, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
-  QObject::connect(ui.button_auto_valve_ready, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_auto_valve_init, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_auto_valve_reach, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_auto_valve_ready, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
   QObject::connect(ui.button_auto_valve_start, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
 
   QObject::connect(ui.button_auto_egress_init, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
@@ -101,11 +102,11 @@ StatusWindow::StatusWindow(int argc, char** argv, QWidget *parent)
   QObject::connect(ui.button_auto_egress_guide, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
   QObject::connect(ui.button_auto_egress_hello, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
 
-  QObject::connect(ui.button_manual, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_manual, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
 
-  QObject::connect(ui.button_manual_joint_ctrl, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
-  QObject::connect(ui.button_manual_task_ctrl, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
-  QObject::connect(ui.button_manual_recog_ctrl,SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_manual_joint_ctrl, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_manual_task_ctrl, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
+  //QObject::connect(ui.button_manual_recog_ctrl,SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
 
   QObject::connect(ui.button_mode_change, SIGNAL(clicked()), this, SLOT(stateButtonClicked()));
 
@@ -136,7 +137,7 @@ StatusWindow::StatusWindow(int argc, char** argv, QWidget *parent)
 
 
 
-  QObject::connect(ui.button_scan,SIGNAL(clicked()),this,SLOT(on_button_scan_clicked()));
+  //QObject::connect(ui.button_scan,SIGNAL(clicked()),this,SLOT(on_button_scan_clicked()));
 
   updateUI();
 
@@ -159,14 +160,14 @@ void StatusWindow::autoMissionSelectVisible(int mission)
 {
   ui.button_auto_valve_approach->setVisible(mission==1);
   ui.button_auto_valve_close->setVisible(mission==1);
-  ui.button_auto_valve_init->setVisible(mission==1);
-  ui.button_auto_valve_reach->setVisible(mission==1);
-  ui.button_auto_valve_ready->setVisible(mission==1);
-  ui.button_auto_door_init->setVisible(mission==2);
+  //ui.button_auto_valve_init->setVisible(mission==1);
+  //ui.button_auto_valve_reach->setVisible(mission==1);
+  //ui.button_auto_valve_ready->setVisible(mission==1);
+  //ui.button_auto_door_init->setVisible(mission==2);
   ui.button_auto_door_open->setVisible(mission==2);
   ui.button_auto_door_push->setVisible(mission==2);
   ui.button_auto_door_reach->setVisible(mission==2);
-  ui.button_auto_door_ready->setVisible(mission==2);
+  //ui.button_auto_door_ready->setVisible(mission==2);
   ui.button_auto_egress_init->setVisible(mission==3);
   ui.button_auto_egress_egress->setVisible(mission==3);
   ui.button_auto_egress_standby->setVisible(mission==3);
@@ -218,106 +219,17 @@ void StatusWindow::on_button_torque_on_clicked()
 
 void StatusWindow::stateButtonClicked()
 {
+  QPushButton *button = (QPushButton *)sender();
   QString objName = sender()->objectName();
   std::string state;
-  if(objName.compare("button_power_on") == 0)  {
-    state = "power_on";
-  } else if (objName.compare("button_auto") == 0) {
-    state = "auto_on";
-  } else if (objName.compare("button_auto_valve_start") == 0) {
-    state = "mission1";
-    autoMissionSelectVisible(1);
-  } else if (objName.compare("button_auto_valve_approach") == 0) {
-    state = "v_approach";
-  } else if (objName.compare("button_auto_valve_close") == 0) {
-    state = "v_close";
-  } else if (objName.compare("button_auto_valve_init") == 0) {
-    state = "v_init";
-  } else if (objName.compare("button_auto_valve_reach") == 0) {
-    state = "v_reach";
-  } else if (objName.compare("button_auto_valve_ready") == 0) {
-    state = "v_ready";
-  } else if (objName.compare("button_auto_door_start") == 0) {
-    state = "mission2";
-    autoMissionSelectVisible(2);
-  } else if (objName.compare("button_auto_door_init") == 0) {
-    state = "d_init";
-  } else if (objName.compare("button_auto_door_open") == 0) {
-    state = "d_open";
-  } else if (objName.compare("button_auto_door_push") == 0) {
-    state = "d_push";
-  } else if (objName.compare("button_auto_door_reach") == 0) {
-    state = "d_reach";
-  } else if (objName.compare("button_auto_door_ready") == 0) {
-    state = "d_ready";
+  state = button->text().toStdString();
 
-  } else if (objName.compare("button_auto_egress_start") == 0) {
-    state = "mission3";
+  if (state == "valve") {
+    autoMissionSelectVisible(1);
+  } else if (state == "door") {
+    autoMissionSelectVisible(2);
+  } else if (state == "egress") {
     autoMissionSelectVisible(3);
-  } else if (objName.compare("button_auto_egress_init") == 0) {
-    state = "e_init";
-  } else if (objName.compare("button_auto_egress_egress") == 0) {
-    state = "e_egress";
-  } else if (objName.compare("button_auto_egress_standby") == 0) {
-    state = "e_standby";
-  } else if (objName.compare("button_auto_egress_hello") == 0) {
-    state = "e_hello";
-  } else if (objName.compare("button_auto_egress_guide") == 0) {
-    state = "e_guide";
-  } else if (objName.compare("button_manual") == 0) {
-    state = "manu_on";
-  } else if (objName.compare("button_manual_joint_ctrl") == 0) {
-    state = "activate_jctrl";
-  } else if (objName.compare("button_manual_task_ctrl") == 0) {
-    state = "activate_tctrl";
-  } else if (objName.compare("button_mode_change") == 0) {
-    state = "cmd_modechg";
-  } else if (objName.compare("button_manual_recog_ctrl") == 0) {
-    state = "activate_recog";
-  } else if (objName.compare("button_event") == 0) {
-    state = "event_on";
-  } else if (objName.compare("button_event_handclap") == 0) {
-    state = "handclap";
-  } else if (objName.compare("button_event_handclap_ready") == 0) {
-    state = "handclap_ready";
-  } else if (objName.compare("button_event_handclap_do") == 0) {
-    state = "handclap_do";
-  } else if (objName.compare("button_event_handclap_end") == 0) {
-    state = "handclap_end";
-  } else if (objName.compare("button_event_handshake") == 0) {
-    state = "handshake";
-  }else if (objName.compare("button_event_handshake_turn") == 0) {
-    state = "handshake_turn";
-  }
-  else if (objName.compare("button_event_handshake_ready") == 0) {
-    state = "handshake_ready";
-  } else if (objName.compare("button_event_handshake_do") == 0) {
-    state = "handshake_do";
-  } else if (objName.compare("button_event_handshake_end") == 0) {
-    state = "handshake_end";
-  } else if (objName.compare("button_event_handshake_motion1") == 0) {
-    state = "handshake_motion1";
-  } else if (objName.compare("button_event_handshake_motion2") == 0) {
-    state = "handshake_motion2";
-  }else if (objName.compare("button_event_handshake_motion3") == 0) {
-    state = "handshake_motion3";
-  }
-  else if (objName.compare("button_event_handshake_return") == 0) {
-    state = "handshake_return";
-  }
-  else if (objName.compare("button_event_hello") == 0) {
-    state = "hello";
-  } else if (objName.compare("button_event_hello_ready") == 0) {
-    state = "hello_ready";
-  } else if (objName.compare("button_event_hello_do") == 0) {
-    state = "hello_do";
-    //qnode.send_hello_count(ui.spin_hello_count->value());
-  } else if (objName.compare("button_event_hello_end") == 0) {
-    state = "hello_end";
-  } else if (objName.compare("button_event_hello_introduce") == 0){
-    state = "hello_introduce";
-  } else if (objName.compare("button_event_hello_introduce_end") == 0){
-    state = "hello_introduce_end";
   }
   qnode.send_transition(state);
 
@@ -337,7 +249,7 @@ void StatusWindow::stateButtonClicked()
 
 
 void StatusWindow::updateRecogInfo() {
-/*
+  /*
   ui.line_edit_scan_x->setText(QString::number(qnode.recog_info_msg.data[0] * 100,'f',2) + " cm");
   ui.line_edit_scan_y->setText(QString::number(qnode.recog_info_msg.data[1] * 100,'f',2) + " cm");
   ui.line_edit_scan_z->setText(QString::number(qnode.recog_info_msg.data[2] * 100,'f',2) + " cm");

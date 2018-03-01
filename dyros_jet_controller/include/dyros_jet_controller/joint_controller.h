@@ -20,6 +20,7 @@ public:
   void setEnable(unsigned int joint_number, bool enable);
   void updateControlMask(unsigned int *mask);
   void writeDesired(const unsigned int *mask, VectorQd& desired_q);
+  bool isEnabled(int index) { return joint_enable_[index]; }
 private:
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
 

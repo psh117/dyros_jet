@@ -1,7 +1,6 @@
 <launch>
-  <include file="$(find dyros_jet_launch)/launch/common.launch" />
-  <node name="dyros_jet_controller" pkg="dyros_jet_controller" type="dyros_jet_controller" required="true" respawn="false" output="screen">
-    <param name="run_mode" type="string" value="simulation" />
-  </node>
+  <include file="$(find dyros_jet_launch)/launch/common.launch">
+    <arg name="run_mode" value="simulation" />
+  </include>
 </launch>
 

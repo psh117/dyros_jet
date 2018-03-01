@@ -10,11 +10,13 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   shutdown_flag_(false),
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
-  walking_controller_(model_, q_, Hz, control_time_)
+  walking_controller_(model_, q_, Hz, control_time_),
+  joint_control_as_(nh, "/dyros_jet/joint_control", true) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
 {
   //walking_cmd_sub_ = nh.subscribe
   makeIDInverseList();
-
+  //joint_control_as_.
+  //joint_control_as_.start();
   joint_state_pub_.init(nh, "/dyros_jet/joint_state", 3);
   joint_state_pub_.msg_.name.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.angle.resize(DyrosJetModel::HW_TOTAL_DOF);
@@ -27,6 +29,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
     joint_state_pub_.msg_.name[i] = DyrosJetModel::JOINT_NAME[i];
     //joint_state_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
   }
+
 
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
@@ -121,6 +124,23 @@ void ControlBase::reflect()
   {
     joint_state_pub_.unlockAndPublish();
   }
+
+  if(joint_control_as_.isActive())
+  {
+    bool all_disabled = true;
+    for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
+    {
+      if (joint_controller_.isEnabled(i))
+      {
+        all_disabled = false;
+      }
+    }
+    if (all_disabled)
+    {
+      joint_control_result_.is_reached = true;
+      joint_control_as_.setSucceeded(joint_control_result_);
+    }
+  }
 }
 
 void ControlBase::parameterInitialize()
@@ -135,6 +155,12 @@ void ControlBase::parameterInitialize()
 void ControlBase::readDevice()
 {
   ros::spinOnce();
+
+  // Action
+  if (joint_control_as_.isNewGoalAvailable())
+  {
+    jointControlActionCallback(joint_control_as_.acceptNewGoal());
+  }
 }
 
 void ControlBase::smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg)
@@ -202,5 +228,16 @@ void ControlBase::shutdownCommandCallback(const std_msgs::StringConstPtr &msg)
     shutdown_flag_ = true;
   }
 }
+
+void ControlBase::jointControlActionCallback(const dyros_jet_msgs::JointControlGoalConstPtr &goal)
+{
+  for (unsigned int i=0; i<goal->command.name.size(); i++)
+  {
+    joint_controller_.setTarget(model_.getIndex(goal->command.name[i]), goal->command.position[i], goal->command.duration[i]);
+    joint_controller_.setEnable(model_.getIndex(goal->command.name[i]), true);
+  }
+  joint_control_feedback_.percent_complete = 0.0;
+}
+
 
 }

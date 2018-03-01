@@ -14,8 +14,12 @@ find_package(catkin REQUIRED COMPONENTS
     std_msgs
     realtime_tools
     eigen_conversions
+    actionlib
     )
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+#find_package(boost REQUIRED)
 catkin_package(
     DEPENDS   dyros_jet_msgs imu_3dm_gx4 rt_dynamixel_msgs geometry_msgs roscpp sensor_msgs std_msgs realtime_tools eigen_conversions
     CATKIN_DEPENDS # TODO
