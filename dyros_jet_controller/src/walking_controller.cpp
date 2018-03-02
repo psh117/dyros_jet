@@ -1102,8 +1102,8 @@ void WalkingController::updateNextStepTime()
 
 void WalkingController::addZmpOffset()
 {
-  lfoot_zmp_offset_ = -0.02;
-  rfoot_zmp_offset_ = 0.02;
+  lfoot_zmp_offset_ = -0.005;
+  rfoot_zmp_offset_ = 0.005;
 
   foot_step_support_frame_offset_ = foot_step_support_frame_;
 
