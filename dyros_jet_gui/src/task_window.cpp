@@ -32,11 +32,11 @@
 namespace dyros_jet_gui {
 
 const char *TaskWindow::disarranged_jointName[32] = {"L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll"
-    ,"R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll"
-    ,"WaistPitch","WaistYaw"
-    ,"L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw"
-    ,"R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw"
-    ,"HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"};
+                                                     ,"R_HipYaw","R_HipRoll","R_HipPitch","R_KneePitch","R_AnklePitch","R_AnkleRoll"
+                                                     ,"WaistPitch","WaistYaw"
+                                                     ,"L_ShoulderPitch","L_ShoulderRoll","L_ShoulderYaw","L_ElbowRoll","L_WristYaw","L_WristRoll","L_HandYaw"
+                                                     ,"R_ShoulderPitch","R_ShoulderRoll","R_ShoulderYaw","R_ElbowRoll","R_WristYaw","R_WristRoll","R_HandYaw"
+                                                     ,"HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"};
 
 using namespace Qt;
 
@@ -338,6 +338,10 @@ void TaskWindow::on_button_walk_start_clicked()
 {
   qnode.walk_cmd_msg_.walk_mode = 1;
 
+  qnode.walk_cmd_msg_.compensator_mode[0] = ui.checkBox_hip_compensator->isChecked();
+  qnode.walk_cmd_msg_.compensator_mode[1] = ui.checkBox_ext_encoder_cmp->isChecked();
+  //if(ui.check)
+  /*
   if(std::strcmp(ui.comboBox_compensator->currentText().toStdString().c_str(), "Hip Compensator") == 0)
   {
     qnode.walk_cmd_msg_.compensator_mode[0] = true;
@@ -352,22 +356,21 @@ void TaskWindow::on_button_walk_start_clicked()
   {
     qnode.walk_cmd_msg_.compensator_mode[0] = true;
     qnode.walk_cmd_msg_.compensator_mode[1] = true;
+  }*/
+
+  if(ui.comboBox_method->currentText().toStdString() == "Inverse Kinematics")
+  {
+    qnode.walk_cmd_msg_.ik_mode = dyros_jet_msgs::WalkingCommand::IK;
+  }
+  else if (ui.comboBox_method->currentText().toStdString() == "Jacobian")
+  {
+    qnode.walk_cmd_msg_.ik_mode = dyros_jet_msgs::WalkingCommand::JACOBIAN;
   }
 
-  if(std::strcmp(ui.comboBox_method->currentText().toStdString().c_str(), "Inverse Kinematics") == 0)
-  {
-    qnode.walk_cmd_msg_.ik_mode = 0;
-  } else qnode.walk_cmd_msg_.ik_mode = 1;
+  qnode.walk_cmd_msg_.first_foot_step = (ui.comboBox_first_step->currentText().toStdString() == "Right");
 
-  if(std::strcmp(ui.comboBox_first_step->currentText().toStdString().c_str(), "Left") == 0)
-  {
-    qnode.walk_cmd_msg_.first_foot_step = false;
-  } else qnode.walk_cmd_msg_.first_foot_step =true;
+  qnode.walk_cmd_msg_.heel_toe = (ui.comboBox_heel_toe->currentText().toStdString() == "Yes");
 
-  if(std::strcmp(ui.comboBox_heel_toe->currentText().toStdString().c_str(), "Yes") == 0)
-  {
-    qnode.walk_cmd_msg_.heel_toe =true;
-  } else qnode.walk_cmd_msg_.heel_toe = false;
 
   qnode.walk_cmd_msg_.x = ui.doubleSpinBox_walk_x->value();
   qnode.walk_cmd_msg_.y = ui.doubleSpinBox_walk_y->value();
@@ -392,11 +395,11 @@ void TaskWindow::on_button_walk_start_clicked()
 void TaskWindow::on_button_walk_init_wholebody_clicked()
 {
   const double tempNum[32] = {0 , 0.034906585 , -0.034906585 , 0.733038285 , -0.6981317 , -0.034906585
-                                   , 0 , -0.034906585 , 0.0349065850 , -0.733038285 , 0.6981317 , 0.034906585
-                                   , 0 , 0
-                                   , 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252
-                                   , -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 1.7453292519
-                                   , 0 , 0 , 0 , 0};
+                              , 0 , -0.034906585 , 0.0349065850 , -0.733038285 , 0.6981317 , 0.034906585
+                              , 0 , 0
+                              , 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252
+                              , -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 1.7453292519
+                              , 0 , 0 , 0 , 0};
 
   const double tempDuration[32] = {5 , 5 , 5 , 5 , 5 , 5
                                    , 5 , 5 , 5 , 5 , 5 , 5
@@ -422,11 +425,11 @@ void TaskWindow::on_button_walk_init_wholebody_clicked()
 void TaskWindow::on_button_walk_init_lowerbody_clicked()
 {
   const double tempNum[32] = {0 , 0.034906585 , -0.034906585 , 0.733038285 , -0.6981317 , -0.034906585
-                                   , 0 , -0.034906585 , 0.0349065850 , -0.733038285 , 0.6981317 , 0.034906585
-                                   , 0 , 0
-                                   , 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252
-                                   , -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 1.7453292519
-                                   , 0 , 0 , 0 , 0};
+                              , 0 , -0.034906585 , 0.0349065850 , -0.733038285 , 0.6981317 , 0.034906585
+                              , 0 , 0
+                              , 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252
+                              , -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 1.7453292519
+                              , 0 , 0 , 0 , 0};
 
   const double tempDuration[32] = {5 , 5 , 5 , 5 , 5 , 5
                                    , 5 , 5 , 5 , 5 , 5 , 5
@@ -970,8 +973,8 @@ void TaskWindow::UpdateGraph()
   lf_state = 500*sin(time*3.14/1.8);
   rf_state = 500*cos(time*3.14/1.8);
 
-//  lf_state = qnode.ft_lf_msg_.wrench.force.z;
-//  rf_state = qnode.ft_rf_msg_.wrench.force.z;
+  //  lf_state = qnode.ft_lf_msg_.wrench.force.z;
+  //  rf_state = qnode.ft_rf_msg_.wrench.force.z;
 
   if(count > 300)
   {
