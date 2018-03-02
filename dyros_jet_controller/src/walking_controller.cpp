@@ -2257,7 +2257,8 @@ void WalkingController::compensator()
 {
   if(hip_compensator_mode_ == true)
   {
-    //hipCompensation();
+    cout << "HIPCOMPENSATE ON" << endl;
+    hipCompensation();
     hipCompensator();
   }
 
@@ -2366,8 +2367,17 @@ void WalkingController::hipCompensation()
   rq4= desired_q_(10);
   rq5= desired_q_(11);
 
+/*  fromright = cos(rq2)*sin(rq0)*(-1.454E-1)-sin(rq0)*sin(rq2)*(3.39E2/1.0E3)-cos(rq3)*(cos(rq2)*sin(rq0)+cos(rq0)*sin(rq1)*sin(rq2))*(3.0/5.0E1)-cos(rq3)*(sin(rq0)*sin(rq2)-cos(rq0)*cos(rq2)*sin(rq1))*(4.6E1/1.25E2)-sin(rq3)*(cos(rq2)*sin(rq0)+cos(rq0)*sin(rq1)*sin(rq2))*(4.6E1/1.25E2)+sin(rq3)*(sin(rq0)*sin(rq2)-cos(rq0)*cos(rq2)*sin(rq1))*(3.0/5.0E1)+cos(rq0)*cos(rq2)*sin(rq1)*(3.39E2/1.0E3)-cos(rq0)*sin(rq1)*sin(rq2)*1.454E-1-2.1E1/2.0E2;
+  fromleft = cos(lq2)*sin(lq0)*(-1.454E-1)+sin(lq0)*sin(lq2)*(3.39E2/1.0E3)+cos(lq3)*(sin(lq0)*sin(lq2)+cos(lq0)*cos(lq2)*sin(lq1))*(4.6E1/1.25E2)-cos(lq3)*(cos(lq2)*sin(lq0)-cos(lq0)*sin(lq1)*sin(lq2))*(3.0/5.0E1)+sin(lq3)*(sin(lq0)*sin(lq2)+cos(lq0)*cos(lq2)*sin(lq1))*(3.0/5.0E1)+sin(lq3)*(cos(lq2)*sin(lq0)-cos(lq0)*sin(lq1)*sin(lq2))*(4.6E1/1.25E2)+cos(lq0)*cos(lq2)*sin(lq1)*(3.39E2/1.0E3)+cos(lq0)*sin(lq1)*sin(lq2)*1.454E-1+2.1E1/2.0E2;
+*/
+/*
   fromright = com_float_current_(1)-rfoot_float_current_.translation()(1);
   fromleft = com_float_current_(1)-lfoot_float_current_.translation()(1);
+*/
+
+  fromright = -rfoot_float_current_.translation()(1);
+  fromleft = -lfoot_float_current_.translation()(1);
+
 
   alpha = -fromleft/(fromright-fromleft);
 
@@ -2390,20 +2400,24 @@ void WalkingController::hipCompensation()
   rTau.setZero();
   Jc2.setZero();
   Jc8.setZero();
-
+/*
   Jc2(0) = 0;
-  Jc2(1) = cos(desired_q_(8))*sin(desired_q_(7))*(3.0/1.0E1)-sin(desired_q_(7))*sin(desired_q_(8))*sin(desired_q_(9))*(3.0/1.0E1)+cos(desired_q_(8))*cos(desired_q_(9))*sin(desired_q_(7))*(3.0/1.0E1);
-  Jc2(2) = cos(desired_q_(7))*sin(desired_q_(8))*(3.0/1.0E1)+cos(desired_q_(7))*cos(desired_q_(8))*sin(desired_q_(9))*(3.0/1.0E1)+cos(desired_q_(7))*cos(desired_q_(9))*sin(desired_q_(8))*(3.0/1.0E1);
-  Jc2(3) = cos(desired_q_(7))*cos(desired_q_(8))*sin(desired_q_(9))*(3.0/1.0E1)+cos(desired_q_(7))*cos(desired_q_(9))*sin(desired_q_(8))*(3.0/1.0E1);
+  Jc2(1) = cos(rq2)*sin(rq1)*(3.39E2/1.0E3)-sin(rq1)*sin(rq2)*1.454E-1-sin(rq1)*sin(rq2)*sin(rq3)*(4.6E1/1.25E2)+cos(rq2)*cos(rq3)*sin(rq1)*(4.6E1/1.25E2)-cos(rq2)*sin(rq1)*sin(rq3)*(3.0/5.0E1)-cos(rq3)*sin(rq1)*sin(rq2)*(3.0/5.0E1);
+  Jc2(2) = cos(rq1)*cos(rq2)*1.454E-1+cos(rq1)*sin(rq2)*(3.39E2/1.0E3)+cos(rq1)*cos(rq2)*cos(rq3)*(3.0/5.0E1)+cos(rq1)*cos(rq2)*sin(rq3)*(4.6E1/1.25E2)+cos(rq1)*cos(rq3)*sin(rq2)*(4.6E1/1.25E2)-cos(rq1)*sin(rq2)*sin(rq3)*(3.0/5.0E1);
+  Jc2(3) = cos(rq1)*cos(rq2)*cos(rq3)*(3.0/5.0E1)+cos(rq1)*cos(rq2)*sin(rq3)*(4.6E1/1.25E2)+cos(rq1)*cos(rq3)*sin(rq2)*(4.6E1/1.25E2)-cos(rq1)*sin(rq2)*sin(rq3)*(3.0/5.0E1);
   Jc2(4) = 0;
   Jc2(5) = 0;
 
   Jc8(0) = 0;
-  Jc8(1) = cos(desired_q_(2))*sin(desired_q_(1))*(3.0/1.0E1)+cos(desired_q_(2))*cos(desired_q_(3))*sin(desired_q_(1))*(3.0/1.0E1)-sin(desired_q_(1))*sin(desired_q_(2))*sin(desired_q_(3))*(3.0/1.0E1);
-  Jc8(2) = cos(desired_q_(1))*sin(desired_q_(2))*(3.0/1.0E1)+cos(desired_q_(1))*cos(desired_q_(2))*sin(desired_q_(3))*(3.0/1.0E1)+cos(desired_q_(1))*cos(desired_q_(3))*sin(desired_q_(2))*(3.0/1.0E1);
-  Jc8(3) = cos(desired_q_(1))*cos(desired_q_(2))*sin(desired_q_(3))*(3.0/1.0E1)+cos(desired_q_(1))*cos(desired_q_(3))*sin(desired_q_(2))*(3.0/1.0E1);
+  Jc8(1) = cos(lq2)*sin(lq1)*(3.39E2/1.0E3)+sin(lq1)*sin(lq2)*1.454E-1-sin(lq1)*sin(lq2)*sin(lq3)*(4.6E1/1.25E2)+cos(lq2)*cos(lq3)*sin(lq1)*(4.6E1/1.25E2)+cos(lq2)*sin(lq1)*sin(lq3)*(3.0/5.0E1)+cos(lq3)*sin(lq1)*sin(lq2)*(3.0/5.0E1);
+  Jc8(2) = cos(lq1)*cos(lq2)*(-1.454E-1)+cos(lq1)*sin(lq2)*(3.39E2/1.0E3)-cos(lq1)*cos(lq2)*cos(lq3)*(3.0/5.0E1)+cos(lq1)*cos(lq2)*sin(lq3)*(4.6E1/1.25E2)+cos(lq1)*cos(lq3)*sin(lq2)*(4.6E1/1.25E2)+cos(lq1)*sin(lq2)*sin(lq3)*(3.0/5.0E1);
+  Jc8(3) = cos(lq1)*cos(lq2)*cos(lq3)*(-3.0/5.0E1)+cos(lq1)*cos(lq2)*sin(lq3)*(4.6E1/1.25E2)+cos(lq1)*cos(lq3)*sin(lq2)*(4.6E1/1.25E2)+cos(lq1)*sin(lq2)*sin(lq3)*(3.0/5.0E1);
   Jc8(4) = 0;
   Jc8(5) = 0;
+*/
+  Jc8=current_leg_jacobian_l_.transpose().col(3);
+  Jc2=current_leg_jacobian_r_.transpose().col(3);
+
 
   for(int i=0; i<6; i++)
   {
@@ -2426,15 +2440,14 @@ void WalkingController::hipCompensation()
       rising = -(walking_tick_- (t_start_+t_total_-t_rest_last_))/(t_double2_*timingtiming);
   }*/
 
-
   joint_offset_angle_.setZero();
   grav_ground_torque_.setZero();
 
   if (lqr_compensator_mode_ == false)
   {
-     desired_q_(8)=desired_q_(20-2)+(a_total*rTau(2)+b_total)*rising*k1;//offwhenslow
-     desired_q_(9)=desired_q_(21-2)+(a_total*rTau(3)+b_total)*rising*0.3;//offwhenslow
-     desired_q_(10)=desired_q_(22-2)+(a_total*rTau(4)+b_total)*rising*k1;//offwhenslow
+     desired_q_(8)=desired_q_(8)+(a_total*rTau(2)+b_total)*rising*k1;//offwhenslow
+     desired_q_(9)=desired_q_(9)+(a_total*rTau(3)+b_total)*rising*0.3;//offwhenslow
+     desired_q_(10)=desired_q_(10)+(a_total*rTau(4)+b_total)*rising*k1;//offwhenslow
   }
     // _desired_q(23-2)=_desired_q(23-2)+(a_total*rTau(5)+b_total)*rising;
 
