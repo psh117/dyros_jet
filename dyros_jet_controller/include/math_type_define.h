@@ -6,6 +6,7 @@
 // constexpr size_t MAX_DOF=50;
 
 #include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
 
 #define GRAVITY 9.80665
 #define MAX_DOF 50U
@@ -170,6 +171,57 @@ static Eigen::Matrix<double, N, 1> cubicVector(double time,     ///< Current tim
     res(i) = cubic(time, time_0, time_f, x_0(i), x_f(i), x_dot_0(i), x_dot_f(i));
   }
   return res;
+}
+
+// Original Paper
+// Kang, I. G., and F. C. Park.
+// "Cubic spline algorithms for orientation interpolation."
+// International journal for numerical methods in engineering 46.1 (1999): 45-64.
+const static Eigen::Matrix3d rotationCubic(double time,
+                                     double time_0,
+                                     double time_f,
+                                     const Eigen::Matrix3d &rotation_0,
+                                     const Eigen::Matrix3d &rotation_f)
+{
+  if(time >= time_f)
+  {
+    return rotation_f;
+  }
+  else if(time < time_0)
+  {
+    return rotation_0;
+  }
+  double tau = cubic(time,time_0,time_f,0,1,0,0);
+  Eigen::Matrix3d rot_scaler_skew;
+  rot_scaler_skew = (rotation_0.transpose() * rotation_f).log();
+  //rot_scaler_skew = rot_scaler_skew.log();
+  /*
+  Eigen::Matrix3d rotation_exp;
+  Eigen::Vector3d a1, b1, c1, r1;
+  r1(0) = rotation_temp(2,1);
+  r1(1) = rotation_temp(0,2);
+  r1(2) = rotation_temp(1,0);
+  c1.setZero(); // angular velocity at t0 --> Zero
+  b1.setZero(); // angular acceleration at t0 --> Zero
+  a1 = r1 - b1 - c1;
+  //double tau = (time - time_0) / (time_f-time_0);
+  double tau2 = tau*tau;
+  double tau3 = tau2*tau;
+  //Eigen::Vector3d exp_vector = (a1*tau3+b1*tau2+c1*tau);
+  Eigen::Vector3d exp_vector = (a1*tau);
+  rotation_exp.setZero();
+  rotation_exp(0,1) = -exp_vector(2);
+  rotation_exp(0,2) =  exp_vector(1);
+  rotation_exp(1,0) =  exp_vector(2);
+  rotation_exp(1,2) = -exp_vector(0);
+  rotation_exp(2,0) = -exp_vector(1);
+  rotation_exp(2,1) =  exp_vector(0);
+
+  */
+  //Eigen::Matrix3d result = rotation_0 * rotation_exp.exp();
+  Eigen::Matrix3d result = rotation_0 * (rot_scaler_skew * tau).exp();
+
+  return result;
 }
 
 static Eigen::Vector3d getPhi(Eigen::Matrix3d current_rotation,
