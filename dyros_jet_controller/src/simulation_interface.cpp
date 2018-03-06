@@ -131,11 +131,19 @@ void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& m
       if(DyrosJetModel::JOINT_NAME[i] == msg->name[j].data())
       {
         q_(i) = msg->position[j];
+
+        if(is_first_boot_)
+        {    desired_q_(i) = msg->position[j]; }
+
+        cout << i <<":"<<desired_q_(i)<< endl;
+
         q_dot_(i) = msg->velocity[j];
         torque_(i) = msg->effort[j];
       }
     }
   }
+  if(is_first_boot_)
+  {is_first_boot_ = false;}
 }
 
 void SimulationInterface::leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg)
