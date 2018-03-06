@@ -840,9 +840,9 @@ void WalkingController::floatToSupportFootstep()
   {
     if(foot_step_(0,6) == 0) //right support
     {
-      reference.translation() = rfoot_trajectory_float_.translation();
+      reference.translation() = rfoot_float_init_.translation();
       reference.translation()(2) = 0;
-      reference.linear() = rfoot_trajectory_float_.linear();
+      reference.linear() = rfoot_float_init_.linear();
       reference.translation()(0) = 0.0;
     }
     else  //left support
