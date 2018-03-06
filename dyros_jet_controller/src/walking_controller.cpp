@@ -1311,16 +1311,7 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
 void WalkingController::getComTrajectory()
 {
   com_offset_.setZero();
-  //if(com_control_mode_ == true)
-  //{
-  //  xi_ = com_support_init_(0);
-  //  yi_ = com_support_init_(1);
-  //}
-  //else
-  //{
-  //  xi_ = pelv_support_init_.translation()(0)+com_offset_(0);
-  //  yi_ = pelv_support_init_.translation()(1)+com_offset_(1);
-  //}
+
 
   if (walking_tick_ == t_start_ && current_step_num_ != 0)
   {
@@ -1372,6 +1363,16 @@ void WalkingController::getComTrajectory()
     {
       xs_(0) = com_support_init_(0); //+xs_(1)*1.0/Hz;
       ys_(0) = com_support_init_(1); //+ys_(1)*1.0/Hz;
+      //if(foot_step_(current_step_num_, 6)==0)
+      //{
+      //  xs_(0) = lfoot_support_init_.linear()(0,0)*xd_(0) +lfoot_support_init_.linear()(0,1)*yd_(0);
+      //  ys_(0) = lfoot_support_init_.linear()(1,0)*xd_(0) +lfoot_support_init_.linear()(1,1)*yd_(0);
+      //}
+      //else if(foot_step_(current_step_num_, 6)==1)
+      //{
+      //  xs_(0) = rfoot_support_init_.linear()(0,0)*xd_(0) +rfoot_support_init_.linear()(0,1)*yd_(0);
+      //  ys_(0) = rfoot_support_init_.linear()(1,0)*xd_(0) +rfoot_support_init_.linear()(1,1)*yd_(0);
+      //}
     }
     else
     {
@@ -1382,8 +1383,10 @@ void WalkingController::getComTrajectory()
 
   modifiedPreviewControl();
 
-  xs_=xd_;
-  ys_=yd_;
+  xs_ = xd_;
+  ys_ = yd_;
+
+
 
   double start_time;
 
@@ -1963,9 +1966,9 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
   Eigen::Matrix6d kp; // for setting CLIK gains
   kp.setZero();
-  kp(0,0) = 100;
-  kp(1,1) = 100;
-  kp(2,2) = 100;
+  kp(0,0) = 120;
+  kp(1,1) = 120;
+  kp(2,2) = 120;
   kp(3,3) = 150;
   kp(4,4) = 150;
   kp(5,5) = 150;
