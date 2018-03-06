@@ -133,6 +133,7 @@ void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& m
         q_(i) = msg->position[j];
         if(is_first_boot_)
         {    desired_q_(i) = msg->position[j]; }
+
         q_dot_(i) = msg->velocity[j];
         torque_(i) = msg->effort[j];
       }

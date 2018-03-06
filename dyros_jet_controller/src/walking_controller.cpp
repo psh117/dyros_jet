@@ -170,7 +170,7 @@ void WalkingController::parameterSetting()
   t_double2_= 0.1*hz_;
   t_rest_init_ = 0.1*hz_;
   t_rest_last_= 0.1*hz_;
-  t_total_= 2.5*hz_;
+  t_total_= 1.2*hz_;
   t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -1439,7 +1439,7 @@ void WalkingController::getPelvTrajectory()
   //Trunk Position
   if(com_control_mode_ == true)
   {
-    double kp = 0.3;
+    double kp = 0.15;
 
     // kp = Cubic(abs(_COM_desired(0)-_COM_real_support(0)),0.0,0.05,1.0,0.0,3.0,0.0);
     pelv_trajectory_support_.translation()(0) = pelv_support_current_.translation()(0) + kp*(com_desired_(0) - com_support_current_(0));
@@ -1785,13 +1785,6 @@ void WalkingController::supportToFloatPattern()
 
 void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q)
 {
-  /* for (int i=2; i<4; i++)
-  {
-    currnet_leg_transform_[i-2]=model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
-  }
-  currnet_leg_transform_l_=currnet_leg_transform_[0];
-  currnet_leg_transform_r_=currnet_leg_transform_[1];*/
-
   Eigen::Vector3d lp, rp;
   //Should revise by dg, Trunk_trajectory_global.translation()
   lp = float_lleg_transform.linear().transpose()*(float_trunk_transform.translation()-float_lleg_transform.translation());

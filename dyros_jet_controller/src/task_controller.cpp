@@ -99,9 +99,9 @@ void TaskController::writeDesired(const unsigned int *mask, VectorQd& desired_q)
 // Jacobian OK. Translation OK.
 void TaskController::computeCLIK()
 {
-  const double inverse_damping = 0.03;
-  const double phi_gain = 1;
-  const double kp = 200;
+  const double inverse_damping = 1e-4;
+  const double phi_gain = 0.5;
+  const double kp = 400;
   const double epsilon = 1e-3;
 
   // Arm
@@ -111,7 +111,7 @@ void TaskController::computeCLIK()
     {
       // For short names
       const auto &x_0 = start_transform_[i].translation();
-      // const auto &rot_0 = start_transform_[i].linear();
+      const auto &rot_0 = start_transform_[i].linear();
 
       const auto &x = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).translation();
       const auto &rot = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).linear();
@@ -121,13 +121,9 @@ void TaskController::computeCLIK()
       const auto &x_target = target_transform_[i].translation();
       const auto &rot_target = target_transform_[i].linear();
 
-      double h_cubic = DyrosMath::cubic(control_time_,
-                                        start_time_[i],
-                                        end_time_[i],
-                                        0, 1, 0, 0);
-
       Eigen::Vector3d x_cubic;
       Eigen::Vector6d x_dot_desired;
+      Eigen::Matrix3d rot_cubic;
       x_cubic = DyrosMath::cubicVector<3>(control_time_,
                                           start_time_[i],
                                           end_time_[i],
@@ -135,11 +131,23 @@ void TaskController::computeCLIK()
                                           x_target,
                                           Eigen::Vector3d::Zero(),//start_x_dot_[i],
                                           Eigen::Vector3d::Zero());
+
+      rot_cubic = DyrosMath::rotationCubic(control_time_,
+                                           start_time_[i],
+                                           end_time_[i],
+                                           rot_0,
+                                           rot_target);
+      /*
+      std::cout << " rot 0 ----" << std::endl;
+      std::cout << rot_0 << std::endl;
+      std::cout << " rot cubic ----" << std::endl;
+      std::cout << rot_cubic << std::endl;
+      std::cout << " rot target ----" << std::endl;
+      std::cout << rot_target << std::endl;*/
       Eigen::Vector6d x_error;
       x_error.head<3>() = (x_cubic - x);
       //x_error.tail<3>().setZero();
-      h_cubic = 1.0;
-      x_error.tail<3>() =  - h_cubic * phi_gain * DyrosMath::getPhi(rot, rot_target);
+      x_error.tail<3>() =  - phi_gain * DyrosMath::getPhi(rot, rot_cubic);
       x_dot_desired.head<3>() = x_cubic - x_prev_[i];
       x_dot_desired.tail<3>().setZero();
 
