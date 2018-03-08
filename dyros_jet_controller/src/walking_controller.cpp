@@ -1157,6 +1157,7 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
       }
       index = index+t_total_;
     }
+
     for (unsigned int j=0; j<20*hz_; j++)
     {
       ref_zmp_(index+j,0) = ref_zmp_(index-1,0);
