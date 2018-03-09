@@ -91,7 +91,9 @@ void SimulationInterface::writeDevice()
     joint_set_msg_.position[i] = desired_q_(i);
   }
 
-  vrep_joint_set_pub_.publish(joint_set_msg_);
+  if(!is_first_boot_)
+    vrep_joint_set_pub_.publish(joint_set_msg_);
+
   vrepStepTrigger();
 
 }
@@ -132,7 +134,9 @@ void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& m
       {
         q_(i) = msg->position[j];
         if(is_first_boot_)
-        {    desired_q_(i) = msg->position[j]; }
+        {
+          desired_q_(i) = msg->position[j];
+        }
 
         q_dot_(i) = msg->velocity[j];
         torque_(i) = msg->effort[j];
