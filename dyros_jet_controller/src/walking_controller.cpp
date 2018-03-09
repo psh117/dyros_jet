@@ -166,12 +166,12 @@ void WalkingController::parameterSetting()
   t_total_= 1.3*hz_; /
   t_temp_ = 3.0*hz_; /
 */
-  t_double1_= 0.3*hz_;
-  t_double2_= 0.3*hz_;
+  t_double1_= 0.1*hz_;
+  t_double2_= 0.1*hz_;
   t_rest_init_ = 0.1*hz_;
   t_rest_last_= 0.1*hz_;
-  t_total_= 2.0*hz_;
-  t_temp_ = 2.0*hz_;
+  t_total_= 1.3*hz_;
+  t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
 
@@ -972,7 +972,7 @@ void WalkingController::updateInitialState()
     }
     else
     {
-      xi_ = pelv_support_init_.translation()(0)+com_offset_(0);
+      xi_ = pelv_support_init_.translation()(0)+_(0);
       yi_ = pelv_support_init_.translation()(1)+com_offset_(1);
     }
   }
@@ -1073,8 +1073,8 @@ void WalkingController::updateNextStepTime()
 
 void WalkingController::addZmpOffset()
 {
-  lfoot_zmp_offset_ = 0.01;
-  rfoot_zmp_offset_ = -0.01;
+  lfoot_zmp_offset_ = -0.02;
+  rfoot_zmp_offset_ = 0.02;
 
   foot_step_support_frame_offset_ = foot_step_support_frame_;
 
@@ -1093,11 +1093,11 @@ void WalkingController::addZmpOffset()
   {
     if(foot_step_(i,6) == 0)//right support, left swing
     {
-      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
     }
     else
     {
-      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
     }
   }
 }
@@ -1107,13 +1107,12 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
   //std::cout<< "norm_size: "<< norm_size<<endl;
 
   ref_zmp_.resize(norm_size, 2);
+  com_offset_.setZero();
 
   Eigen::VectorXd temp_px;
   Eigen::VectorXd temp_py;
 
   unsigned int index =0;
-
-
 
   if(current_step_num_ ==0)
   {
@@ -1308,9 +1307,6 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
 
 void WalkingController::getComTrajectory()
 {
-  com_offset_.setZero();
-
-
   //if (walking_tick_ == t_start_ && current_step_num_ != 0)
   //{
   //  Eigen::Vector3d com_position_prev;
@@ -1390,8 +1386,8 @@ void WalkingController::getComTrajectory()
   //  }
   //  else
   //  {
-  //    xs_(0) = pelv_support_init_.translation()(0)+ com_offset_(0); // + xs_(1)*1.0/Hz;
-  //    ys_(0) = pelv_support_init_.translation()(1)+ com_offset_(1); // + ys_(1)*1.0/Hz;
+  //    xs_(0) = pelv_support_init_.translation()(0)+ _(0); // + xs_(1)*1.0/Hz;
+  //    ys_(0) = pelv_support_init_.translation()(1)+ _(1); // + ys_(1)*1.0/Hz;
   //  }
   //}
 
