@@ -972,7 +972,7 @@ void WalkingController::updateInitialState()
     }
     else
     {
-      xi_ = pelv_support_init_.translation()(0)+_(0);
+      xi_ = pelv_support_init_.translation()(0)+com_offset_(0);
       yi_ = pelv_support_init_.translation()(1)+com_offset_(1);
     }
   }
@@ -1073,8 +1073,8 @@ void WalkingController::updateNextStepTime()
 
 void WalkingController::addZmpOffset()
 {
-  lfoot_zmp_offset_ = -0.02;
-  rfoot_zmp_offset_ = 0.02;
+  lfoot_zmp_offset_ = 0.02;
+  rfoot_zmp_offset_ = -0.02;
 
   foot_step_support_frame_offset_ = foot_step_support_frame_;
 
@@ -1093,11 +1093,11 @@ void WalkingController::addZmpOffset()
   {
     if(foot_step_(i,6) == 0)//right support, left swing
     {
-      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
     }
     else
     {
-      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
     }
   }
 }
