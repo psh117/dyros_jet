@@ -170,7 +170,7 @@ void WalkingController::parameterSetting()
   t_double2_= 0.3*hz_;
   t_rest_init_ = 0.1*hz_;
   t_rest_last_= 0.1*hz_;
-  t_total_= 1.4*hz_;
+  t_total_= 2.0*hz_;
   t_temp_ = 2.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -838,14 +838,14 @@ void WalkingController::floatToSupportFootstep()
     if(foot_step_(0,6) == 0) //right support
     {
       reference.translation() = rfoot_float_init_.translation();
-      reference.translation()(2) = 0;
+      reference.translation()(2) = 0.0;
       reference.linear() = rfoot_float_init_.linear();
       reference.translation()(0) = 0.0;
     }
     else  //left support
     {
       reference.translation() = lfoot_float_init_.translation();
-      reference.translation()(2) = 0;
+      reference.translation()(2) = 0.0;
       reference.linear() = lfoot_float_init_.linear();
       reference.translation()(0) = 0.0;
     }
@@ -1009,7 +1009,7 @@ void WalkingController::updateInitialState()
     supportfoot_float_init_.setZero();
     swingfoot_float_init_.setZero();
 
-    if(foot_step_(current_step_num_,6) == 1)  //left suppport foot
+    if(foot_step_(0,6) == 1)  //left suppport foot
     {
       for(int i=0; i<2; i++)
         supportfoot_float_init_(i) = lfoot_float_init_.translation()(i);
@@ -1073,8 +1073,8 @@ void WalkingController::updateNextStepTime()
 
 void WalkingController::addZmpOffset()
 {
-  lfoot_zmp_offset_ = -0.005;
-  rfoot_zmp_offset_ = 0.005;
+  lfoot_zmp_offset_ = 0.01;
+  rfoot_zmp_offset_ = -0.01;
 
   foot_step_support_frame_offset_ = foot_step_support_frame_;
 
@@ -1091,13 +1091,13 @@ void WalkingController::addZmpOffset()
 
   for(int i=0; i<total_step_num_; i++)
   {
-    if(foot_step_(i,6) == 0)
+    if(foot_step_(i,6) == 0)//right support, left swing
     {
-      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
     }
     else
     {
-      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
     }
   }
 }
@@ -1208,8 +1208,8 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
       }
       else if(i >= t_rest_init_ && i < t_rest_init_+t_double1_)
       {
-        temp_py(i) = com_support_init_(1)+com_offset_(1) + Ky/t_double1_*(i+1-t_rest_init_);
         temp_px(i) = Kx/t_double1_*(i+1-t_rest_init_);
+        temp_py(i) = com_support_init_(1)+com_offset_(1) + Ky/t_double1_*(i+1-t_rest_init_);
       }
       else if(i>= t_rest_init_+t_double1_ && i< t_total_-t_rest_last_-t_double2_)
       {
@@ -1623,7 +1623,7 @@ void WalkingController::getFootTrajectory()
       {
         if(walking_tick_ < t_start_)
           rfoot_trajectory_support_.translation()(2) = rfoot_support_init_.translation()(2);
-        else if(walking_tick_ >= t_start_ && walking_tick_ < t_start_real_)\]
+        else if(walking_tick_ >= t_start_ && walking_tick_ < t_start_real_)
           
           rfoot_trajectory_support_.translation()(2) = DyrosMath::cubic(walking_tick_,t_start_,t_start_real_,rfoot_support_init_.translation()(2),0.0,0.0,0.0);
         else
@@ -2012,9 +2012,9 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
   Eigen::Matrix6d kp; // for setting CLIK gains
   kp.setZero();
-  kp(0,0) = 120;
-  kp(1,1) = 120;
-  kp(2,2) = 120;
+  kp(0,0) = 230;
+  kp(1,1) = 230;
+  kp(2,2) = 230;
   kp(3,3) = 150;
   kp(4,4) = 150;
   kp(5,5) = 150;
