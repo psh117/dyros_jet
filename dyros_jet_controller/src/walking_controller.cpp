@@ -1093,11 +1093,11 @@ void WalkingController::addZmpOffset()
   {
     if(foot_step_(i,6) == 0)//right support, left swing
     {
-      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
     }
     else
     {
-      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
     }
   }
 }
