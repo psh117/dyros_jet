@@ -10,11 +10,8 @@ void WalkingController::compute()
 {
   if(walking_enable_)
   {
-    //std::cout<<"walking_tick_"<<walking_tick_<<endl;
 
     updateInitialState();
-
-    std::cout<<foot_step_<<endl;
 
     getRobotState();
 
@@ -55,6 +52,8 @@ void WalkingController::compute()
           desired_q_(i) = desired_leg_q_dot_(i)/hz_+current_q_(i);
           desired_q_(i+6) = desired_leg_q_dot_(i+6)/hz_+current_q_(i+6);
         }
+
+        std::cout<<"rfoot_trajectory_float_"<<rfoot_trajectory_float_.translation()<<endl;
       }
       //////////////////////////////////////////////////////
 
@@ -1038,8 +1037,6 @@ void WalkingController::updateInitialState()
       xi_ = pelv_support_init_.translation()(0)+com_offset_(0);
       yi_ = pelv_support_init_.translation()(1)+com_offset_(1);
     }
-
-
 
   }
   else if(walking_tick_ == t_start_)
@@ -2068,25 +2065,36 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
   Eigen::Matrix6d kp; // for setting CLIK gains
   kp.setZero();
-  kp(0,0) = 230;
-  kp(1,1) = 230;
-  kp(2,2) = 230;
-  kp(3,3) = 150;
-  kp(4,4) = 150;
-  kp(5,5) = 150;
+  kp(0,0) = 200;
+  kp(1,1) = 200;
+  kp(2,2) = 200;
+  kp(3,3) = 50;
+  kp(4,4) = 50;
+  kp(5,5) = 50;
 
 
-  Eigen::Vector6d lp, rp;
-  lp.setZero(); rp.setZero();
+  Eigen::Vector6d lp, rp, cubic_xr, cubic_xl;
+  lp.setZero(); rp.setZero(), cubic_xr.setZero(), cubic_xl.setZero();
   /*  lp.topRows<3>() = float_lleg_transform.linear().transpose()*(-lfoot_float_current_.translation()+float_lleg_transform.translation()); //Foot_Trajectory should revise
   rp.topRows<3>() = float_rleg_transform.linear().transpose()*(-rfoot_float_current_.translation()+float_rleg_transform.translation());
 */ // revise 2.29
   lp.topRows<3>() = (-lfoot_float_current_.translation()+float_lleg_transform.translation()); //Foot_Trajectory should revise
   rp.topRows<3>() = (-rfoot_float_current_.translation()+float_rleg_transform.translation());
 
+  for(int i=0;i<3;i++)
+  {
+    cubic_xl(i) = float_lleg_transform.translation()(i);
+    cubic_xl(i+3) = float_lleg_transform_euler(i);
+  }
 
-
+  for(int i=0;i<3;i++)
+  {
+    cubic_xr(i) = float_rleg_transform.translation()(i);
+    cubic_xr(i+3) = float_rleg_transform_euler(i);
+  }
   Eigen::Vector3d r_leg_phi, l_leg_phi;
+  l_leg_phi = DyrosMath::legGetPhi(lfoot_float_current_, lfoot_float_init_, cubic_xl);
+  r_leg_phi = DyrosMath::legGetPhi(rfoot_float_current_, rfoot_float_init_, cubic_xr);
   //l_leg_phi = DyrosMath::getPhi(lfoot_float_current_.linear(), lfoot_float_init_.linear());
   //r_leg_phi = DyrosMath::getPhi(rfoot_float_current_.linear(), rfoot_float_init_.linear());
   //1.15, Getphi의 phi 값 부호가 반대가 되야 할수도 있음
@@ -2103,6 +2111,11 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
     desired_leg_q_dot(i+6) = q_rfoot_dot(i);
     desired_leg_q_dot(i) = q_lfoot_dot(i);
   }
+
+  std::cout<<"lp:"<<lp<<endl;
+  std::cout<<"rp:"<<rp<<endl;
+  std::cout<<"float_lleg_transform.translation():"<<float_lleg_transform.translation()<<endl;
+  std::cout<<"float_rleg_transform.translation():"<<float_rleg_transform.translation()<<endl;
 }
 
 void WalkingController::modifiedPreviewControl()
