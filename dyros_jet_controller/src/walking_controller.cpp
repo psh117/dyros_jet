@@ -1643,7 +1643,7 @@ void WalkingController::getFootTrajectory()
         lfoot_trajectory_support_.translation()(2) = lfoot_support_init_.translation()(2);
       else
       {
-        if (walking_tick_ < t_start_)
+        if(walking_tick_ < t_start_)
           lfoot_trajectory_support_.translation()(2) = lfoot_support_init_.translation()(2);
         else if(walking_tick_ >= t_start_ && walking_tick_ < t_start_real_)
           lfoot_trajectory_support_.translation()(2) = DyrosMath::cubic(walking_tick_,t_start_,t_start_real_,lfoot_support_init_.translation()(2),0.0,0.0,0.0);
