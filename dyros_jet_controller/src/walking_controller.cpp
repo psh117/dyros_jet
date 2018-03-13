@@ -858,14 +858,14 @@ void WalkingController::floatToSupportFootstep()
     {
       reference.translation() = rfoot_float_init_.translation();
       reference.translation()(2) = 0.0;
-      reference.linear() = rfoot_float_init_.linear();
+      reference.linear() = DyrosMath::rotateWithZ(DyrosMath::rot2Euler(rfoot_float_init_.linear())(2));
       reference.translation()(0) = 0.0;
     }
     else  //left support
     {
       reference.translation() = lfoot_float_init_.translation();
       reference.translation()(2) = 0.0;
-      reference.linear() = lfoot_float_init_.linear();
+      reference.linear() = DyrosMath::rotateWithZ(DyrosMath::rot2Euler(rfoot_float_init_.linear())(2));
       reference.translation()(0) = 0.0;
     }
   }
@@ -1039,7 +1039,7 @@ void WalkingController::updateInitialState()
     }
 
   }
-  else if(walking_tick_ == t_start_)
+  else if(current_step_num_!=0 && walking_tick_ == t_start_)
   {
     //model_.updateKinematics(current_q_);
     q_init_ = current_q_;
@@ -1138,11 +1138,13 @@ void WalkingController::addZmpOffset()
 
   if(foot_step_(0,6) == 0) //right support foot
   {
+  //  supportfoot_support_init_offset_(0) = supportfoot_support_init_(0)/2;
     supportfoot_support_init_offset_(1) = supportfoot_support_init_(1) + rfoot_zmp_offset_;
     swingfoot_support_init_offset_(1) = swingfoot_support_init_(1) + lfoot_zmp_offset_;
   }
   else
   {
+  //  supportfoot_support_init_offset_(0) = supportfoot_support_init_(0);
     supportfoot_support_init_offset_(1) = supportfoot_support_init_(1) + lfoot_zmp_offset_;
     swingfoot_support_init_offset_(1) = swingfoot_support_init_(1) + rfoot_zmp_offset_;
   }
@@ -1188,7 +1190,6 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
       }
       else
       {
-
         ref_zmp_(i,0) = 0.0;
         ref_zmp_(i,1) = com_support_init_(1)+com_offset_(1);
       }
@@ -1250,10 +1251,12 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
   {
     Kx = supportfoot_support_init_offset_(0);
     Kx2 = (foot_step_support_frame_(current_step_number,0)+supportfoot_support_init_(0))/2.0 - supportfoot_support_init_offset_(0);
+//    Kx2 = (foot_step_support_frame_(current_step_number,0))/2.0;
+
 
     Ky = supportfoot_support_init_offset_(1) - com_support_init_(1);
     Ky2 = (foot_step_support_frame_(current_step_number,1)+supportfoot_support_init_(1))/2.0 - supportfoot_support_init_offset_(1);
-
+//    Ky2 = (foot_step_support_frame_(current_step_number,1))/2.0;
 
     for(int i=0; i<t_total_; i++)
     {
@@ -1287,24 +1290,32 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
   else if(current_step_number == 1)
   {
 
-
+    cout <<"support_frame" << foot_step_support_frame_(current_step_number,0) << "support_init" << supportfoot_support_init_(0)
+        << "offset" << supportfoot_support_init_offset_(0) << endl;
+  //  Kx = - (foot_step_support_frame_(current_step_number,0))/2.0;
     Kx = foot_step_support_frame_offset_(current_step_number-1,0) - (foot_step_support_frame_(current_step_number-1,0) + supportfoot_support_init_(0))/2.0;
     Kx2 = (foot_step_support_frame_(current_step_number,0)+foot_step_support_frame_(current_step_number-1,0))/2.0 - foot_step_support_frame_offset_(current_step_number-1,0);
+ //   Kx2 = (foot_step_support_frame_(current_step_number,0))/2.0;
 
     Ky =  foot_step_support_frame_offset_(current_step_number-1,1) - (foot_step_support_frame_(current_step_number-1,1) + supportfoot_support_init_(1))/2.0;
     Ky2 = (foot_step_support_frame_(current_step_number,1)+foot_step_support_frame_(current_step_number-1,1))/2.0 - foot_step_support_frame_offset_(current_step_number-1,1);
-
+  //   Ky = foot_step_support_frame_offset_(current_step_number-1,1) - (foot_step_support_frame_(current_step_number,1))/2.0;
+  //  Ky2 = (foot_step_support_frame_(current_step_number,1))/2.0;
     for(int i=0; i<t_total_; i++)
     {
       if(i < t_rest_init_)
       {
-        temp_px(i) = (foot_step_support_frame_(current_step_number-1,0)+supportfoot_support_init_(0))/2.0;
-        temp_py(i) = (foot_step_support_frame_(current_step_number-1,1)+supportfoot_support_init_(1))/2.0;
+          temp_px(i) = (foot_step_support_frame_(current_step_number-1,0)+supportfoot_support_init_(0))/2.0;
+          temp_py(i) = (foot_step_support_frame_(current_step_number-1,1)+supportfoot_support_init_(1))/2.0;
+      //    temp_px(i) = foot_step_support_frame_(current_step_number-1,0)/2.0;
+      //  temp_py(i) = foot_step_support_frame_(current_step_number-1,1)/2.0;
       }
       else if(i >= t_rest_init_ && i < t_rest_init_+t_double1_)
       {
         temp_px(i) = (foot_step_support_frame_(current_step_number-1,0)+supportfoot_support_init_(0))/2.0 + Kx/t_double1_*(i+1-t_rest_init_);
         temp_py(i) = (foot_step_support_frame_(current_step_number-1,1)+supportfoot_support_init_(1))/2.0 + Ky/t_double1_*(i+1-t_rest_init_);
+    //      temp_px(i) = (foot_step_support_frame_(current_step_number-1,0))/2.0 + Kx/t_double1_*(i+1-t_rest_init_);
+    //      temp_py(i) = (-foot_step_support_frame_(current_step_number-1,1))/2.0 + Ky/t_double1_*(i+1-t_rest_init_);
       }
       else if(i>= t_rest_init_+t_double1_ & i< t_total_-t_rest_last_-t_double2_)
       {
@@ -2111,11 +2122,12 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
     desired_leg_q_dot(i+6) = q_rfoot_dot(i);
     desired_leg_q_dot(i) = q_lfoot_dot(i);
   }
-
+/*
   std::cout<<"lp:"<<lp<<endl;
   std::cout<<"rp:"<<rp<<endl;
   std::cout<<"float_lleg_transform.translation():"<<float_lleg_transform.translation()<<endl;
   std::cout<<"float_rleg_transform.translation():"<<float_rleg_transform.translation()<<endl;
+  */
 }
 
 void WalkingController::modifiedPreviewControl()
