@@ -44,15 +44,15 @@
   <link name="L_HipYaw_Link">
     <inertial>
       <origin
-        xyz="-0.030891 -0.00026292 -0.066857"
+        xyz="-0.030891 0 -0.066857"
         rpy="0 0 0" />
       <mass value="1.495" />
       <inertia
         ixx="0.009929"
-        ixy="1.2E-05"
+        ixy="0"
         ixz="0.003862"
         iyy="0.013976"
-        iyz="2.6E-05"
+        iyz="0"
         izz="0.00478" />
     </inertial>
     <visual>
@@ -83,7 +83,7 @@
     name="L_HipYaw"
     type="revolute">
     <origin
-      xyz="0 0.10526 0"
+      xyz="0 0.105 0"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -139,7 +139,7 @@
     name="L_HipRoll"
     type="revolute">
     <origin
-      xyz="-0.0059 -0.00026292 -0.1349"
+      xyz="-0.0059 0 -0.1349"
       rpy="0 0 0" />
     <parent
       link="L_HipYaw_Link" />
@@ -211,7 +211,7 @@
     name="L_KneePitch_Link">
     <inertial>
       <origin
-        xyz="0.057127 -0.015978 -0.23954"
+        xyz="0.057127 -0.015978 -0.2396"
         rpy="0 0 0" />
       <mass
         value="2.0241" />
@@ -251,7 +251,7 @@
     name="L_KneePitch"
     type="revolute">
     <origin
-      xyz="0.1515 -0.01075 -0.33906"
+      xyz="0.1515 -0.01075 -0.339"
       rpy="0 0 0" />
     <parent
       link="L_HipPitch_Link" />
@@ -307,7 +307,7 @@
     name="L_AnklePitch"
     type="revolute">
     <origin
-      xyz="0.06 0.00485 -0.36794"
+      xyz="0.06 0.00485 -0.368"
       rpy="0 0 0" />
     <parent
       link="L_KneePitch_Link" />
@@ -476,7 +476,7 @@
     type="revolute">
     <origin
       xyz="-0.0059 0 -0.1349"
-      rpy="-0.018707 -6.6457E-18 -5.7725E-16" />
+      rpy="0 0 0" />
     <parent
       link="R_HipYaw_Link" />
     <child
@@ -532,7 +532,7 @@
     type="revolute">
     <origin
       xyz="0 0 0"
-      rpy="3.4694E-18 7.7037E-34 -3.6352E-33" />
+      rpy="0 0 0" />
     <parent
       link="R_HipRoll_Link" />
     <child
@@ -554,9 +554,9 @@
       <inertia
         ixx="0.143814"
         ixy="0.001933"
-        ixz="-0.028868"
-        iyy="0.146462"
-        iyz="-0.010408"
+        ixz="-0.028862"
+        iyy="0.146468"
+        iyz="-0.010406"
         izz="0.012166" />
     </inertial>
     <visual>
@@ -588,7 +588,7 @@
     type="revolute">
     <origin
       xyz="0.1515 0.01075 -0.339"
-      rpy="-1.7347E-17 3.0195E-18 5.7728E-16" />
+      rpy="0 0 0" />
     <parent
       link="R_HipPitch_Link" />
     <child
@@ -644,7 +644,7 @@
     type="revolute">
     <origin
       xyz="0.06 -0.00485 -0.368"
-      rpy="-1.2837E-16 -4.4988E-16 -3.5523E-16" />
+      rpy="0 0 0" />
     <parent
       link="R_KneePitch_Link" />
     <child
@@ -659,16 +659,16 @@
     name="R_AnkleRoll_Link">
     <inertial>
       <origin
-        xyz="-0.0013994 0.0016143 -0.086282"
+        xyz="-0.0013994 0 -0.086297"
         rpy="0 0 0" />
       <mass
         value="1.297" />
       <inertia
         ixx="0.012604"
-        ixy="-2E-06"
+        ixy="0"
         ixz="9.1E-05"
         iyy="0.018119"
-        iyz="-0.000138"
+        iyz="0"
         izz="0.01076" />
     </inertial>
     <visual>
@@ -700,7 +700,7 @@
     type="revolute">
     <origin
       xyz="0 0 0"
-      rpy="0 9.8608E-32 1.8489E-32" />
+      rpy="0 0 0" />
     <parent
       link="R_AnklePitch_Link" />
     <child
