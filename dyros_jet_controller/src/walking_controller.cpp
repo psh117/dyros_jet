@@ -176,9 +176,9 @@ void WalkingController::parameterSetting()
 */
   t_double1_= 0.1*hz_;
   t_double2_= 0.1*hz_;
-  t_rest_init_ = 0.2*hz_;
-  t_rest_last_= 0.2*hz_;
-  t_total_= 2.0*hz_;
+  t_rest_init_ = 7.0*hz_;
+  t_rest_last_= 7.0*hz_;
+  t_total_= 15.1*hz_;
   t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -1126,7 +1126,7 @@ void WalkingController::updateNextStepTime()
       current_step_num_ ++;
 
     }
-    else if(current_step_num_ = total_step_num_-1)
+    else if(current_step_num_ == total_step_num_-1)
     {
       walking_enable_ = false;
     }
@@ -1138,8 +1138,8 @@ void WalkingController::updateNextStepTime()
 
 void WalkingController::addZmpOffset()
 {
-  lfoot_zmp_offset_ = 0.00;
-  rfoot_zmp_offset_ = -0.00;
+  lfoot_zmp_offset_ = -0.02;
+  rfoot_zmp_offset_ = 0.02;
 
   foot_step_support_frame_offset_ = foot_step_support_frame_;
 
@@ -1469,7 +1469,7 @@ void WalkingController::getPelvTrajectory()
   //Trunk Position
   if(com_control_mode_ == true)
   {
-    double kp = 0.15;
+    double kp = 1;
 
     // kp = Cubic(abs(_COM_desired(0)-_COM_real_support(0)),0.0,0.05,1.0,0.0,3.0,0.0);
     pelv_trajectory_support_.translation()(0) = pelv_support_current_.translation()(0) + kp*(com_desired_(0) - com_support_current_(0));
@@ -1990,9 +1990,9 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
   Eigen::Matrix6d kp; // for setting CLIK gains
   kp.setZero();
-  kp(0,0) = 200;
-  kp(1,1) = 200;
-  kp(2,2) = 200;
+  kp(0,0) = 150;
+  kp(1,1) = 150;
+  kp(2,2) = 150;
   kp(3,3) = 50;
   kp(4,4) = 50;
   kp(5,5) = 50;
@@ -2233,7 +2233,7 @@ void WalkingController::compensator()
 {
   if(hip_compensator_mode_ == true)
   {
-    hipCompensation();
+    //hipCompensation();
     hipCompensator();
   }
 
@@ -2246,7 +2246,7 @@ void WalkingController::compensator()
 
 void WalkingController::hipCompensator()
 {
-  double left_hip_angle = 3.6*DEG2RAD, right_hip_angle = 4.2*DEG2RAD, left_hip_angle_first_step = 3.6*DEG2RAD, right_hip_angle_first_step = 4.2*DEG2RAD,
+  double left_hip_angle = 2.0*DEG2RAD, right_hip_angle = 2.0*DEG2RAD, left_hip_angle_first_step = 2.0*DEG2RAD, right_hip_angle_first_step = 2.0*DEG2RAD,
       left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
 
   if (current_step_num_ == 0)
