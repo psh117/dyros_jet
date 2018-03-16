@@ -10,6 +10,10 @@ void WalkingController::compute()
 {
   if(walking_enable_)
   {
+     std::cout<<"walking_tick:"<<walking_tick_<<endl;
+     std::cout<<"current_step_num:"<<current_step_num_<<endl;
+     std::cout<<"total_step_num:"<<total_step_num_<<endl;
+     std::cout<<"t_last_:"<<t_last_<<endl;
 
     updateInitialState();
 
@@ -90,7 +94,7 @@ void WalkingController::compute()
       ///////////////////////////////////////////////
 
       updateNextStepTime();
-
+        std::cout<<"gg"<<endl;
 
     }
     else
@@ -176,9 +180,9 @@ void WalkingController::parameterSetting()
 */
   t_double1_= 0.1*hz_;
   t_double2_= 0.1*hz_;
-  t_rest_init_ = 7.0*hz_;
-  t_rest_last_= 7.0*hz_;
-  t_total_= 15.1*hz_;
+  t_rest_init_ = 0.50*hz_;
+  t_rest_last_= 0.50*hz_;
+  t_total_= 2.1*hz_;
   t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -1124,9 +1128,8 @@ void WalkingController::updateNextStepTime()
       t_last_ = t_start_ + t_total_ -1;
 
       current_step_num_ ++;
-
     }
-    else if(current_step_num_ == total_step_num_-1)
+    else if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +10.0*hz_)
     {
       walking_enable_ = false;
     }
@@ -1160,11 +1163,11 @@ void WalkingController::addZmpOffset()
   {
     if(foot_step_(i,6) == 0)//right support, left swing
     {
-      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
     }
     else
     {
-      foot_step_support_frame_offset_(i,1) += lfoot_zmp_offset_;
+      foot_step_support_frame_offset_(i,1) += rfoot_zmp_offset_;
     }
   }
 }
@@ -1378,7 +1381,7 @@ void WalkingController::getComTrajectory()
   xs_ = xd_;
   ys_ = yd_;
 
-  if (walking_tick_ == t_start_+t_total_-1)
+  if (walking_tick_ == t_start_+t_total_-1 && current_step_num_ != total_step_num_-1)
   {
     Eigen::Vector3d com_pos_prev;
     Eigen::Vector3d com_pos;
@@ -1414,7 +1417,6 @@ void WalkingController::getComTrajectory()
     ys_(1) = com_vel(1);
     xs_(2) = com_acc(0);
     ys_(2) = com_acc(1);
-
   }
 
 
@@ -2050,6 +2052,7 @@ void WalkingController::modifiedPreviewControl()
 
   ux_1_ = 0.0;
   uy_1_ = 0.0;
+
   previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, xi_, yi_, xs_, ys_, ux_1_, uy_1_, ux_, uy_, gi_, gp_l_, gx_, a_, b_, c_, xd_, yd_);
   Eigen::Vector3d xs_matrix, ys_matrix, xs, ys;
   for (int i=0; i<3; i++)
