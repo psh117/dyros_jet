@@ -29,7 +29,7 @@
       </geometry>
       <material
         name="">
-        <color rgba="0.59216 0.61961 0.65origin098 1" />
+        <color rgba="0.59216 0.61961 0.65098 1" />
       </material>
     </visual>
     <collision>
