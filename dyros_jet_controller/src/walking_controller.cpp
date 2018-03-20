@@ -1829,13 +1829,13 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
 
   Eigen::Vector3d ld, rd;
   ld.setZero(); rd.setZero();
-  ld(0) = -0.0059;
+/*  ld(0) = -0.0059;
   ld(1) = 0.105;
   ld(2) = -0.1349;
   rd(0) = -0.0059;
   rd(1) = -0.105;
   rd(2) = -0.1349;
-
+*/
   ld = trunk_lleg_rotation.transpose() * ld;
   rd = trunk_rleg_rotation.transpose() * rd;
 
@@ -1850,10 +1850,16 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
   //double offset_knee_pitch = 15.3655*DEG2RAD;
   //double offset_ankle_pitch = 9.2602*DEG2RAD;
 
+  double offset_hip_pitch = 0;
+  double offset_knee_pitch = 0;
+  double offset_ankle_pitch = 0;
+
+
+  /*
   double offset_hip_pitch = 24.0762*DEG2RAD;
   double offset_knee_pitch = 14.8148*DEG2RAD;
   double offset_ankle_pitch = 9.2614*DEG2RAD;
-
+*/
 
   //////////////////////////// LEFT LEG INVERSE KINEMATICS ////////////////////////////
 
