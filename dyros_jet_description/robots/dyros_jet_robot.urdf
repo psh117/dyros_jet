@@ -9,15 +9,15 @@
 
   <link name="base_link">
     <inertial>
-      <origin xyz="-0.00106 0 0.049486" rpy="0 0 0" />
-      <mass value="1.9994" />
+      <origin xyz="0 0 0.08027" rpy="0 0 0" />
+      <mass value="3.90994" />
       <inertia
-        ixx="0.018401"
+        ixx="0.02724195938"
         ixy="0"
-        ixz="-0.000105"
-        iyy="0.008454"
+        ixz="0"
+        iyy="0.00634115870"
         iyz="0"
-        izz="0.011582" />
+        izz="0.02399190431" />
     </inertial>
     <visual>
       <origin
@@ -38,22 +38,22 @@
       <geometry>
         <mesh
           filename="package://dyros_jet_description/meshes/base_link.stl" />
-      </geometry>	
+      </geometry> 
     </collision>
   </link>
   <link name="L_HipYaw_Link">
     <inertial>
       <origin
-        xyz="-0.030891 0 -0.066857"
+        xyz="-0.02955 0 0.06943"
         rpy="0 0 0" />
-      <mass value="1.495" />
+      <mass value="1.54216" />
       <inertia
-        ixx="0.009929"
+        ixx="0.00412070145"
         ixy="0"
-        ixz="0.003862"
-        iyy="0.013976"
+        ixz="0.00089593414"
+        iyy="0.00664372362"
         iyz="0"
-        izz="0.00478" />
+        izz="0.00338413515" />
     </inertial>
     <visual>
       <origin
@@ -61,7 +61,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_HipYaw_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_yaw.stl" />
       </geometry>
       <material
         name="">
@@ -75,7 +75,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_HipYaw_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_yaw.stl" />
       </geometry>
     </collision>
   </link>
@@ -83,7 +83,7 @@
     name="L_HipYaw"
     type="revolute">
     <origin
-      xyz="0 0.105 0"
+      xyz="0 0.105 -0.11190"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -99,17 +99,17 @@
     name="L_HipRoll_Link">
     <inertial>
       <origin
-        xyz="0 -0.010643 0.00033181"
+        xyz="0.00513 -0.00119 0"
         rpy="0 0 0" />
       <mass
-        value="1.023" />
+        value="1.16907" />
       <inertia
-        ixx="0.00179"
-        ixy="0"
+        ixx="0.00180677428"
+        ixy="0.00000973989"
         ixz="0"
-        iyy="0.000627"
+        iyy="0.00087972680"
         iyz="0"
-        izz="0.001839" />
+        izz="0.00199196267" />
     </inertial>
     <visual>
       <origin
@@ -117,7 +117,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_HipRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_roll.stl" />
       </geometry>
       <material
         name="">
@@ -131,7 +131,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_HipRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_roll.stl" />
       </geometry>
     </collision>
   </link>
@@ -139,7 +139,7 @@
     name="L_HipRoll"
     type="revolute">
     <origin
-      xyz="-0.0059 0 -0.1349"
+      xyz="0 0 0"
       rpy="0 0 0" />
     <parent
       link="L_HipYaw_Link" />
@@ -155,17 +155,17 @@
     name="L_HipPitch_Link">
     <inertial>
       <origin
-        xyz="0.12623 -0.012 -0.24119"
+        xyz="0.12203 0.00306 -0.23316"
         rpy="0 0 0" />
       <mass
-        value="3.2021" />
+        value="3.28269" />
       <inertia
-        ixx="0.219278"
-        ixy="-0.00485"
-        ixz="-0.108243"
-        iyy="0.271379"
-        iyz="0.009268"
-        izz="0.066664" />
+        ixx="0.04026422334"
+        ixy="-0.00122469549"
+        ixz="-0.01390323874"
+        iyy="0.04329246922"
+        iyz="0.00234011199"
+        izz="0.01768138410" />
     </inertial>
     <visual>
       <origin
@@ -173,7 +173,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_HipPitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_pitch.stl" />
       </geometry>
       <material
         name="">
@@ -187,7 +187,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_HipPitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_pitch.stl" />
       </geometry>
     </collision>
   </link>
@@ -211,17 +211,17 @@
     name="L_KneePitch_Link">
     <inertial>
       <origin
-        xyz="0.057127 -0.015978 -0.2396"
+        xyz="0.05276 -0.01856 -0.22635"
         rpy="0 0 0" />
       <mass
-        value="2.0241" />
+        value="2.04524" />
       <inertia
-        ixx="0.14376"
-        ixy="-0.001933"
-        ixz="-0.028862"
-        iyy="0.146408"
-        iyz="0.010406"
-        izz="0.012166" />
+        ixx="0.03535528788"
+        ixy="-0.00087858758"
+        ixz="-0.00310465960"
+        iyy="0.03128221988"
+        iyz="0.00677319603"
+        izz="0.00677705818" />
     </inertial>
     <visual>
       <origin
@@ -229,7 +229,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_KneePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/left_shin.stl" />
       </geometry>
       <material
         name="">
@@ -243,7 +243,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_KneePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/left_shin.stl" />
       </geometry>
     </collision>
   </link>
@@ -251,7 +251,7 @@
     name="L_KneePitch"
     type="revolute">
     <origin
-      xyz="0.1515 -0.01075 -0.339"
+      xyz="0.1515 0 ?0.339"
       rpy="0 0 0" />
     <parent
       link="L_HipPitch_Link" />
@@ -267,17 +267,17 @@
     name="L_AnklePitch_Link">
     <inertial>
       <origin
-        xyz="-0.01052 0 0"
+        xyz="-0.01035 0.00568 0"
         rpy="0 0 0" />
       <mass
-        value="1.0349" />
+        value="1.18450" />
       <inertia
-        ixx="0.000637"
-        ixy="0"
+        ixx="0.00091081511"
+        ixy="0.00006964019"
         ixz="0"
-        iyy="0.001803"
+        iyy="0.00185149782"
         iyz="0"
-        izz="0.001843" />
+        izz="0.00206162879" />
     </inertial>
     <visual>
       <origin
@@ -285,7 +285,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_AnklePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/left_ankle_pitch.stl" />
       </geometry>
       <material
         name="">
@@ -299,7 +299,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_AnklePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/left_ankle_pitch.stl" />
       </geometry>
     </collision>
   </link>
@@ -307,7 +307,7 @@
     name="L_AnklePitch"
     type="revolute">
     <origin
-      xyz="0.06 0.00485 -0.368"
+      xyz="0.06 0 -0.368"
       rpy="0 0 0" />
     <parent
       link="L_KneePitch_Link" />
@@ -323,17 +323,17 @@
     name="L_AnkleRoll_Link">
     <inertial>
       <origin
-        xyz="-0.0013994 0 -0.086297"
+        xyz="-0.00989 0 ?0.07224"
         rpy="0 0 0" />
       <mass
-        value="1.297" />
+        value="1.42541" />
       <inertia
-        ixx="0.012604"
+        ixx="0.00349247764"
         ixy="0"
-        ixz="9.1E-05"
-        iyy="0.018122"
+        ixz="-0.00086859128"
+        iyy="0.00816767704"
         iyz="0"
-        izz="0.010758" />
+        izz="0.00895530984" />
     </inertial>
     <visual>
       <origin
@@ -341,7 +341,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_AnkleRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/ankle_roll.stl" />
       </geometry>
       <material
         name="">
@@ -355,7 +355,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/L_AnkleRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/ankle_roll.stl" />
       </geometry>
     </collision>
   </link>
@@ -379,17 +379,17 @@
     name="R_HipYaw_Link">
     <inertial>
       <origin
-        xyz="-0.030891 0 -0.066857"
+        xyz="-0.02955 0 0.06943"
         rpy="0 0 0" />
       <mass
-        value="1.495" />
+        value="1.54216" />
       <inertia
-        ixx="0.009929"
+        ixx="0.00412070145"
         ixy="0"
-        ixz="0.003862"
-        iyy="0.013976"
+        ixz="0.00089593414"
+        iyy="0.00664372362"
         iyz="0"
-        izz="0.00478" />
+        izz="0.00338413515" />
     </inertial>
     <visual>
       <origin
@@ -397,7 +397,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_HipYaw_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_yaw.stl" />
       </geometry>
       <material
         name="">
@@ -411,7 +411,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_HipYaw_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_yaw.stl" />
       </geometry>
     </collision>
   </link>
@@ -419,7 +419,7 @@
     name="R_HipYaw"
     type="revolute">
     <origin
-      xyz="0 -0.105 0"
+      xyz="0 -0.105 -0.11190"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -435,17 +435,17 @@
     name="R_HipRoll_Link">
     <inertial>
       <origin
-        xyz="0 0.010643 0.00033181"
+        xyz="0.00513 0.00119 0"
         rpy="0 0 0" />
       <mass
-        value="1.023" />
+        value="1.16907" />
       <inertia
-        ixx="0.00179"
-        ixy="0"
+        ixx="0.00180677428"
+        ixy="-0.00000973989"
         ixz="0"
-        iyy="0.000627"
+        iyy="0.00087972680"
         iyz="0"
-        izz="0.001839" />
+        izz="0.00199196267" />
     </inertial>
     <visual>
       <origin
@@ -453,7 +453,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_HipRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_roll.stl" />
       </geometry>
       <material
         name="">
@@ -467,7 +467,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_HipRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_roll.stl" />
       </geometry>
     </collision>
   </link>
@@ -475,7 +475,7 @@
     name="R_HipRoll"
     type="revolute">
     <origin
-      xyz="-0.0059 0 -0.1349"
+      xyz="0 0 0"
       rpy="0 0 0" />
     <parent
       link="R_HipYaw_Link" />
@@ -491,17 +491,17 @@
     name="R_HipPitch_Link">
     <inertial>
       <origin
-        xyz="0.12623 0.012 -0.24119"
+        xyz="0.11203 -0.00306 -0.23316"
         rpy="0 0 0" />
       <mass
-        value="3.2021" />
+        value="3.28269" />
       <inertia
-        ixx="0.219278"
-        ixy="0.00485"
-        ixz="-0.108243"
-        iyy="0.271379"
-        iyz="-0.009268"
-        izz="0.066664" />
+        ixx="0.04026423334"
+        ixy="0.00122469549"
+        ixz="-0.01390323874"
+        iyy="0.04329246922"
+        iyz="-0.00233982906"
+        izz="0.01768138410" />
     </inertial>
     <visual>
       <origin
@@ -509,7 +509,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_HipPitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_pitch.stl" />
       </geometry>
       <material
         name="">
@@ -523,7 +523,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_HipPitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/hip_pitch.stl" />
       </geometry>
     </collision>
   </link>
@@ -547,17 +547,17 @@
     name="R_KneePitch_Link">
     <inertial>
       <origin
-        xyz="0.057127 0.015978 -0.2396"
+        xyz="0.05276 0.01856 -0.22635"
         rpy="0 0 0" />
       <mass
-        value="2.0241" />
+        value="2.04524" />
       <inertia
-        ixx="0.143814"
-        ixy="0.001933"
-        ixz="-0.028862"
-        iyy="0.146468"
-        iyz="-0.010406"
-        izz="0.012166" />
+        ixx="0.03537964069"
+        ixy="0.00087727444"
+        ixz="-0.00310527519"
+        iyy="0.03129299830"
+        iyz="-0.00676289825"
+        izz="0.00679475749" />
     </inertial>
     <visual>
       <origin
@@ -565,7 +565,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_KneePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/right_shin.stl" />
       </geometry>
       <material
         name="">
@@ -579,7 +579,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_KneePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/right_shin.stl" />
       </geometry>
     </collision>
   </link>
@@ -587,7 +587,7 @@
     name="R_KneePitch"
     type="revolute">
     <origin
-      xyz="0.1515 0.01075 -0.339"
+      xyz="0.1515 0 ?0.339"
       rpy="0 0 0" />
     <parent
       link="R_HipPitch_Link" />
@@ -603,17 +603,17 @@
     name="R_AnklePitch_Link">
     <inertial>
       <origin
-        xyz="-0.01052 0 0"
+        xyz="-0.01035 ?0.00568 0"
         rpy="0 0 0" />
       <mass
-        value="1.0349" />
+        value="1.18450" />
       <inertia
-        ixx="0.000637"
-        ixy="0"
+        ixx="0.00091077271"
+        ixy="-0.00006959439"
         ixz="0"
-        iyy="0.001803"
+        iyy="0.00185147541"
         iyz="0"
-        izz="0.001843" />
+        izz="0.00206164878" />
     </inertial>
     <visual>
       <origin
@@ -621,7 +621,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_AnklePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/right_ankle_pitch.stl" />
       </geometry>
       <material
         name="">
@@ -635,7 +635,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_AnklePitch_Link.stl" />
+          filename="package://dyros_jet_description/meshes/right_ankle_pitch.stl" />
       </geometry>
     </collision>
   </link>
@@ -643,7 +643,7 @@
     name="R_AnklePitch"
     type="revolute">
     <origin
-      xyz="0.06 -0.00485 -0.368"
+      xyz="0.06 0 -0.368"
       rpy="0 0 0" />
     <parent
       link="R_KneePitch_Link" />
@@ -659,17 +659,17 @@
     name="R_AnkleRoll_Link">
     <inertial>
       <origin
-        xyz="-0.0013994 0 -0.086297"
+        xyz="-0.00989 0 ?0.07224"
         rpy="0 0 0" />
       <mass
-        value="1.297" />
+        value="1.42541" />
       <inertia
-        ixx="0.012604"
+        ixx="0.00350322410"
         ixy="0"
-        ixz="9.1E-05"
-        iyy="0.018119"
+        ixz="-0.00090168812"
+        iyy="0.00816767704"
         iyz="0"
-        izz="0.01076" />
+        izz="0.00894456337" />
     </inertial>
     <visual>
       <origin
@@ -677,7 +677,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_AnkleRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/ankle_roll.stl" />
       </geometry>
       <material
         name="">
@@ -691,7 +691,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_AnkleRoll_Link.stl" />
+          filename="package://dyros_jet_description/meshes/ankle_roll.stl" />
       </geometry>
     </collision>
   </link>
@@ -715,10 +715,10 @@
     name="WaistPitch_Link">
     <inertial>
       <origin
-        xyz="-1.1233E-16 -5.6053E-18 0.14577"
+        xyz="0 0 0.14577"
         rpy="0 0 0" />
       <mass
-        value="0.17684" />
+        value="0.18235" />
       <inertia
         ixx="0.003844"
         ixy="0"
@@ -771,10 +771,10 @@
     name="WaistYaw_Link">
     <inertial>
       <origin
-        xyz="-8E-06 0 0.121"
+        xyz="0.0038 -0.00415 0.11424"
         rpy="0 0 0" />
       <mass
-        value="10.78" />
+        value="14.09938" />
       <inertia
         ixx="0.262766"
         ixy="0"
@@ -827,10 +827,10 @@
     name="L_ShoulderPitch_Link">
     <inertial>
       <origin
-        xyz="0.00028444 -0.0013968 0"
+        xyz="-0.00159 -0.00092 0"
         rpy="0 0 0" />
       <mass
-        value="0.92826" />
+        value="0.92796" />
       <inertia
         ixx="0.000473"
         ixy="0"
@@ -883,10 +883,10 @@
     name="L_ShoulderRoll_Link">
     <inertial>
       <origin
-        xyz="0 0.030402 0.033562"
+        xyz="0 0.02958 -0.03197"
         rpy="0 0 0" />
       <mass
-        value="0.37361" />
+        value="0.11240" />
       <inertia
         ixx="0.001421"
         ixy="0"
@@ -939,10 +939,10 @@
     name="L_ShoulderYaw_Link">
     <inertial>
       <origin
-        xyz="-0.00046649 0.21409 0"
+        xyz="0.00022 0.02910 -0.20695"
         rpy="0 0 0" />
       <mass
-        value="1.7512" />
+        value="1.75149" />
       <inertia
         ixx="0.090419"
         ixy="-0.00024"
@@ -995,10 +995,10 @@
     name="L_ElbowRoll_Link">
     <inertial>
       <origin
-        xyz="-0.00013156 0.027019 0.070625"
+        xyz="0.00013 0.02766 0.06984"
         rpy="0 0 0" />
       <mass
-        value="0.83343" />
+        value="0.83342" />
       <inertia
         ixx="0.00592"
         ixy="-3E-06"
@@ -1054,7 +1054,7 @@
         xyz="-0.00052833 0.21354 0"
         rpy="0 0 0" />
       <mass
-        value="0.52387" />
+        value="0.52391" />
       <inertia
         ixx="0.026688"
         ixy="-7.8E-05"
@@ -1110,7 +1110,7 @@
         xyz="0 0.029698 0"
         rpy="0 0 0" />
       <mass
-        value="0.0695" />
+        value="0.07856" />
       <inertia
         ixx="8.3E-05"
         ixy="0"
@@ -1166,7 +1166,7 @@
         xyz="0 0.20231 0.0031654"
         rpy="0 0 0" />
       <mass
-        value="1.206" />
+        value="1.20640" />
       <inertia
         ixx="0.05396"
         ixy="0"
@@ -1220,10 +1220,10 @@
     name="R_ShoulderPitch_Link">
     <inertial>
       <origin
-        xyz="0.00028444 0.0013968 0"
+        xyz="-0.00159 0.00092 0"
         rpy="0 0 0" />
       <mass
-        value="0.92826" />
+        value="0.92796" />
       <inertia
         ixx="0.000473"
         ixy="0"
@@ -1276,10 +1276,10 @@
     name="R_ShoulderRoll_Link">
     <inertial>
       <origin
-        xyz="0 -0.030402 0.033562"
+        xyz="0 -0.02958 -0.03197"
         rpy="0 0 0" />
       <mass
-        value="0.37361" />
+        value="0.11240" />
       <inertia
         ixx="0.001421"
         ixy="0"
@@ -1332,10 +1332,10 @@
     name="R_ShoulderYaw_Link">
     <inertial>
       <origin
-        xyz="-0.00046649 -0.21409 0"
+        xyz="0.00022 -0.2910 -0.20695"
         rpy="0 0 0" />
       <mass
-        value="1.7512" />
+        value="1.75149" />
       <inertia
         ixx="0.090419"
         ixy="0.00024"
@@ -1388,10 +1388,10 @@
     name="R_ElbowRoll_Link">
     <inertial>
       <origin
-        xyz="-0.00013156 -0.027019 0.070625"
+        xyz="0.00013 -0.02766 0.06984"
         rpy="0 0 0" />
       <mass
-        value="0.83343" />
+        value="0.83342" />
       <inertia
         ixx="0.00592"
         ixy="3E-06"
@@ -1447,7 +1447,7 @@
         xyz="-0.00052833 -0.21354 0"
         rpy="0 0 0" />
       <mass
-        value="0.52387" />
+        value="0.52391" />
       <inertia
         ixx="0.026688"
         ixy="7.8E-05"
@@ -1503,7 +1503,7 @@
         xyz="0 -0.029698 0"
         rpy="0 0 0" />
       <mass
-        value="0.0695" />
+        value="0.07856" />
       <inertia
         ixx="8.3E-05"
         ixy="0"
@@ -1556,10 +1556,10 @@
     name="R_HandYaw_Link">
     <inertial>
       <origin
-        xyz="0 -0.20231 -0.0031654"
+        xyz="0 -0.20231 0.0031654"
         rpy="0 0 0" />
       <mass
-        value="1.206" />
+        value="1.20640" />
       <inertia
         ixx="0.05396"
         ixy="0"
