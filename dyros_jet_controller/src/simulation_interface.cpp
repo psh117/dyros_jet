@@ -2,7 +2,7 @@
 
 namespace dyros_jet_controller
 {
-
+position
 SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz):
   ControlBase(nh, Hz), rate_(Hz), simulation_step_done_(false)
 {
@@ -149,12 +149,22 @@ void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& m
 
 void SimulationInterface::leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg)
 {
-
+  left_foot_ft_(0) = msg->wrench.force.x;
+  left_foot_ft_(1) = msg->wrench.force.y;
+  left_foot_ft_(2) = msg->wrench.force.z;
+  left_foot_ft_(3) = msg->wrench.torque.x;
+  left_foot_ft_(4) = msg->wrench.torque.y;
+  left_foot_ft_(5) = msg->wrench.torque.z;
 }
 
 void SimulationInterface::rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg)
 {
-
+  right_foot_ft_(0) = msg->wrench.force.x;
+  right_foot_ft_(1) = msg->wrench.force.y;
+  right_foot_ft_(2) = msg->wrench.force.z;
+  right_foot_ft_(3) = msg->wrench.torque.x;
+  right_foot_ft_(4) = msg->wrench.torque.y;
+  right_foot_ft_(5) = msg->wrench.torque.z;
 }
 
 void SimulationInterface::imuCallback(const sensor_msgs::ImuConstPtr &msg)
