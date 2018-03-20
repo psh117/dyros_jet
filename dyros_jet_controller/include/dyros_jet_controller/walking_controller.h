@@ -279,6 +279,43 @@ private:
   Eigen::Vector12d grav_ground_torque_;
 
 
+  //////////////////StateEstimation/////////////////////
+  Eigen::Matrix<double, 18, 6> a_total_;
+  Eigen::Matrix<double, 2, 6> a_kin_;
+  Eigen::Matrix<double, 2, 6> a_c_dot_;
+  Eigen::Matrix<double, 2, 6> a_c_;
+  Eigen::Matrix<double, 2, 6> a_zmp_;
+  Eigen::Matrix<double, 2, 6> a_c_c_dot_;
+  Eigen::Matrix<double, 2, 6> a_f_;
+  Eigen::Matrix<double, 6, 6> a_noise_;
+  Eigen::Matrix<double, 18, 1> b_total_;
+  Eigen::Matrix<double, 2, 1> b_kin_;
+  Eigen::Matrix<double, 2, 1> b_c_dot_;
+  Eigen::Matrix<double, 2, 1> b_c_;
+  Eigen::Matrix<double, 2, 1> b_zmp_;
+  Eigen::Matrix<double, 2, 1> b_c_c_dot_;
+  Eigen::Matrix<double, 2, 1> b_f_;
+  Eigen::Matrix<double, 6, 1> b_noise_;
+
+  Eigen::Vector3d com_measured_; //from support foot
+  Eigen::Vector3d com_measured_r_;
+  Eigen::Vector3d com_measured_l_;
+  Eigen::Vector3d com_old_measured_;
+  Eigen::Vector3d com_old_measured_r_;
+  Eigen::Vector3d com_old_measured_l_;
+  Eigen::Vector3d com_dot_old_measured_;
+  Eigen::Vector2d com_dot_old_estimation_;
+  Eigen::Vector2d com_old_estimation_;
+  Eigen::Vector3d com_dot_measured_;
+
+  Eigen::Vector2d zmp_r_;
+  Eigen::Vector2d zmp_l_;
+  Eigen::Vector2d zmp_measured_;
+  Eigen::Vector2d zmp_old_estimation_;
+
+  Eigen::Matrix<double, 6, 1> x_estimation;
+
+  void getEstimationInputMatrix();
 
 };
 
