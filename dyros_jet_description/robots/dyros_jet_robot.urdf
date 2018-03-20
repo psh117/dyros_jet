@@ -1,12 +1,4 @@
 <robot name="dyros_jet_robot">
-  <link name="world"/>
-  <joint name="virtual" type="fixed">
-    <origin xyz="0 0 0" rpy="0 0 0" />
-    <parent link="world"/>
-    <child link="base_link"/>
-    <limit effort="30" velocity="1.0" lower="-2.2" upper="0.7" />
-  </joint>
-
   <link name="base_link">
     <inertial>
       <origin xyz="0 0 0.08027" rpy="0 0 0" />
@@ -28,7 +20,7 @@
       </geometry>
       <material
         name="">
-        <color rgba="0.59216 0.61961 0.65origin098 1" />
+        <color rgba="0.59216 0.61961 0.65098 1" />
       </material>
     </visual>
     <collision>
@@ -251,7 +243,7 @@
     name="L_KneePitch"
     type="revolute">
     <origin
-      xyz="0.1515 0 ?0.339"
+      xyz="0.1515 0 -0.339"
       rpy="0 0 0" />
     <parent
       link="L_HipPitch_Link" />
@@ -323,7 +315,7 @@
     name="L_AnkleRoll_Link">
     <inertial>
       <origin
-        xyz="-0.00989 0 ?0.07224"
+        xyz="-0.00989 0 0.07224"
         rpy="0 0 0" />
       <mass
         value="1.42541" />
@@ -587,7 +579,7 @@
     name="R_KneePitch"
     type="revolute">
     <origin
-      xyz="0.1515 0 ?0.339"
+      xyz="0.1515 0 -0.339"
       rpy="0 0 0" />
     <parent
       link="R_HipPitch_Link" />
@@ -603,7 +595,7 @@
     name="R_AnklePitch_Link">
     <inertial>
       <origin
-        xyz="-0.01035 ?0.00568 0"
+        xyz="-0.01035 0.00568 0"
         rpy="0 0 0" />
       <mass
         value="1.18450" />
@@ -659,7 +651,7 @@
     name="R_AnkleRoll_Link">
     <inertial>
       <origin
-        xyz="-0.00989 0 ?0.07224"
+        xyz="-0.00989 0 0.07224"
         rpy="0 0 0" />
       <mass
         value="1.42541" />
