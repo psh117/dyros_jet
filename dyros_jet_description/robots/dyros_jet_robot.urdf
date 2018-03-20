@@ -1,13 +1,4 @@
-
 <robot name="dyros_jet_robot">
-  <link name="world"/>
-  <joint name="virtual" type="fixed">
-    <origin xyz="0 0 0" rpy="0 0 0" />
-    <parent link="world"/>
-    <child link="base_link"/>
-    <limit effort="30" velocity="1.0" lower="-2.2" upper="0.7" />
-  </joint>
-
   <link name="base_link">
     <inertial>
       <origin xyz="0 0 0.08027" rpy="0 0 0" />
@@ -252,7 +243,7 @@
     name="L_KneePitch"
     type="revolute">
     <origin
-      xyz="0.1515 0 0.339"
+      xyz="0.1515 0 -0.339"
       rpy="0 0 0" />
     <parent
       link="L_HipPitch_Link" />
@@ -588,7 +579,7 @@
     name="R_KneePitch"
     type="revolute">
     <origin
-      xyz="0.1515 0 0.339"
+      xyz="0.1515 0 -0.339"
       rpy="0 0 0" />
     <parent
       link="R_HipPitch_Link" />
@@ -1610,4 +1601,3 @@
       velocity="1" lower="-3.14" upper="3.14" />
   </joint>
 </robot>
-
