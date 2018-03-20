@@ -35,9 +35,9 @@ void WalkingController::compute()
       /////////////////////compute/////////////////////////
       if (ik_mode_ == 0)
       {
-        pelv_trajectory_float_ = pelv_float_init_;
+  /*      pelv_trajectory_float_ = pelv_float_init_;
         lfoot_trajectory_float_ = lfoot_float_init_;
-        rfoot_trajectory_float_ = rfoot_float_init_;
+        rfoot_trajectory_float_ = rfoot_float_init_;*/
         computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_);
         std::cout<<"pelv_float_init_"<<pelv_float_init_.linear()<<endl;
         std::cout<<"pelv_float_init_"<<pelv_float_init_.translation()<<endl;
@@ -1829,13 +1829,13 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
 
   Eigen::Vector3d ld, rd;
   ld.setZero(); rd.setZero();
-/*  ld(0) = -0.0059;
+  ld(0) = 0;
   ld(1) = 0.105;
-  ld(2) = -0.1349;
-  rd(0) = -0.0059;
+  ld(2) = -0.1119;
+  rd(0) = 0;
   rd(1) = -0.105;
-  rd(2) = -0.1349;
-*/
+  rd(2) = -0.1119;
+
   ld = trunk_lleg_rotation.transpose() * ld;
   rd = trunk_rleg_rotation.transpose() * rd;
 
@@ -1843,23 +1843,12 @@ void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform
   lr = lp + ld;
   rr = rp + rd;
 
-  double l_upper = 0.3715; //direct length from hip to knee
+  double l_upper = 0.3713; //direct length from hip to knee
   double l_lower = 0.3728; //direct length from knee to ankle
 
-  //double offset_hip_pitch = 24.6271*DEG2RAD;
-  //double offset_knee_pitch = 15.3655*DEG2RAD;
-  //double offset_ankle_pitch = 9.2602*DEG2RAD;
-
-  double offset_hip_pitch = 0;
-  double offset_knee_pitch = 0;
-  double offset_ankle_pitch = 0;
-
-
-  /*
-  double offset_hip_pitch = 24.0762*DEG2RAD;
-  double offset_knee_pitch = 14.8148*DEG2RAD;
-  double offset_ankle_pitch = 9.2614*DEG2RAD;
-*/
+  double offset_hip_pitch = 24.0799945102*DEG2RAD;
+  double offset_knee_pitch = 14.8197729791*DEG2RAD;
+  double offset_ankle_pitch = 9.2602215311*DEG2RAD;
 
   //////////////////////////// LEFT LEG INVERSE KINEMATICS ////////////////////////////
 
