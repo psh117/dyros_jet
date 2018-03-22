@@ -10,11 +10,6 @@ void WalkingController::compute()
 {
   if(walking_enable_)
   {
-     std::cout<<"walking_tick:"<<walking_tick_<<endl;
-     std::cout<<"current_step_num:"<<current_step_num_<<endl;
-     std::cout<<"total_step_num:"<<total_step_num_<<endl;
-     std::cout<<"t_last_:"<<t_last_<<endl;
-
     updateInitialState();
 
     getRobotState();
@@ -39,18 +34,11 @@ void WalkingController::compute()
         lfoot_trajectory_float_ = lfoot_float_init_;
         rfoot_trajectory_float_ = rfoot_float_init_;*/
         computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_);
-        std::cout<<"pelv_float_init_"<<pelv_float_init_.linear()<<endl;
-        std::cout<<"pelv_float_init_"<<pelv_float_init_.translation()<<endl;
-        std::cout<<"lfoot_float_init_"<<lfoot_float_init_.linear()<<endl;
-        std::cout<<"lfoot_float_init_"<<lfoot_float_init_.translation()<<endl;
-        std::cout<<"rfoot_float_init_"<<rfoot_float_init_.linear()<<endl;
-        std::cout<<"rfoot_float_init_"<<rfoot_float_init_.translation()<<endl;
+
         for(int i=0; i<12; i++)
         {
           desired_q_(i) = desired_leg_q_(i);
         }
-
-        std::cout<<"q"<<desired_leg_q_;
       }
       else if (ik_mode_ == 1)
       {
@@ -94,7 +82,6 @@ void WalkingController::compute()
       ///////////////////////////////////////////////
 
       updateNextStepTime();
-        std::cout<<"gg"<<endl;
 
     }
     else
@@ -180,9 +167,9 @@ void WalkingController::parameterSetting()
 */
   t_double1_= 0.1*hz_;
   t_double2_= 0.1*hz_;
-  t_rest_init_ = 0.50*hz_;
-  t_rest_last_= 0.50*hz_;
-  t_total_= 2.1*hz_;
+  t_rest_init_ = 2.0*hz_;
+  t_rest_last_= 2.0*hz_;
+  t_total_= 5.2*hz_;   //5.1cho andem
   t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -1621,7 +1608,7 @@ void WalkingController::getFootTrajectory()
   }
   else if(walking_tick_ >= t_start_real_+t_double1_ && walking_tick_ < t_start_+t_total_-t_double2_-t_rest_last_)
   {
-    double t_rest_temp = 0.1*hz_;
+    double t_rest_temp = 0.0*hz_;
     double ankle_temp;
     ankle_temp = 0*DEG2RAD;
 
@@ -2231,7 +2218,7 @@ void WalkingController::compensator()
 {
   if(hip_compensator_mode_ == true)
   {
-    //hipCompensation();
+    hipCompensation();
     hipCompensator();
   }
 
@@ -2244,7 +2231,7 @@ void WalkingController::compensator()
 
 void WalkingController::hipCompensator()
 {
-  double left_hip_angle = 2.0*DEG2RAD, right_hip_angle = 2.0*DEG2RAD, left_hip_angle_first_step = 2.0*DEG2RAD, right_hip_angle_first_step = 2.0*DEG2RAD,
+  double left_hip_angle = 3.0*DEG2RAD, right_hip_angle = 4.2*DEG2RAD, left_hip_angle_first_step = 3.3*DEG2RAD, right_hip_angle_first_step = 3.8*DEG2RAD,
       left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
 
   if (current_step_num_ == 0)
