@@ -9,8 +9,10 @@
 #include <stdio.h>
 #include <iostream>
 
+#define ZERO_LIBRARY_MODE
 
-const int FILE_CNT = 8;
+
+const int FILE_CNT = 9;
 
 const std::string FILE_NAMES[FILE_CNT] =
 {
@@ -22,7 +24,9 @@ const std::string FILE_NAMES[FILE_CNT] =
   "/home/dg/data/walking/4_desired_swingfoot_.txt",
   "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
   "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/dg/data/walking/7_current_foot_trajectory_.txt"
+  "/home/dg/data/walking/7_current_foot_trajectory_.txt",
+  "/home/dg/data/walking/8_estimation_variables_.txt"
+
 };
 
 using namespace std;
@@ -56,7 +60,7 @@ public:
           <<"\t"<<"pelv_support_current_.translation()(0)"<<"\t"<<"pelv_support_current_.translation()(1)"<<"\t"<<"pelv_support_current_.translation()(2)"<<endl;
     file[7]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"rfoot_support_current_.translation()(0)"<<"\t"<<"rfoot_support_current_.translation()(1)"<<"\t"<<"rfoot_support_current_.translation()(2)"
           <<"\t"<<"lfoot_support_current_.translation()(0)"<<"\t"<<"lfoot_support_current_.translation()(1)"<<"\t"<<"lfoot_support_current_.translation()(2)"<<endl;
-
+    file[8]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"vars.x[0]"<<"\t"<<"vars.x[1]"<<"\t"<<"vars.x[2]"<<"\t"<<"vars.x[3]"<<"\t"<<"vars.x[4]"<<"\t"<<"vars.x[5]"<<endl;
   }
   //WalkingController::~WalkingController()
   //{
@@ -124,6 +128,10 @@ private:
   const double &current_time_; // updated by control_base
   unsigned int walking_tick_ = 0;
   double walking_time_ = 0;
+
+  //sensorData
+  Eigen::Vector6d r_ft_;
+  Eigen::Vector6d l_ft_;
 
   //parameterSetting()
   double t_last_;
@@ -297,26 +305,23 @@ private:
   Eigen::Matrix<double, 2, 1> b_f_;
   Eigen::Matrix<double, 6, 1> b_noise_;
 
-  Eigen::Vector3d com_measured_; //from support foot
-  Eigen::Vector3d com_measured_r_;
-  Eigen::Vector3d com_measured_l_;
-  Eigen::Vector3d com_old_measured_;
-  Eigen::Vector3d com_old_measured_r_;
-  Eigen::Vector3d com_old_measured_l_;
-  Eigen::Vector3d com_dot_old_measured_;
-  Eigen::Vector2d com_dot_old_estimation_;
-  Eigen::Vector2d com_old_estimation_;
-  Eigen::Vector3d com_dot_measured_;
+  Eigen::Vector3d com_support_dot_current_;//from support foot
+
+  Eigen::Vector3d com_support_old_;
+  Eigen::Vector3d com_support_dot_old_;
+  Eigen::Vector2d com_support_dot_old_estimation_;
+  Eigen::Vector2d com_support_old_estimation_;
+
 
   Eigen::Vector2d zmp_r_;
   Eigen::Vector2d zmp_l_;
   Eigen::Vector2d zmp_measured_;
   Eigen::Vector2d zmp_old_estimation_;
 
-  Eigen::Matrix<double, 6, 1> x_estimation;
+  Eigen::Vector6d x_estimation_;
 
   void getEstimationInputMatrix();
-
+  ////////////////////////////////////////////////////////
 };
 
 }

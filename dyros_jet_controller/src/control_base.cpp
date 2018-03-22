@@ -62,6 +62,7 @@ void ControlBase::makeIDInverseList()
 void ControlBase::update()
 {
   model_.updateKinematics(q_.head<DyrosJetModel::MODEL_DOF>());  // Update end effector positions and Jacobians
+  model_.updateSensorData(right_foot_ft_, left_foot_ft_);
   stateChangeEvent();
 }
 

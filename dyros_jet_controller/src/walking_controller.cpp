@@ -1,5 +1,12 @@
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "dyros_jet_controller/walking_controller.h"
+#include "cvxgen_6_8_0/cvxgen/solver.h"
+
+
+Vars vars;
+Params params;
+Workspace work;
+Settings settings;
 
 namespace dyros_jet_controller
 {
@@ -10,14 +17,16 @@ void WalkingController::compute()
 {
   if(walking_enable_)
   {
-     std::cout<<"walking_tick:"<<walking_tick_<<endl;
-     std::cout<<"current_step_num:"<<current_step_num_<<endl;
-     std::cout<<"total_step_num:"<<total_step_num_<<endl;
-     std::cout<<"t_last_:"<<t_last_<<endl;
+
+     std::cout<<"walking_tick_:"<<walking_tick_<<endl;
+     //std::cout<<"total_step_num:"<<total_step_num_<<endl;
+     //std::cout<<"t_last_:"<<t_last_<<endl;
 
     updateInitialState();
 
     getRobotState();
+
+    floatToSupportFootstep();
 
     if(current_step_num_< total_step_num_)
     {
@@ -31,26 +40,37 @@ void WalkingController::compute()
 
       supportToFloatPattern();
 
+      /////state estimation///////////
+      getEstimationInputMatrix();
+
+      solve();
+
+      //std::cout<<"work.converged:"<<work.converged<<endl;
+
+      //std::cout<<"vars.x[0]:"<<vars.x[0]<<endl;
+      //std::cout<<"vars.x[2]:"<<vars.x[2]<<endl;
+      //std::cout<<"vars.x[4]:"<<vars.x[4]<<endl;
+      ////////////////////////////////
+
 
       /////////////////////compute/////////////////////////
       if (ik_mode_ == 0)
       {
-  /*      pelv_trajectory_float_ = pelv_float_init_;
+        pelv_trajectory_float_ = pelv_float_init_;
+        pelv_trajectory_float_.translation()(2) = pelv_float_init_.translation()(2);
+        pelv_trajectory_float_.translation()(0) = DyrosMath::cubic(walking_tick_, 0, 0.5, pelv_float_init_.translation()(0), 0, 0, 0);
+        pelv_trajectory_float_.translation()(1) = 0.12*sin(2*M_PI*walking_tick_/(hz_*1.0));
         lfoot_trajectory_float_ = lfoot_float_init_;
-        rfoot_trajectory_float_ = rfoot_float_init_;*/
+        rfoot_trajectory_float_ = rfoot_float_init_;
+
+        std::cout<<"pelv_trajectory_float_.translation(): "<<pelv_trajectory_float_.translation()<<endl;
+        std::cout<<"lfoot_trajectory_float_.translation(): "<<lfoot_trajectory_float_.translation()<<endl;
+        std::cout<<"rfoot_trajectory_float_.translation(): "<<rfoot_trajectory_float_.translation()<<endl;
         computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_);
-        std::cout<<"pelv_float_init_"<<pelv_float_init_.linear()<<endl;
-        std::cout<<"pelv_float_init_"<<pelv_float_init_.translation()<<endl;
-        std::cout<<"lfoot_float_init_"<<lfoot_float_init_.linear()<<endl;
-        std::cout<<"lfoot_float_init_"<<lfoot_float_init_.translation()<<endl;
-        std::cout<<"rfoot_float_init_"<<rfoot_float_init_.linear()<<endl;
-        std::cout<<"rfoot_float_init_"<<rfoot_float_init_.translation()<<endl;
         for(int i=0; i<12; i++)
         {
           desired_q_(i) = desired_leg_q_(i);
         }
-
-        std::cout<<"q"<<desired_leg_q_;
       }
       else if (ik_mode_ == 1)
       {
@@ -68,9 +88,8 @@ void WalkingController::compute()
       }
       //////////////////////////////////////////////////////
 
+
       compensator();
-
-
 
 
       //////////////data saving in text files///////////
@@ -91,10 +110,11 @@ void WalkingController::compute()
             <<"\t"<<pelv_support_current_.translation()(0)<<"\t"<<pelv_support_current_.translation()(1)<<"\t"<<pelv_support_current_.translation()(2)<<endl;
       file[7]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_support_current_.translation()(0)<<"\t"<<rfoot_support_current_.translation()(1)<<"\t"<<rfoot_support_current_.translation()(2)
             <<"\t"<<lfoot_support_current_.translation()(0)<<"\t"<<lfoot_support_current_.translation()(1)<<"\t"<<lfoot_support_current_.translation()(2)<<endl;
+      file[8]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<vars.x[0]<<"\t"<<vars.x[1]<<"\t"<<vars.x[2]<<"\t"<<vars.x[3]<<"\t"<<vars.x[4]<<"\t"<<vars.x[5]<<endl;
+
       ///////////////////////////////////////////////
 
       updateNextStepTime();
-        std::cout<<"gg"<<endl;
 
     }
     else
@@ -183,7 +203,7 @@ void WalkingController::parameterSetting()
   t_rest_init_ = 0.50*hz_;
   t_rest_last_= 0.50*hz_;
   t_total_= 2.1*hz_;
-  t_temp_ = 3.0*hz_;
+  t_temp_ = 30.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
 
@@ -202,6 +222,9 @@ void WalkingController::parameterSetting()
   com_control_mode_ = true;
 
   //zc_ = 0.75;
+
+  set_defaults();
+  setup_indexing();
 }
 
 /**Foot step related fuctions
@@ -233,6 +256,7 @@ void WalkingController::getRobotState()
 
   current_leg_jacobian_l_=model_.getLegJacobian((DyrosJetModel::EndEffector) 0);
   current_leg_jacobian_r_=model_.getLegJacobian((DyrosJetModel::EndEffector) 1);
+
 
 }
 
@@ -842,7 +866,6 @@ void WalkingController::calculateFootStepSeparate()
 
 void WalkingController::getZmpTrajectory()
 {
-  floatToSupportFootstep();
 
   unsigned int planning_step_number  = 3;
 
@@ -973,6 +996,8 @@ void WalkingController::updateInitialState()
     lfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(0));
     rfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(1));
     com_float_init_ = model_.getCurrentCom();
+    r_ft_ = model_.getRightFootForce();
+    l_ft_ = model_.getLeftFootForce();
 
     pelv_float_init_.setIdentity();
 
@@ -1049,6 +1074,10 @@ void WalkingController::updateInitialState()
       yi_ = pelv_support_init_.translation()(1)+com_offset_(1);
     }
 
+    com_support_dot_old_estimation_.setZero();
+    com_support_old_estimation_ .setZero();
+    zmp_old_estimation_.setZero();
+
   }
   else if(current_step_num_!=0 && walking_tick_ == t_start_)
   {
@@ -1057,6 +1086,9 @@ void WalkingController::updateInitialState()
     lfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(0));
     rfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(1));
     com_float_init_ = model_.getCurrentCom();
+    r_ft_ = model_.getRightFootForce();
+    l_ft_ = model_.getLeftFootForce();
+
     pelv_float_init_.setIdentity();
 
     Eigen::Isometry3d ref_frame;
@@ -1119,22 +1151,32 @@ void WalkingController::updateInitialState()
 
 void WalkingController::updateNextStepTime()
 {
-  if(walking_tick_ == t_last_)
-  {
-    if(current_step_num_ != total_step_num_-1)
-    {
-      t_start_ = t_last_ +1;
-      t_start_real_ = t_start_ + t_rest_init_;
-      t_last_ = t_start_ + t_total_ -1;
+  //if(walking_tick_ == t_last_)
+  //{
+  //  if(current_step_num_ != total_step_num_-1)
+  //  {
+  //    t_start_ = t_last_ +1;
+  //    t_start_real_ = t_start_ + t_rest_init_;
+  //    t_last_ = t_start_ + t_total_ -1;
+  //
+  //    current_step_num_ ++;
+  //  }
+  //  else if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +10.0*hz_)
+  //  {
+  //    walking_enable_ = false;
+  //  }
+  //}
 
-      current_step_num_ ++;
-    }
-    else if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +10.0*hz_)
-    {
-      walking_enable_ = false;
-    }
+  if(walking_tick_ >= 30*hz_)
+  {
+    std::cout<<"tick: "<<walking_tick_<<endl;
+    std::cout<<"hz_: "<<hz_<<endl;
+
+    std::cout<<"dead"<<endl;
+    walking_enable_ = false;
   }
 
+  std::cout<<"here"<<endl;
   walking_tick_ ++;
 
 }
@@ -2232,7 +2274,7 @@ void WalkingController::compensator()
   if(hip_compensator_mode_ == true)
   {
     //hipCompensation();
-    hipCompensator();
+    //hipCompensator();
   }
 
   if(lqr_compensator_mode_ == true)
@@ -2449,62 +2491,72 @@ void WalkingController::vibrationControl(const VectorQd desired_leg_q, VectorQd 
 
 void WalkingController::getEstimationInputMatrix()
 {
-  for (int i = 0; i < 6; i++)
-    x_estimation(i) = vars.x[i];
+  double mass_total = 51.315;
+\
+  if(walking_tick_ == 0)
+    solve();
 
-  com_dot_old_estimation_(0) = vars.x[0];
-  com_dot_old_estimation_(1) = vars.x[1];
-  com_old_estimation_(0) = vars.x[2];
-  com_old_estimation_(1) = vars.x[3];
-  zmp_old_estimation_(0) = vars.x[4];
-  zmp_old_estimation_(1) = vars.x[5];
+  for (int i = 0; i < 6; i++)
+    x_estimation_(i) = vars.x[i];
+
+  if(walking_tick_ != 0)
+  {
+    com_support_dot_old_estimation_(0) = vars.x[0];
+    com_support_dot_old_estimation_(1) = vars.x[1];
+    com_support_old_estimation_(0) = vars.x[2];
+    com_support_old_estimation_(1) = vars.x[3];
+    zmp_old_estimation_(0) = vars.x[4];
+    zmp_old_estimation_(1) = vars.x[5];
+  }
+
+
 
   Eigen::Vector2d FT_xy;
+  
+  zmp_r_(0) = (-r_ft_(4) - r_ft_(0)*0.0062) / r_ft_(2);
+  zmp_r_(1) = (r_ft_(3) - r_ft_(1)*0.0062) / r_ft_(2);
+  zmp_l_(0) = (-l_ft_(4) - l_ft_(0)*0.0062) / l_ft_(2);
+  zmp_l_(1) = (l_ft_(3) - l_ft_(1)*0.0062) / l_ft_(2);
 
-  zmp_r_(0) = (-_RFT_noise(4) - _RFT_noise(0)*0.0062) / _RFT_noise(2);
-  zmp_r_(1) = (_RFT_noise(3) - _RFT_noise(1)*0.0062) / _RFT_noise(2);
-  zmp_l_(0) = (-_LFT_noise(4) - _LFT_noise(0)*0.0062) / _LFT_noise(2);
-  zmp_l_(1) = (_LFT_noise(3) - _LFT_noise(1)*0.0062) / _LFT_noise(2);
 
 
-  //com_measured_l_ = L_foot_P[6].rotation().transpose()*(com_position_base - L_foot_P[6].translation());
-  //com_measured_r_ = R_foot_P[6].rotation().transpose()*(com_position_base - R_foot_P[6].translation());
+  com_support_dot_current_ = (com_support_current_ - com_support_old_)*hz_;
 
   if (foot_step_(current_step_num_,6)==1) //left foot support
   {
-    if () //ssp
+    if ( l_ft_(2)<10 || (walking_tick_ > t_start_ + t_rest_init_+ 2*t_double1_ && walking_tick_ < t_start_+t_total_ - t_rest_last_ - 2*t_double2_)) //ssp
     {
       zmp_measured_ = zmp_l_;
-      FT_xy = _LFT_noise.topRows(2);
+      FT_xy = l_ft_.topRows(2);
     }
     else //dsp
     {
-      zmp_measured_(0) = ((((L_foot_P[6].rotation().transpose()*R_foot_P[6].rotation()).topLeftCorner<2, 2>()*zmp_r)(0) + (L_foot_P[6].rotation().transpose()*(R_foot_P[6].translation() - L_foot_P[6].translation()))(0))*_RFT_noise(2) + zmp_l(0)*_LFT_noise(2)) / (_RFT_noise(2) + _LFT_noise(2));
-      zmp_measured_(1) = ((((L_foot_P[6].rotation().transpose()*R_foot_P[6].rotation()).topLeftCorner<2, 2>()*zmp_r)(1) + (L_foot_P[6].rotation().transpose()*(R_foot_P[6].translation() - L_foot_P[6].translation()))(1))*_RFT_noise(2) + zmp_l(1)*_LFT_noise(2)) / (_RFT_noise(2) + _LFT_noise(2));
-      FT_xy = _RFT_noise.topRows(2)+_LFT_noise.topRows(2);
+      zmp_measured_(0) = ((((rfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_r_)(0) + (rfoot_support_current_.translation())(0))*r_ft_(2) + zmp_l_(0)*l_ft_(2)) / (r_ft_(2) + l_ft_(2));
+      zmp_measured_(1) = ((((rfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_r_)(1) + (rfoot_support_current_.translation())(1))*r_ft_(2) + zmp_l_(1)*l_ft_(2)) / (r_ft_(2) + l_ft_(2));
+      FT_xy = r_ft_.topRows(2)+l_ft_.topRows(2);
     }
 
     //COM_m = COM_m_l;
-    //COM_dot_m = (COM_m_l - COM_old_m_l) / (1 / Hz);
+    //com_dot_measured_ = (com_measured_l_ - com_old_measured_l_)*hz_;
     //COM_dot_m = J_COM_PSEM*PseudoInverse((L_foot_P[6].rotation().transpose())*(J_LL[6].topLeftCorner<3,6>()), 0)*_Gyro_LFoot_Rot.transpose()*(_Position_Base-_Position_Base_old)*Hz;
     //COM_dot_m = _Gyro_RFoot_Rot.transpose()*(_Position_Base - _Position_Base_old)*Hz;
 
   }
   else
   {
-    if () //ssp
+    if ( r_ft_(2)<10 || (walking_tick_ > t_start_ + t_rest_init_+ 2*t_double1_ && walking_tick_ < t_start_+t_total_ - t_rest_last_ - 2*t_double2_) ) //ssp
     {
       zmp_measured_ = zmp_r_;
-      FT_xy = _RFT_noise.topRows(2);
+      FT_xy = r_ft_.topRows(2);
     }
     else //dsp
     {
-      zmp_measured_(0) = ((((R_foot_P[6].rotation().transpose()*L_foot_P[6].rotation()).topLeftCorner<2,2>()*zmp_l)(0) + (R_foot_P[6].rotation().transpose()*(-R_foot_P[6].translation() + L_foot_P[6].translation()))(0))*_LFT_noise(2) + zmp_r(0)*_RFT_noise(2)) / (_RFT_noise(2) + _LFT_noise(2));
-      zmp_measured_(1) = ((((R_foot_P[6].rotation().transpose()*L_foot_P[6].rotation()).topLeftCorner<2, 2>()*zmp_l)(1) + (R_foot_P[6].rotation().transpose()*(-R_foot_P[6].translation() + L_foot_P[6].translation()))(1))*_LFT_noise(2) + zmp_r(1)*_RFT_noise(2)) / (_RFT_noise(2) + _LFT_noise(2));
-      FT_xy = _RFT_noise.topRows(2) + _LFT_noise.topRows(2);
+      zmp_measured_(0) = ((((lfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_l_)(0) + (lfoot_support_current_.translation())(0))*l_ft_(2) + zmp_r_(0)*r_ft_(2)) / (r_ft_(2) + l_ft_(2));
+      zmp_measured_(1) = ((((lfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_l_)(1) + (lfoot_support_current_.translation())(1))*l_ft_(2) + zmp_r_(1)*r_ft_(2)) / (r_ft_(2) + l_ft_(2));
+      FT_xy = r_ft_.topRows(2) + l_ft_.topRows(2);
     }
     //COM_m = COM_m_r;
-    //COM_dot_m = (COM_m_r - COM_old_m_r) / (1 / Hz);
+    //com_dot_measured_ = (com_measured_r_ - com_old_measured_r_)*hz_;
     //COM_dot_m = J_COM_PSEM*PseudoInverse((R_foot_P[6].rotation().transpose())*(J_RL[6].topLeftCorner<3, 6>()), 0)*_Gyro_RFoot_Rot.transpose()*(_Position_Base - _Position_Base_old)*Hz;
     //COM_dot_m = _Gyro_LFoot_Rot.transpose()*(_Position_Base - _Position_Base_old)*Hz;
 
@@ -2513,16 +2565,16 @@ void WalkingController::getEstimationInputMatrix()
   ///////////////////////////////////////Make Matirx//////////////////////////////
   a_kin_.setZero();
   a_kin_.block<2, 2>(0, 0).setIdentity();
-  a_kin_(0, 2) = -GRAVITY / (Zc*Hz) ;
-  a_kin_(1, 3) = -GRAVITY / (Zc*Hz);
-  a_kin_(0, 4) = GRAVITY / (Zc*Hz);
-  a_kin_(1, 5) = GRAVITY / (Zc*Hz);
-  b_kin_ = com_dot_old_estimation_;
+  a_kin_(0, 2) = -GRAVITY / (zc_*hz_) ;
+  a_kin_(1, 3) = -GRAVITY / (zc_*hz_);
+  a_kin_(0, 4) = GRAVITY / (zc_*hz_);
+  a_kin_(1, 5) = GRAVITY / (zc_*hz_);
+  b_kin_ = com_support_dot_old_estimation_;
 
 
   a_c_dot_.setZero();
   a_c_dot_.block<2, 2>(0, 0).setIdentity();
-  b_c_dot_ = com_dot_measured_.topRows(2);
+  b_c_dot_ = com_support_dot_current_.topRows(2);
 
   /*
   A_c_dot.setZero();
@@ -2534,7 +2586,7 @@ void WalkingController::getEstimationInputMatrix()
 
   a_c_.setZero();
   a_c_.block<2, 2>(0, 2).setIdentity();
-  b_c_ = com_measured_.topRows(2);
+  b_c_ = com_support_current_.topRows(2);
   /*
   A_c.setZero();
   A_c(0, 2) = -(Hz);
@@ -2549,9 +2601,9 @@ void WalkingController::getEstimationInputMatrix()
 
   a_c_c_dot_.setZero();
   a_c_c_dot_.block<2, 2>(0, 2).setIdentity();
-  a_c_c_dot_(0, 0) = -1 / Hz;
-  a_c_c_dot_(1, 1) = -1 / Hz;
-  b_c_c_dot_ = com_old_estimation_;
+  a_c_c_dot_(0, 0) = -1 / hz_;
+  a_c_c_dot_(1, 1) = -1 / hz_;
+  b_c_c_dot_ = com_support_old_estimation_;
 
   a_f_.setZero();
   a_f_(0, 2) = mass_total*GRAVITY / (zc_);
@@ -2561,15 +2613,28 @@ void WalkingController::getEstimationInputMatrix()
   b_f_ = FT_xy;
 
   a_noise_.setIdentity();
-  b_noise_(0) = com_dot_old_estimation_(0);
-  b_noise_(1) = com_dot_old_estimation_(1);
-  b_noise_(2) = com_old_estimation_(0);
-  b_noise_(3) = com_old_estimation_(1);
-  b_noise_(4) = zmp_old_estimation_(0);
-  b_noise_(5) = zmp_old_estimation_(1);
+
+  if(walking_tick_ == t_start_)
+  {
+    b_noise_(0) = com_support_dot_current_(0);
+    b_noise_(1) = com_support_dot_current_(1);
+    b_noise_(2) = com_support_current_(0);
+    b_noise_(3) = com_support_current_(1);
+    b_noise_(4) = zmp_measured_(0);
+    b_noise_(5) = zmp_measured_(1);
+  }
+  else
+  {
+    b_noise_(0) = com_support_dot_old_estimation_(0);
+    b_noise_(1) = com_support_dot_old_estimation_(1);
+    b_noise_(2) = com_support_old_estimation_(0);
+    b_noise_(3) = com_support_old_estimation_(1);
+    b_noise_(4) = zmp_old_estimation_(0);
+    b_noise_(5) = zmp_old_estimation_(1);
+  }
+
 
   /////////////////////////////////////////////////////////////////////////////////////////////
-
   Eigen::Matrix<double, 10, 1> coeff;
   coeff.setIdentity();
   /*
@@ -2588,20 +2653,20 @@ void WalkingController::getEstimationInputMatrix()
   coeff(0) = 1e3;		//kinematic
   coeff(1) = 1e2;		//c_dot_x
   coeff(2) = 1e2;		//c_dot_y
-  coeff(3) = 1e1;		//c
+  coeff(3) = 3e1;		//c
   coeff(4) = 9e3;		//zmp
   coeff(5) = 6e2;		//approximation
   coeff(6) = 2e-1;	//FT-accer
-  coeff(7) = 0e0;	    //noise of c_dot
-  coeff(8) = 4e0;	    //noise of c
-  coeff(9) = 2e4;	    //noise of zmp
+  coeff(7) = 0e-1;	    //noise of c_dot
+  coeff(8) = 4e-1;	    //noise of c
+  coeff(9) = 2e0;	    //noise of zmp
 
   a_total_.block<2, 6>(0, 0) = coeff(0)*a_kin_;
   a_total_.block<1, 6>(2, 0) = coeff(1)*a_c_dot_.block<1, 6>(0, 0);
   a_total_.block<1, 6>(3, 0) = coeff(2)*a_c_dot_.block<1, 6>(1, 0);
   a_total_.block<2, 6>(4, 0) = coeff(3)*a_c_;
   a_total_.block<2, 6>(6, 0) = coeff(4)*a_zmp_;
-  a_total_.block<2, 6>(8, 0) = coeff(5)*a_c_c_dot_;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          coeff(5)*A_c_c_dot;
+  a_total_.block<2, 6>(8, 0) = coeff(5)*a_c_c_dot_;
   a_total_.block<2, 6>(10, 0) = coeff(6)*a_f_;
   a_total_.block<2, 6>(12, 0) = coeff(7)*a_noise_.block<2, 6>(0, 0);
   a_total_.block<2, 6>(14, 0) = coeff(8)*a_noise_.block<2, 6>(2, 0);
@@ -2646,12 +2711,7 @@ void WalkingController::getEstimationInputMatrix()
       params.Ai[j + i * 8] = 0;
     }
 
-//	for (int i = 0; i < 8; i++)
-//		params.bi[i] = 0;
-  //params.Ai[4] = 1/Hz;
-  //params.Ai[6] = -1/Hz;
-  //params.Ai[13] = 1/Hz;
-  //params.Ai[15] = -1/Hz;
+
   params.Ai[20] = 1;
   params.Ai[22] = -1;
   params.Ai[29] = 1;
@@ -2662,44 +2722,46 @@ void WalkingController::getEstimationInputMatrix()
   params.Ai[43] = -1;
 
 
-  if (t_temp >= T_double && t_temp < T - T_double)
-  {
-    params.bi[0] = 0.15;  //zmp
-    params.bi[1] = 0.0825;
-    params.bi[2] = 0.15;
-    params.bi[3] = 0.0825;
-    params.bi[4] = 0.15;   //com
-    params.bi[5] = 0.0825;
-    params.bi[6] = 0.15;
-    params.bi[7] = 0.0825;
-  }
-  else
-  {   /*
-    params.bi[0] = 0.15;
-    params.bi[1] = 0.3;
-    params.bi[2] = 0.15;
-    params.bi[3] = 0.3;
-    params.bi[4] = 0.3;
-    params.bi[5] = 0.5;
-    params.bi[6] = 0.3;
-    params.bi[7] = 0.5;
-    */
+  //if (walking_tick_ > t_start_ + t_rest_init_+ 2*t_double1_ && walking_tick_ < t_start_+t_total_ - t_rest_last_ - 2*t_double2_)
+  //{
+  //  params.bi[0] = 0.15;  //zmp
+  //  params.bi[1] = 0.0825;
+  //  params.bi[2] = 0.15;
+  //  params.bi[3] = 0.0825;
+  //  params.bi[4] = 0.15;   //com
+  //  params.bi[5] = 0.0825;
+  //  params.bi[6] = 0.15;
+  //  params.bi[7] = 0.0825;
+  //}
+  //else
+  //{
+  //
+  //  params.bi[0] = 0.25;
+  //  params.bi[1] = 0.3;
+  //  params.bi[2] = 0.25;
+  //  params.bi[3] = 0.3;
+  //  params.bi[4] = 0.5;
+  //  params.bi[5] = 0.5;
+  //  params.bi[6] = 0.5;
+  //  params.bi[7] = 0.5;
+  //}
 
-    //params.bi[0] = 0.01 - COM_old_m(0);
-    //params.bi[1] = 0.01 - COM_old_m(1);
-    //params.bi[2] = 0.01 + COM_old_m(0);
-    //params.bi[3] = 0.01 + COM_old_m(1);
-
-    params.bi[0] = 0.25;
-    params.bi[1] = 0.3;
-    params.bi[2] = 0.25;
-    params.bi[3] = 0.3;
-    params.bi[4] = 0.5;
-    params.bi[5] = 0.5;
-    params.bi[6] = 0.5;
-    params.bi[7] = 0.5;
-  }
-
+  //params.bi[0] = 0.15;     //zmp x <= 0.15
+  //params.bi[1] = 0.0825;   //zmp y <= 0.21
+  //params.bi[2] = 0.15;     //zmp x >= -0.15
+  //params.bi[3] = 0.3293;   //zmp y >= -0.21
+  //params.bi[4] = 0.15;     //com x <= 0.15
+  //params.bi[5] = 0.0825;   //com y <= 0.21
+  //params.bi[6] = 0.15;     //com x >= -0.15
+  //params.bi[7] = 0.3293;   //com y >= -0.21
+  params.bi[0] = 0.9;
+  params.bi[1] = 0.9;
+  params.bi[2] = 0.9;
+  params.bi[3] = 0.9;
+  params.bi[4] = 0.9;
+  params.bi[5] = 0.9;
+  params.bi[6] = 0.9;
+  params.bi[7] = 0.9;
 
   /*
   for (int i = 0; i < 6; i++)
@@ -2720,30 +2782,27 @@ void WalkingController::getEstimationInputMatrix()
 
 
   */
-  /*
+
   //cout << "COM_dot_m:" << COM_dot_m << endl;
   //cout << "COM_m_r:" << COM_m_r << endl;
   //cout << "COM_old_m_r:" << COM_old_m_r << endl;
-  cout << "A_total: \n" << A_total << endl;
-  cout << "A_kin: \n" << A_kin << endl;
-  cout << "A_c_dot: \n" << A_c_dot << endl;
-  cout << "A_c: \n" << A_c << endl;
-  cout << "A_zmp: \n" << A_zmp << endl;
-  cout << "A_c_c_dot: \n" << A_c_c_dot << endl;
-  cout << "A_f: \n" << A_f << endl;
-  cout << "b_total: \n" << b_total << endl;
-  cout << "b_kin: \n" << b_kin << endl;
-  cout << "b_c_dot: \n" << b_c_dot << endl;
-  cout << "b_c: \n" << b_c << endl;
-  cout << "b_zmp: \n" << b_zmp << endl;
-  cout << "b_c_c_dot: \n" << b_c_c_dot << endl;
-  cout << "b_f: \n" << b_f << endl;
-  */
+  //std::cout << "A_total: \n" << a_total_ << endl;
+  //std::cout << "A_kin: \n" << a_kin_ << endl;
+  //std::cout << "A_c_dot: \n" << a_c_dot_ << endl;
+  //std::cout << "A_c: \n" << a_c_ << endl;
+  //std::cout << "A_zmp: \n" << a_zmp_ << endl;
+  //std::cout << "A_c_c_dot: \n" << a_c_c_dot_ << endl;
+  //std::cout << "A_f: \n" << a_f_ << endl;
+  //std::cout << "b_total: \n" << b_total_ << endl;
+  //std::cout << "b_kin: \n" << b_kin_ << endl;
+  //std::cout << "b_c_dot: \n" << b_c_dot_ << endl;
+  //std::cout << "b_c: \n" << b_c_ << endl;
+  //std::cout << "b_zmp: \n" << b_zmp_ << endl;
+  //std::cout << "b_c_c_dot: \n" << b_c_c_dot_ << endl;
+  //std::cout << "b_f: \n" << b_f_ << endl;
 
-  com_old_measured_r_ = com_measured_r_;
-  com_old_measured_l_ = com_measured_l_;
-  com_dot_old_measured_ = com_dot_measured_;
-  com_old_measured_ = com_measured_;
+  com_support_old_ = com_support_current_;
+  com_support_dot_old_ = com_support_dot_current_;
 }
 
 }

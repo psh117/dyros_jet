@@ -100,9 +100,10 @@ void DyrosJetModel::test()
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 {
   RigidBodyDynamics::UpdateKinematicsCustom(model_, &q, NULL, NULL);
-  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, A_temp_, true);
   A_ = A_temp_;
   q_ = q;
+  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, A_temp_, true);
+
   // std::cout << A_ << std::endl<< std::endl<< std::endl<< std::endl;
 
   getCenterOfMassPosition(&com_);
@@ -120,6 +121,12 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
       getJacobianMatrix7DoF((EndEffector)i, &arm_jacobian_[i-2]);
     }
   }
+}
+
+void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft)
+{
+  r_ft_wrench_ = r_ft;
+  l_ft_wrench_ = l_ft;
 }
 
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
