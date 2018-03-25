@@ -2509,7 +2509,6 @@ void WalkingController::getEstimationInputMatrix()
 
 
 
-  com_support_dot_current_ = (com_support_current_ - com_support_old_)*hz_;
 
   if (foot_step_(current_step_num_,6)==1) //left foot support
   {
@@ -2556,13 +2555,15 @@ void WalkingController::getEstimationInputMatrix()
   }
   if(walking_tick_ == 0)
   {
-    com_support_dot_old_estimation_ = com_support_dot_current_.topRows(2);
+    com_support_dot_current_.setZero();
+    com_support_dot_old_estimation_.setZero();
     com_support_old_estimation_(0) = com_support_current_(0);
     com_support_old_estimation_(1) = com_support_current_(0);
     zmp_old_estimation_ = zmp_measured_;
   }
   else if(walking_tick_ != 0)
   {
+    com_support_dot_current_ = (com_support_current_ - com_support_old_)*hz_;
     com_support_dot_old_estimation_(0) = vars.x[0];
     com_support_dot_old_estimation_(1) = vars.x[1];
     com_support_old_estimation_(0) = vars.x[2];
