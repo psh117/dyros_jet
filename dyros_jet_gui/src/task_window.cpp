@@ -459,7 +459,7 @@ void TaskWindow::on_button_walk_stop_clicked()
 
 void TaskWindow::on_button_ft_calib_clicked()
 {
-  //qnode.send_ft_calib(5.0);
+  qnode.send_ft_calib(5.0);
 }
 
 void TaskWindow::taskCtrlMinusClicked()
