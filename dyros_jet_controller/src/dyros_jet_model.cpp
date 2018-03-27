@@ -9,7 +9,7 @@ namespace dyros_jet_controller
 constexpr const char* DyrosJetModel::EE_NAME[4];
 constexpr const size_t DyrosJetModel::HW_TOTAL_DOF;
 constexpr const size_t DyrosJetModel::MODEL_DOF;
-
+constexpr const size_t DyrosJetModel::MODEL_WITH_VIRTUAL_DOF;
 
 // These should be replaced by YAML or URDF or something
 const std::string DyrosJetModel::JOINT_NAME[DyrosJetModel::HW_TOTAL_DOF] = {
@@ -106,7 +106,7 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
   // std::cout << A_ << std::endl<< std::endl<< std::endl<< std::endl;
 
   getCenterOfMassPosition(&com_);
-
+  getLegMassMatrix18Dof(&leg_massmatrix_);
   for(unsigned int i=0; i<4; i++)
   {
     getTransformEndEffector((EndEffector)i, &currnet_transform_[i]);
@@ -235,4 +235,12 @@ void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
   *position = position_temp;
 }
 
+void DyrosJetModel::getLegMassMatrix18Dof(Eigen::Matrix<double, 18, 18> *massmatrix)
+{
+    Eigen::MatrixXd leg_massmatrix(MODEL_WITH_VIRTUAL_DOF,MODEL_WITH_VIRTUAL_DOF);
+    leg_massmatrix.setZero();
+    RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, leg_massmatrix , false);
+
+    massmatrix->block<18, 18>(0,0) = leg_massmatrix.block<18, 18>(0,0);
+}
 }
