@@ -12,21 +12,21 @@
 #define ZERO_LIBRARY_MODE
 
 
-const int FILE_CNT = 9;
+const int FILE_CNT = 10;
 
 const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
-  "/home/dg/data/walking/0_desired_zmp_.txt",
-  "/home/dg/data/walking/1_desired_com_.txt",
-  "/home/dg/data/walking/2_desired_q_.txt",
-  "/home/dg/data/walking/3_real_q_.txt",
-  "/home/dg/data/walking/4_desired_swingfoot_.txt",
-  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
-  "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/dg/data/walking/7_current_foot_trajectory_.txt",
-  "/home/dg/data/walking/8_estimation_variables_.txt"
-
+  "/home/pen/data/walking/0_desired_zmp_.txt",
+  "/home/pen/data/walking/1_desired_com_.txt",
+  "/home/pen/data/walking/2_desired_q_.txt",
+  "/home/pen/data/walking/3_real_q_.txt",
+  "/home/pen/data/walking/4_desired_swingfoot_.txt",
+  "/home/pen/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/pen/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/pen/data/walking/7_current_foot_trajectory_.txt",
+  "/home/pen/data/walking/8_estimation_variables_.txt",
+  "/home/pen/data/walking/9_ft_sensor_.txt"
 };
 
 using namespace std;
@@ -60,7 +60,8 @@ public:
           <<"\t"<<"pelv_support_current_.translation()(0)"<<"\t"<<"pelv_support_current_.translation()(1)"<<"\t"<<"pelv_support_current_.translation()(2)"<<"\t"<<"com_support_dot_current_(0)"<<"\t"<<"com_support_dot_current_(1)"<<"\t"<<"com_support_dot_current_(2)"<<endl;
     file[7]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"rfoot_support_current_.translation()(0)"<<"\t"<<"rfoot_support_current_.translation()(1)"<<"\t"<<"rfoot_support_current_.translation()(2)"
           <<"\t"<<"lfoot_support_current_.translation()(0)"<<"\t"<<"lfoot_support_current_.translation()(1)"<<"\t"<<"lfoot_support_current_.translation()(2)"<<endl;
-    file[8]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"vars.x[0]"<<"\t"<<"vars.x[1]"<<"\t"<<"vars.x[2]"<<"\t"<<"vars.x[3]"<<"\t"<<"vars.x[4]"<<"\t"<<"vars.x[5]"<<"\t"<<"zmp_measured_(0)"<<"\t"<<"zmp_measured_(1)"<<endl;
+    file[8]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"vars.x[0]"<<"\t"<<"vars.x[1]"<<"\t"<<"vars.x[2]"<<"\t"<<"vars.x[3]"<<"\t"<<"vars.x[4]"<<"\t"<<"vars.x[5]"<<"\t"<<"zmp_measured_(0)"<<"\t"<<"zmp_measured_(1)"<<"\t"<<"zmp_r_(0)"<<"\t"<<"zmp_r_(1)"<<"\t"<<"zmp_l_(0)"<<"\t"<<"zmp_l_(1)"<<endl;
+    file[9]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"r_ft_(0)"<<"\t"<<"r_ft_(1)"<<"\t"<<"r_ft_(2)"<<"\t"<<"r_ft_(3)"<<"\t"<<"r_ft_(4)"<<"\t"<<"r_ft_(5)"<<"\t"<<"l_ft_(0)"<<"\t"<<"l_ft_(1)"<<"\t"<<"l_ft_(2)"<<"\t"<<"l_ft_(3)"<<"\t"<<"l_ft_(4)"<<"\t"<<"l_ft_(5)"<<endl;
   }
   //WalkingController::~WalkingController()
   //{
