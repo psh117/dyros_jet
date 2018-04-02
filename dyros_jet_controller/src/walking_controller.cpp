@@ -1117,11 +1117,11 @@ void WalkingController::updateNextStepTime()
       t_last_ = t_start_ + t_total_ -1;
 
       current_step_num_ ++;
-    }
-    else if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +10.0*hz_)
-    {
+    }    
+  }
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +5.0*hz_)
+  {
       walking_enable_ = false;
-    }
   }
 
   walking_tick_ ++;
