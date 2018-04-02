@@ -217,6 +217,8 @@ void WalkingController::getRobotState()
   rfoot_support_current_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(ref_frame),rfoot_float_current_);
   pelv_support_current_ = DyrosMath::inverseIsometry3d(ref_frame);
   com_support_current_ = pelv_support_current_.linear()*com_float_current_ + pelv_support_current_.translation();
+  r_ft_ = model_.getRightFootForce();
+  l_ft_ = model_.getLeftFootForce();
 
   current_leg_jacobian_l_=model_.getLegJacobian((DyrosJetModel::EndEffector) 0);
   current_leg_jacobian_r_=model_.getLegJacobian((DyrosJetModel::EndEffector) 1);
@@ -2420,7 +2422,67 @@ void WalkingController::hipCompensation()
       grav_ground_torque_(i) = lTau[i];
       grav_ground_torque_(i+6) = rTau[i];
   }
+}
 
+void WalkingController::impedanceControl()
+{
+    Eigen::Vector6d imp_rft, imp_lft;
+    imp_rft.setZero(), imp_lft.setZero();
+
+    if(foot_step_(current_step_num_, 6) == 0)
+    {
+        imp_rft = r_ft_;
+    }
+    else
+    {
+        imp_lft = l_ft_;
+    }
+
+
+}
+
+void WalkingController::impedancefootUpdate()
+{
+    for(int i=0; i<3; i++)
+    {
+        if(walking_tick_ == 0)
+        {
+            impedance_rfoot_float_prev2(i) = rfoot_float_current_.translation()(i);
+            impedance_lfoot_float_prev2(i) = lfoot_float_current_.translation()(i);
+
+            impedance_rfoot_float_prev1(i) = rfoot_float_current_.translation()(i);
+            impedance_lfoot_float_prev1(i) = lfoot_float_current_.translation()(i);
+        }
+        else
+        {
+            impedance_rfoot_float_prev2(i) = impedance_rfoot_float_prev1(i);
+            impedance_lfoot_float_prev2(i) = impedance_lfoot_float_prev1(i);
+
+            impedance_rfoot_float_prev1(i) = impedance_rfoot_float_current(i);
+            impedance_lfoot_float_prev1(i) = impedance_lfoot_float_current(i);
+        }
+        impedance_rfoot_float_current(i) = rfoot_float_current_.translation()(i);
+        impedance_lfoot_float_current(i) = lfoot_float_current_.translation()(i);
+
+        if(walking_tick_ == 0)
+        {
+            impedance_rfoot_float_euler_prev2(i) = DyrosMath::rot2Euler(rfoot_float_current_.linear())(i);
+            impedance_lfoot_float_euler_prev2(i) = DyrosMath::rot2Euler(lfoot_float_current_.linear())(i);
+
+            impedance_rfoot_float_euler_prev1(i) = DyrosMath::rot2Euler(rfoot_float_current_.linear())(i);
+            impedance_lfoot_float_euler_prev1(i) = DyrosMath::rot2Euler(lfoot_float_current_.linear())(i);
+        }
+        else
+        {
+            impedance_rfoot_float_euler_prev2(i) = impedance_rfoot_float_euler_prev1(i);
+            impedance_lfoot_float_euler_prev2(i) = impedance_lfoot_float_euler_prev1(i);
+
+            impedance_rfoot_float_euler_prev1(i) = impedance_rfoot_float_euler_current(i);
+            impedance_lfoot_float_euler_prev1(i) = impedance_lfoot_float_euler_current(i);
+        }
+        impedance_rfoot_float_euler_current(i) = DyrosMath::rot2Euler(rfoot_float_current_.linear())(i);
+        impedance_lfoot_float_euler_current(i) = DyrosMath::rot2Euler(lfoot_float_current_.linear())(i);
+    }
 }
 
 /*
