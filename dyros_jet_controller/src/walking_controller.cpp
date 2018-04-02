@@ -15,11 +15,12 @@ namespace dyros_jet_controller
 
 void WalkingController::compute()
 {
+  //std::cout<<"enable"<<walking_enable_<<endl;
   if(walking_enable_)
   {
 
-     std::cout<<"walking_tick_:"<<walking_tick_<<endl;
-     std::cout<<"current_step_num_:"<<current_step_num_<<endl;
+     //std::cout<<"walking_tick_:"<<walking_tick_<<endl;
+     //std::cout<<"current_step_num_:"<<current_step_num_<<endl;
      //std::cout<<"total_step_num:"<<total_step_num_<<endl;
      //std::cout<<"t_last_:"<<t_last_<<endl;
 
@@ -34,9 +35,6 @@ void WalkingController::compute()
       getZmpTrajectory();
 
       getComTrajectory();
-
-      //com_desired_(0) = DyrosMath::cubic(walking_tick_, 0, 0.5, com_support_init_(0) , 0, 0, 0);
-      //com_desired_(1) = com_support_init_(1) + 0.10*sin(2*M_PI*walking_tick_/(hz_*3.0));
 
       getPelvTrajectory();
 
@@ -60,12 +58,12 @@ void WalkingController::compute()
       /////////////////////compute/////////////////////////
       if (ik_mode_ == 0)
       {
-        pelv_trajectory_float_ = pelv_float_init_;
-        pelv_trajectory_float_.translation()(2) = pelv_float_init_.translation()(2);
-        pelv_trajectory_float_.translation()(0) = DyrosMath::cubic(walking_tick_, 0, 0.5, pelv_float_init_.translation()(0), 0, 0, 0);
-        pelv_trajectory_float_.translation()(1) = 0.10*sin(2*M_PI*walking_tick_/(hz_*3.0));
-        lfoot_trajectory_float_ = lfoot_float_init_;
-        rfoot_trajectory_float_ = rfoot_float_init_;
+        //pelv_trajectory_float_ = pelv_float_init_;
+        //pelv_trajectory_float_.translation()(2) = pelv_float_init_.translation()(2);
+        //pelv_trajectory_float_.translation()(0) = DyrosMath::cubic(walking_tick_, 0, 0.5, pelv_float_init_.translation()(0), 0, 0, 0);
+        //pelv_trajectory_float_.translation()(1) = 0.10*sin(2*M_PI*walking_tick_/(hz_*10.0));
+        //lfoot_trajectory_float_ = lfoot_float_init_;
+        //rfoot_trajectory_float_ = rfoot_float_init_;
 
 
         computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_);
@@ -112,8 +110,8 @@ void WalkingController::compute()
             <<"\t"<<pelv_support_current_.translation()(0)<<"\t"<<pelv_support_current_.translation()(1)<<"\t"<<pelv_support_current_.translation()(2)<<"\t"<<com_support_dot_current_(0)<<"\t"<<com_support_dot_current_(1)<<"\t"<<com_support_dot_current_(2)<<endl;
       file[7]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_support_current_.translation()(0)<<"\t"<<rfoot_support_current_.translation()(1)<<"\t"<<rfoot_support_current_.translation()(2)
             <<"\t"<<lfoot_support_current_.translation()(0)<<"\t"<<lfoot_support_current_.translation()(1)<<"\t"<<lfoot_support_current_.translation()(2)<<endl;
-      file[8]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<vars.x[0]<<"\t"<<vars.x[1]<<"\t"<<vars.x[2]<<"\t"<<vars.x[3]<<"\t"<<vars.x[4]<<"\t"<<vars.x[5]<<"\t"<<zmp_measured_(0)<<"\t"<<zmp_measured_(1)<<endl;
-
+      file[8]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<vars.x[0]<<"\t"<<vars.x[1]<<"\t"<<vars.x[2]<<"\t"<<vars.x[3]<<"\t"<<vars.x[4]<<"\t"<<vars.x[5]<<"\t"<<zmp_measured_(0)<<"\t"<<zmp_measured_(1)<<"\t"<<zmp_r_(0)<<"\t"<<zmp_r_(1)<<"\t"<<zmp_l_(0)<<"\t"<<zmp_l_(1)<<endl;
+      file[9]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<r_ft_(0)<<"\t"<<r_ft_(1)<<"\t"<<r_ft_(2)<<"\t"<<r_ft_(3)<<"\t"<<r_ft_(4)<<"\t"<<r_ft_(5)<<"\t"<<l_ft_(0)<<"\t"<<l_ft_(1)<<"\t"<<l_ft_(2)<<"\t"<<l_ft_(3)<<"\t"<<l_ft_(4)<<"\t"<<l_ft_(5)<<endl;
       ///////////////////////////////////////////////
 
       updateNextStepTime();
@@ -189,7 +187,8 @@ void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired
 }
 
 void WalkingController::parameterSetting()
-{ /*
+{
+  /*
   t_last_ = 0.1*hz_;
   t_start_= 0.1*hz_;
   t_temp_= 0.1*hz_; /
@@ -199,13 +198,14 @@ void WalkingController::parameterSetting()
   t_double2_= 0.1*hz_; /
   t_total_= 1.3*hz_; /
   t_temp_ = 3.0*hz_; /
-*/
+  */
+
   t_double1_= 0.1*hz_;
   t_double2_= 0.1*hz_;
-  t_rest_init_ = 0.50*hz_;
-  t_rest_last_= 0.50*hz_;
-  t_total_= 2.1*hz_;
-  t_temp_ = 30.0*hz_;
+  t_rest_init_ = 2.0*hz_;
+  t_rest_last_= 2.0*hz_;
+  t_total_= 5.2*hz_;
+  t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
 
@@ -225,6 +225,7 @@ void WalkingController::parameterSetting()
 
   //zc_ = 0.75;
 
+  ///////////cvxgen setting////////////
   set_defaults();
   setup_indexing();
 }
@@ -1149,31 +1150,29 @@ void WalkingController::updateInitialState()
 
 void WalkingController::updateNextStepTime()
 {
-  //if(walking_tick_ == t_last_)
-  //{
-  //  if(current_step_num_ != total_step_num_-1)
-  //  {
-  //    t_start_ = t_last_ +1;
-  //    t_start_real_ = t_start_ + t_rest_init_;
-  //    t_last_ = t_start_ + t_total_ -1;
-  //
-  //    current_step_num_ ++;
-  //  }
-  //  else if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +10.0*hz_)
-  //  {
-  //    walking_enable_ = false;
-  //  }
-  //}
-
-  if(walking_tick_ >= 30*hz_)
+  if(walking_tick_ == t_last_)
   {
-    std::cout<<"tick: "<<walking_tick_<<endl;
-    std::cout<<"hz_: "<<hz_<<endl;
+    if(current_step_num_ != total_step_num_-1)
+    {
+      t_start_ = t_last_ +1;
+      t_start_real_ = t_start_ + t_rest_init_;
+      t_last_ = t_start_ + t_total_ -1;
 
-    std::cout<<"dead"<<endl;
+      current_step_num_ ++;
+    }
+  }
+
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +5.0*hz_)
+  {
     walking_enable_ = false;
   }
 
+    /*
+  if(walking_tick_ >= 30*hz_)
+  {
+     walking_enable_ = false;
+  }
+  */
   walking_tick_ ++;
 
 }
@@ -2026,12 +2025,12 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
   Eigen::Matrix6d kp; // for setting CLIK gains
   kp.setZero();
-  kp(0,0) = 150;
-  kp(1,1) = 150;
-  kp(2,2) = 150;
-  kp(3,3) = 50;
-  kp(4,4) = 50;
-  kp(5,5) = 50;
+  kp(0,0) = 160;
+  kp(1,1) = 160;
+  kp(2,2) = 160;
+  kp(3,3) = 100;
+  kp(4,4) = 100;
+  kp(5,5) = 100;
 
 
   Eigen::Vector6d lp, rp, cubic_xr, cubic_xl;
@@ -2270,8 +2269,8 @@ void WalkingController::compensator()
 {
   if(hip_compensator_mode_ == true)
   {
-    //hipCompensation();
-    //hipCompensator();
+    hipCompensation();
+    hipCompensator();
   }
 
   if(lqr_compensator_mode_ == true)
@@ -2283,8 +2282,8 @@ void WalkingController::compensator()
 
 void WalkingController::hipCompensator()
 {
-  double left_hip_angle = 2.0*DEG2RAD, right_hip_angle = 2.0*DEG2RAD, left_hip_angle_first_step = 2.0*DEG2RAD, right_hip_angle_first_step = 2.0*DEG2RAD,
-      left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
+  double left_hip_angle = 3.3*DEG2RAD, right_hip_angle = 4.5*DEG2RAD, left_hip_angle_first_step = 3.3*DEG2RAD, right_hip_angle_first_step = 3.8*DEG2RAD,
+      left_hip_angle_temp = 00, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
 
   if (current_step_num_ == 0)
   {
@@ -2512,15 +2511,15 @@ void WalkingController::getEstimationInputMatrix()
 
   if (foot_step_(current_step_num_,6)==1) //left foot support
   {
-    if ( l_ft_(2)<10 || (walking_tick_ > t_start_ + t_rest_init_+ 2*t_double1_ && walking_tick_ < t_start_+t_total_ - t_rest_last_ - 2*t_double2_)) //ssp
+    if ( (walking_tick_ > t_start_ + t_rest_init_+ 2*t_double1_ && walking_tick_ < t_start_+t_total_ - t_rest_last_ - 2*t_double2_)) //ssp
     {
-      std::cout<<"left_ssp"<<endl;
+      //std::cout<<"left_ssp"<<endl;
       zmp_measured_ = zmp_l_;
       FT_xy = l_ft_.topRows(2);
     }
     else //dsp
     {
-      std::cout<<"left_dsp"<<endl;
+      //std::cout<<"left_dsp"<<endl;
       zmp_measured_(0) = ((((rfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_r_)(0) + (rfoot_support_current_.translation())(0))*r_ft_(2) + zmp_l_(0)*l_ft_(2)) / (r_ft_(2) + l_ft_(2));
       zmp_measured_(1) = ((((rfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_r_)(1) + (rfoot_support_current_.translation())(1))*r_ft_(2) + zmp_l_(1)*l_ft_(2)) / (r_ft_(2) + l_ft_(2));
       FT_xy = r_ft_.topRows(2)+l_ft_.topRows(2);
@@ -2534,15 +2533,15 @@ void WalkingController::getEstimationInputMatrix()
   }
   else
   {
-    if ( r_ft_(2)<10 || (walking_tick_ > t_start_ + t_rest_init_+ 2*t_double1_ && walking_tick_ < t_start_+t_total_ - t_rest_last_ - 2*t_double2_) ) //ssp
+    if ( (walking_tick_ > t_start_ + t_rest_init_+ 2*t_double1_ && walking_tick_ < t_start_+t_total_ - t_rest_last_ - 2*t_double2_) ) //ssp
     {
-      std::cout<<"right_ssp"<<endl;
+      //std::cout<<"right_ssp"<<endl;
       zmp_measured_ = zmp_r_;
       FT_xy = r_ft_.topRows(2);
     }
     else //dsp
     {
-      std::cout<<"right_dsp"<<endl;
+      //std::cout<<"right_dsp"<<endl;
       zmp_measured_(0) = ((((lfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_l_)(0) + (lfoot_support_current_.translation())(0))*l_ft_(2) + zmp_r_(0)*r_ft_(2)) / (r_ft_(2) + l_ft_(2));
       zmp_measured_(1) = ((((lfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_l_)(1) + (lfoot_support_current_.translation())(1))*l_ft_(2) + zmp_r_(1)*r_ft_(2)) / (r_ft_(2) + l_ft_(2));
       FT_xy = r_ft_.topRows(2) + l_ft_.topRows(2);
@@ -2573,12 +2572,12 @@ void WalkingController::getEstimationInputMatrix()
   }
 
 
-  std::cout<<"r_ft: "<<r_ft_<<endl;
+  /*std::cout<<"r_ft: "<<r_ft_<<endl;
   std::cout<<"l_ft: "<<l_ft_<<endl;
 
   std::cout<<"zmp_r_"<<zmp_r_<<endl;
   std::cout<<"zmp_l_"<<zmp_l_<<endl;
-
+  */
   ///////////////////////////////////////Make Matirx//////////////////////////////
   a_kin_.setZero();
   a_kin_.block<2, 2>(0, 0).setIdentity();
@@ -2655,16 +2654,30 @@ void WalkingController::getEstimationInputMatrix()
   Eigen::Matrix<double, 10, 1> coeff;
   coeff.setIdentity();
 
-  coeff(0) = 1e3;		//kinematic
+  coeff(0) = 5e1;		//kinematic
   coeff(1) = 1e2;		//c_dot_x
   coeff(2) = 1e2;		//c_dot_y
-  coeff(3) = 3e1;		//c
-  coeff(4) = 9e3;		//zmp
+  coeff(3) = 8e1;		//c
+  coeff(4) = 3e4;		//zmp
   coeff(5) = 6e2;		//approximation
   coeff(6) = 2e-1;	//FT-accer
-  coeff(7) = 0e0;	    //noise of c_dot
-  coeff(8) = 4e0;	    //noise of c
-  coeff(9) = 2e4;	    //noise of zmp
+  coeff(7) = 1e3;	    //noise of c_dot
+  coeff(8) = 0e0;	    //noise of c
+  coeff(9) = 6e5;	    //noise of zmp
+
+  /*
+  coeff(0) = 1e0;		//kinematic
+  coeff(1) = 1e0;		//c_dot_x
+  coeff(2) = 1e0;		//c_dot_y
+  coeff(3) = 1e0;		//c
+  coeff(4) = 1e0;		//zmp
+  coeff(5) = 1e0;		//approximation
+  coeff(6) = 1e0;	//FT-accer
+  coeff(7) = 1e0;	    //noise of c_dot
+  coeff(8) = 1e0;	    //noise of c
+  coeff(9) = 1e0;	    //noise of zmp
+  */
+
 
 
   //coeff(0) = 0e0;		//kinematic
@@ -2710,13 +2723,14 @@ void WalkingController::getEstimationInputMatrix()
   for (int j = 0; j < 12; j++)
       params.b[j] = b_total(j);
   */
+  Eigen::Matrix<double, 6, 6> q;
 
-
+  q = a_total_.transpose()*a_total_;
 
   for (int i = 0; i < 6; i++)
     for (int j = 0; j < 6; j++)
     {
-      params.Q[j + i * 6] = (a_total_.transpose()*a_total_)(j, i);
+      params.Q[j + i * 6] = q(j, i);
     }
 
   for (int i = 0; i < 6; i++)
@@ -2771,6 +2785,7 @@ void WalkingController::getEstimationInputMatrix()
   //params.bi[5] = 0.0825;   //com y <= 0.21
   //params.bi[6] = 0.15;     //com x >= -0.15
   //params.bi[7] = 0.3293;   //com y >= -0.21
+
   params.bi[0] = 0.9;
   params.bi[1] = 0.9;
   params.bi[2] = 0.9;
@@ -2800,23 +2815,23 @@ void WalkingController::getEstimationInputMatrix()
 
   */
 
-  //cout << "COM_dot_m:" << COM_dot_m << endl;
-  //cout << "COM_m_r:" << COM_m_r << endl;
-  //cout << "COM_old_m_r:" << COM_old_m_r << endl;
-  //std::cout << "A_total: \n" << a_total_ << endl;
-  //std::cout << "A_kin: \n" << a_kin_ << endl;
-  //std::cout << "A_c_dot: \n" << a_c_dot_ << endl;
-  //std::cout << "A_c: \n" << a_c_ << endl;
-  //std::cout << "A_zmp: \n" << a_zmp_ << endl;
-  //std::cout << "A_c_c_dot: \n" << a_c_c_dot_ << endl;
-  //std::cout << "A_f: \n" << a_f_ << endl;
-  //std::cout << "b_total: \n" << b_total_ << endl;
-  //std::cout << "b_kin: \n" << b_kin_ << endl;
-  //std::cout << "b_c_dot: \n" << b_c_dot_ << endl;
-  //std::cout << "b_c: \n" << b_c_ << endl;
-  //std::cout << "b_zmp: \n" << b_zmp_ << endl;
-  //std::cout << "b_c_c_dot: \n" << b_c_c_dot_ << endl;
-  //std::cout << "b_f: \n" << b_f_ << endl;
+  if(walking_tick_ ==0)
+  {
+  std::cout << "a_total: \n" << a_total_ << endl;
+  std::cout << "a_kin: \n" << a_kin_ << endl;
+  std::cout << "a_c_dot: \n" << a_c_dot_ << endl;
+  std::cout << "a_c: \n" << a_c_ << endl;
+  std::cout << "a_zmp: \n" << a_zmp_ << endl;
+  std::cout << "a_c_c_dot: \n" << a_c_c_dot_ << endl;
+  std::cout << "a_f: \n" << a_f_ << endl;
+  std::cout << "b_total: \n" << b_total_ << endl;
+  std::cout << "b_kin: \n" << b_kin_ << endl;
+  std::cout << "b_c_dot: \n" << b_c_dot_ << endl;
+  std::cout << "b_c: \n" << b_c_ << endl;
+  std::cout << "b_zmp: \n" << b_zmp_ << endl;
+  std::cout << "b_c_c_dot: \n" << b_c_c_dot_ << endl;
+  std::cout << "b_f: \n" << b_f_ << endl;
+  }
 
   com_support_old_ = com_support_current_;
   com_support_dot_old_ = com_support_dot_current_;
