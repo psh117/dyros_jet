@@ -37,7 +37,7 @@ RealRobotInterface::RealRobotInterface(ros::NodeHandle &nh, double Hz):
   {
     dxl_joint_set_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
   }
-
+//  ext_encoder_sub_ = nh.subscribe("/dyros_jet/ext_encoder", 1, &RealRobotInterface::extEncoderCallback, this);
 }
 
 
@@ -121,6 +121,25 @@ void RealRobotInterface::rightFootFTCallback(const geometry_msgs::WrenchStampedC
   right_foot_ft_(4) = msg->wrench.torque.y;
   right_foot_ft_(5) = msg->wrench.torque.z;
 }
+/*
+void RealRobotInterface::extEncoderCallback(const sensor_msgs::JointStateConstPtr joint)
+{
+  for(int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
+  {
+    string target_joint = DyrosJetModel::JOINT_NAME[i];
+    for (int j=0; j<joint->name.size(); j++)
+    {
+      string joint_name = joint->name[j].data();
+      joint_name = joint_name + "0";
 
+      if(target_joint == joint_name)
+      {
+        q_(i) = joint->position[j];
+        q_dot_(i) = joint->velocity[j];
+      }
 
+    }
+  }
+}
+*/
 }

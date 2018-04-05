@@ -29,8 +29,9 @@ private:  // CALLBACK
   void leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
   void rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
   void imuCallback(const sensor_msgs::ImuConstPtr& msg);
-
-
+//fake
+  void extEncoderCallback(const sensor_msgs::JointStateConstPtr joint);
+  void rightFootFTCallback(const geometry_msgs::WrenchStampedConstPtr msg);
 
 private:
   void vrepStart();
@@ -47,7 +48,6 @@ private:
   ros::Publisher vrep_sim_enable_syncmode_pub_;
 
   ros::Subscriber vrep_sim_step_done_sub_;
-
   sensor_msgs::JointState joint_set_msg_;
 
 

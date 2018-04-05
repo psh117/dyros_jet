@@ -29,6 +29,7 @@ private:  // CALLBACK
 
   void leftFootFTCallback(const geometry_msgs::WrenchStampedConstPtr msg);
   void rightFootFTCallback(const geometry_msgs::WrenchStampedConstPtr msg);
+  void extEncoderCallback(const sensor_msgs::JointStateConstPtr joint);
 
 private:
 
@@ -45,6 +46,7 @@ private:
   ros::Subscriber imu_filter_sub_;
   ros::Subscriber left_foot_ft_sub_;
   ros::Subscriber right_foot_ft_sub_;
+  ros::Subscriber ext_encoder_sub_;
 
 
   int dxl_mode_; ///< current dynamixel mode

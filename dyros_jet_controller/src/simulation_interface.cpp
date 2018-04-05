@@ -42,7 +42,6 @@ SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz):
   ROS_INFO(" -- Connected -- ");
   vrepEnableSyncMode();
   vrepStart();
-
 }
 
 void SimulationInterface::vrepStart()
@@ -146,7 +145,6 @@ void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& m
   if(is_first_boot_)
   {is_first_boot_ = false;}
 }
-
 void SimulationInterface::leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg)
 {
 

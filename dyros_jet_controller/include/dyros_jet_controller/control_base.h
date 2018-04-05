@@ -126,6 +126,9 @@ private:
   ros::Subscriber walking_command_sub_;
   ros::Subscriber shutdown_command_sub_;
 
+  //fake
+  ros::Subscriber ext_encoder_sub_;
+
   // TODO: realtime_tools
   dyros_jet_msgs::JointControlFeedback joint_control_feedback_;
   dyros_jet_msgs::JointControlResult joint_control_result_;
@@ -148,6 +151,8 @@ private:
 private:
 
   void makeIDInverseList();
+  //fake
+  void extEncoderCallback(const sensor_msgs::JointStateConstPtr joint);
 
 };
 

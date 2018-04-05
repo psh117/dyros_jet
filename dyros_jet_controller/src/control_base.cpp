@@ -29,8 +29,9 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
     joint_state_pub_.msg_.name[i] = DyrosJetModel::JOINT_NAME[i];
     //joint_state_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
   }
-
-
+  //fake
+  ext_encoder_sub_ = nh.subscribe("/dyros_jet/ext_encoder", 1, &ControlBase::extEncoderCallback, this);
+  //
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
@@ -240,6 +241,25 @@ void ControlBase::jointControlActionCallback(const dyros_jet_msgs::JointControlG
   }
   joint_control_feedback_.percent_complete = 0.0;
 }
+//fake
+void ControlBase::extEncoderCallback(const sensor_msgs::JointStateConstPtr joint)
+{
+  for(int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
+  {
+    string target_joint = DyrosJetModel::JOINT_NAME[i];
+    for (int j=0; j<joint->name.size(); j++)
+    {
+      string joint_name = joint->name[j].data();
+      joint_name = joint_name + "0";
 
+      if(target_joint == joint_name)
+      {
+        q_(i) = joint->position[j];
+        q_dot_(i) = joint->velocity[j];
+      }
+
+    }
+  }
+}
 
 }
