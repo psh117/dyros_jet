@@ -18,8 +18,8 @@ void WalkingController::compute()
   if(walking_enable_)
   {
 
-     std::cout<<"walking_tick_:"<<walking_tick_<<endl;
-     std::cout<<"current_step_num_:"<<current_step_num_<<endl;
+     //std::cout<<"walking_tick_:"<<walking_tick_<<endl;
+     //std::cout<<"current_step_num_:"<<current_step_num_<<endl;
      //std::cout<<"total_step_num:"<<total_step_num_<<endl;
      //std::cout<<"t_last_:"<<t_last_<<endl;
 
@@ -63,7 +63,7 @@ void WalkingController::compute()
         pelv_trajectory_float_ = pelv_float_init_;
         pelv_trajectory_float_.translation()(2) = pelv_float_init_.translation()(2);
         pelv_trajectory_float_.translation()(0) = DyrosMath::cubic(walking_tick_, 0, 0.5, pelv_float_init_.translation()(0), 0, 0, 0);
-        pelv_trajectory_float_.translation()(1) = 0.10*sin(2*M_PI*walking_tick_/(hz_*3.0));
+        pelv_trajectory_float_.translation()(1) = 0.10*sin(2*M_PI*walking_tick_/(hz_*7.0));
         lfoot_trajectory_float_ = lfoot_float_init_;
         rfoot_trajectory_float_ = rfoot_float_init_;
 
@@ -1167,10 +1167,7 @@ void WalkingController::updateNextStepTime()
 
   if(walking_tick_ >= 30*hz_)
   {
-    std::cout<<"tick: "<<walking_tick_<<endl;
-    std::cout<<"hz_: "<<hz_<<endl;
 
-    std::cout<<"dead"<<endl;
     walking_enable_ = false;
   }
 
@@ -2514,13 +2511,11 @@ void WalkingController::getEstimationInputMatrix()
   {
     if ( l_ft_(2)<10 || (walking_tick_ > t_start_ + t_rest_init_+ 2*t_double1_ && walking_tick_ < t_start_+t_total_ - t_rest_last_ - 2*t_double2_)) //ssp
     {
-      std::cout<<"left_ssp"<<endl;
       zmp_measured_ = zmp_l_;
       FT_xy = l_ft_.topRows(2);
     }
     else //dsp
     {
-      std::cout<<"left_dsp"<<endl;
       zmp_measured_(0) = ((((rfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_r_)(0) + (rfoot_support_current_.translation())(0))*r_ft_(2) + zmp_l_(0)*l_ft_(2)) / (r_ft_(2) + l_ft_(2));
       zmp_measured_(1) = ((((rfoot_support_current_.linear()).topLeftCorner<2, 2>()*zmp_r_)(1) + (rfoot_support_current_.translation())(1))*r_ft_(2) + zmp_l_(1)*l_ft_(2)) / (r_ft_(2) + l_ft_(2));
       FT_xy = r_ft_.topRows(2)+l_ft_.topRows(2);
@@ -2573,11 +2568,6 @@ void WalkingController::getEstimationInputMatrix()
   }
 
 
-  std::cout<<"r_ft: "<<r_ft_<<endl;
-  std::cout<<"l_ft: "<<l_ft_<<endl;
-
-  std::cout<<"zmp_r_"<<zmp_r_<<endl;
-  std::cout<<"zmp_l_"<<zmp_l_<<endl;
 
   ///////////////////////////////////////Make Matirx//////////////////////////////
   a_kin_.setZero();
