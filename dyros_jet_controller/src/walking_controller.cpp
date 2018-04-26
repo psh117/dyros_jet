@@ -2028,15 +2028,10 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
   kp(0,0) = 160;
   kp(1,1) = 160;
   kp(2,2) = 160;
-<<<<<<< HEAD
   kp(3,3) = 100;
   kp(4,4) = 100;
   kp(5,5) = 100;
-=======
-  kp(3,3) = 50;
-  kp(4,4) = 50;
-  kp(5,5) = 50;
->>>>>>> 4c6be0a2ddaeb04832a86caa7eae9c57191fc887
+
 
 
   Eigen::Vector6d lp, rp, cubic_xr, cubic_xl;

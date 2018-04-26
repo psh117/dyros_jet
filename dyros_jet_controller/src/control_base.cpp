@@ -218,7 +218,6 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   }
   else
   {
-      cout << "FFFFFFFFFFFFFFFFFFFFF" << endl;
     walking_controller_.setEnable(false);
   }
 }
