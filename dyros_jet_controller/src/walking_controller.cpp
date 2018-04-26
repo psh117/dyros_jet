@@ -19,8 +19,8 @@ void WalkingController::compute()
   if(walking_enable_)
   {
 
-     //std::cout<<"walking_tick_:"<<walking_tick_<<endl;
-     //std::cout<<"current_step_num_:"<<current_step_num_<<endl;
+     std::cout<<"walking_tick_:"<<walking_tick_<<endl;
+     std::cout<<"current_step_num_:"<<current_step_num_<<endl;
      //std::cout<<"total_step_num:"<<total_step_num_<<endl;
      //std::cout<<"t_last_:"<<t_last_<<endl;
 
@@ -206,7 +206,7 @@ void WalkingController::parameterSetting()
   t_rest_init_ = 2.0*hz_;
   t_rest_last_= 2.0*hz_;
   t_total_= 5.2*hz_;
-  t_temp_ = 3.0*hz_;
+  t_temp_ = 300.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
 
@@ -255,10 +255,25 @@ void WalkingController::getRobotState()
     ref_frame = lfoot_float_current_;
   }
 
+  const int com_size = com_float_old_.cols();
+
+  for(int i =0; i<com_size-1; i++)
+  {
+    com_float_old_.col(com_size-1-i) = com_float_old_.col(com_size-2-i);
+  }
+  com_float_old_.col(0) = com_float_current_;
+
+
   lfoot_support_current_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(ref_frame),lfoot_float_current_);
   rfoot_support_current_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(ref_frame),rfoot_float_current_);
   pelv_support_current_ = DyrosMath::inverseIsometry3d(ref_frame);
   com_support_current_ = pelv_support_current_.linear()*com_float_current_ + pelv_support_current_.translation();
+
+  for(int i=0; i<com_size; i++)
+  {
+    com_support_old_.col(i) = pelv_support_current_.linear()*com_float_old_.col(i) + pelv_support_current_.translation();
+  }
+
 
   current_leg_jacobian_l_=model_.getLegJacobian((DyrosJetModel::EndEffector) 0);
   current_leg_jacobian_r_=model_.getLegJacobian((DyrosJetModel::EndEffector) 1);
@@ -2478,13 +2493,180 @@ void WalkingController::hipCompensation()
 
 }
 
-/*
-void WalkingController::vibrationControl(const VectorQd desired_leg_q, VectorQd &output)
+
+void WalkingController::vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output)
 {
   if(walking_tick_ ==0)
   {
+    pre_motor_q_leg_ = current_motor_q_leg_;
+    pre_link_q_leg_ = current_link_q_leg_;
 
+    lqr_output_pre_ = lqr_output_;
+
+    for (int i=0; i<6; i++)
+    {
+    //    lqr_output_pre_(i) = lqr_output_(i); // left
+    //    LQR_output_prev(i+6) = _motor_q_LQR(i); //right
+    }
   }
+
+
+
+}
+
+/*
+void WalkingController::massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::MatrixXd & Mass, Eigen::MatrixXd& A, Eigen::MatrixXd& B, Eigen::MatrixXd& C)
+{
+    int dof = 12;
+    MatrixXD Spring_K;
+    Spring_K.resize(dof, dof); Spring_K.setZero();
+    for (int i = 0; i < dof; i++)
+        Spring_K(i, i) = spring_k;
+
+    MatrixXD Damping_D;
+    Damping_D.resize(dof, dof); Damping_D.setZero();
+    for (int i = 0; i<dof; i++)
+        Damping_D(i, i) = damping_d;
+
+    MatrixXD Motor_K;
+    Motor_K.resize(dof, dof); Motor_K.setZero();
+    for (int i = 0; i<dof; i++)
+        Motor_K(i, i) = motor_k;
+
+    // knee joint
+    Motor_K(3,3) =  18.0; //18.0
+
+
+    Motor_K(9,9) =  18.0;
+
+
+
+
+    MatrixXD Inv_Mass;
+    Inv_Mass.resize(dof, dof); Inv_Mass = Mass;
+
+
+    MatrixXD Zero_12;
+    Zero_12.resize(dof, dof); Zero_12.setZero();
+
+    MatrixXD Eye_12;
+    Eye_12.resize(dof, dof); Eye_12.setIdentity();
+
+    MatrixXD Mass_temp;
+    Mass_temp.resize(dof, dof); Mass_temp = Inv_Mass;
+
+    MatrixXD A1;
+    A1.resize(dof, dof); A1 = Mass_temp*(Spring_K - Damping_D*Motor_K);
+
+    MatrixXD A2;
+    A2.resize(dof, dof); A2 = -Mass_temp*Spring_K;
+
+    MatrixXD A3;
+    A3.resize(dof, dof); A3 = -Mass_temp*Damping_D;
+
+    A.resize(dof*3, dof*3); A.setZero();
+    A << -Motor_K, Zero_12, Zero_12, Zero_12, Zero_12, Eye_12, A1, A2, A3;
+
+    MatrixXD B1;
+    B1.resize(dof, dof); B1 = Mass_temp*Damping_D*Motor_K;
+
+    B.resize(dof*3, dof); B.setZero();
+    B << Motor_K, Zero_12, B1;
+
+    C.resize(dof, dof*3); C.setZero();
+    C << Zero_12, Eye_12, Zero_12;
+}
+
+
+void WalkingController::discreteModel(Eigen::MatrixXd& A, Eigen::MatrixXd& B, Eigen::MatrixXd& C, int Np, double dt, Eigen::MatrixXd& Ad, Eigen::MatrixXd& Bd, Eigen::MatrixXd& Cd, Eigen::MatrixXd& Ad_total, Eigen::MatrixXd& Bd_total)
+{
+    int n = A.rows(); //state \B0\B9\BC\F6
+    int r = B.cols(); // Input \B0\B9\BC\F6
+    int p = C.rows(); // output \B0\B9\BC\F6
+
+    Ad.resize(n, n); Ad.setZero();
+   // Ad = A*dt;
+   // Ad = Ad.exp();
+
+
+    MatrixXD inv_A;
+    inv_A.resize(n, n); inv_A = A.inverse();
+
+    MatrixXD Eye6;
+    Eye6.resize(n, n); Eye6.setIdentity();
+
+    Bd.resize(n, r);
+   // Bd = inv_A*(Ad - Eye6)*B;
+
+    Ad = Eye6 + A*dt;
+    Bd = B*dt;
+
+    Cd.resize(p, n);
+    Cd = C;
+
+    //std::cout << "AAA_bar" << AAA_bar << std::endl;
+    //std::cout << "BBB_bar" << BBB_bar << std::endl;
+
+    MatrixXD CA;
+    CA.resize(p, n);
+    CA = Cd*Ad;
+
+    MatrixXD Eye_p;
+    Eye_p.resize(p, p); Eye_p.setIdentity();
+
+    MatrixXD Zero_n_p;
+    Zero_n_p.resize(n, p); Zero_n_p.setZero();
+
+    MatrixXD CB;
+    CB.resize(p, r); CB.setZero();
+    CB = Cd*Bd;
+
+    if (Np < 1)
+    {
+        Ad_total.resize(n + p, n + p);
+        Bd_total.resize(n + p, r);
+
+        Ad_total << Eye_p, CA, Zero_n_p, Ad;
+        Bd_total << CB, Bd;
+    }
+    else
+    {
+        Ad_total.resize(n + p + Np, n + p + Np);
+        Bd_total.resize(n + p + Np, r);
+
+        MatrixXD Zero_temp1;
+        Zero_temp1.resize(p, (Np - 1)*p); Zero_temp1.setZero();
+
+        MatrixXD Zero_temp2;
+        Zero_temp2.resize(n, Np*p); Zero_temp2.setZero();
+
+        MatrixXD Zero_temp3;
+        Zero_temp3.resize(Np*p, p + n); Zero_temp3.setZero();
+
+        MatrixXD shift_register;
+        shift_register.resize(Np*p, Np*p); shift_register.setZero();
+
+        MatrixXD Zero_temp4;
+        Zero_temp4.resize(Np*p, r); Zero_temp4.setZero();
+        for (int i = 0; i<p*(Np - 1); i++)
+            shift_register(i, i + p) = 1;
+
+        Ad_total << Eye_p, CA, -Eye_p, Zero_temp1, Zero_n_p, Ad, Zero_temp2, Zero_temp3, shift_register;
+        Bd_total << CB, Bd, Zero_temp4;
+    }
+
+}
+
+void WalkingController::slowCalc()
+{
+  while(true)
+  {
+    if(calc_start_flag)
+    {
+
+    }
+  }
+
 }
 
 */
@@ -2492,7 +2674,7 @@ void WalkingController::vibrationControl(const VectorQd desired_leg_q, VectorQd 
 void WalkingController::getEstimationInputMatrix()
 {
   double mass_total = 51.315;
-\
+
   if(walking_tick_ == 0)
     solve();
 
@@ -2567,7 +2749,7 @@ void WalkingController::getEstimationInputMatrix()
   }
   else if(walking_tick_ != 0)
   {
-    com_support_dot_current_ = (com_support_current_ - com_support_old_)*hz_;
+    com_support_dot_current_ = (-2*com_support_old_.col(3)+9*com_support_old_.col(2)-18*com_support_old_.col(1)+11*com_support_old_.col(0))*hz_/6;
     com_support_dot_old_estimation_(0) = vars.x[0];
     com_support_dot_old_estimation_(1) = vars.x[1];
     com_support_old_estimation_(0) = vars.x[2];
@@ -2637,7 +2819,7 @@ void WalkingController::getEstimationInputMatrix()
 
   a_noise_.setIdentity();
 
-  if(walking_tick_ == t_start_)
+  if(walking_tick_ == t_start_|0)
   {
     b_noise_(0) = com_support_dot_current_(0);
     b_noise_(1) = com_support_dot_current_(1);
@@ -2661,16 +2843,16 @@ void WalkingController::getEstimationInputMatrix()
   Eigen::Matrix<double, 10, 1> coeff;
   coeff.setIdentity();
 
-  coeff(0) = 5e1;		//kinematic
-  coeff(1) = 1e2;		//c_dot_x
-  coeff(2) = 1e2;		//c_dot_y
-  coeff(3) = 8e1;		//c
-  coeff(4) = 3e4;		//zmp
+  coeff(0) = 1e2;		//kinematic
+  coeff(1) = 3e1;		//c_dot_x
+  coeff(2) = 3e1;		//c_dot_y
+  coeff(3) = 7e2;		//c
+  coeff(4) = 8e3;		//zmp
   coeff(5) = 6e2;		//approximation
-  coeff(6) = 2e-1;	//FT-accer
-  coeff(7) = 1e3;	    //noise of c_dot
+  coeff(6) = 2e0;	//FT-accer
+  coeff(7) = 1e2;	    //noise of c_dot
   coeff(8) = 0e0;	    //noise of c
-  coeff(9) = 6e5;	    //noise of zmp
+  coeff(9) = 3e4;	    //noise of zmp
 
   /*
   coeff(0) = 1e0;		//kinematic
@@ -2840,8 +3022,7 @@ void WalkingController::getEstimationInputMatrix()
   std::cout << "b_f: \n" << b_f_ << endl;
   }
 
-  com_support_old_ = com_support_current_;
-  com_support_dot_old_ = com_support_dot_current_;
+
 }
 
 }

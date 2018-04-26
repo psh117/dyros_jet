@@ -17,16 +17,16 @@ const int FILE_CNT = 10;
 const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
-  "/home/pen/data/walking/0_desired_zmp_.txt",
-  "/home/pen/data/walking/1_desired_com_.txt",
-  "/home/pen/data/walking/2_desired_q_.txt",
-  "/home/pen/data/walking/3_real_q_.txt",
-  "/home/pen/data/walking/4_desired_swingfoot_.txt",
-  "/home/pen/data/walking/5_desired_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/7_current_foot_trajectory_.txt",
-  "/home/pen/data/walking/8_estimation_variables_.txt",
-  "/home/pen/data/walking/9_ft_sensor_.txt"
+  "/home/dg/data/walking/0_desired_zmp_.txt",
+  "/home/dg/data/walking/1_desired_com_.txt",
+  "/home/dg/data/walking/2_desired_q_.txt",
+  "/home/dg/data/walking/3_real_q_.txt",
+  "/home/dg/data/walking/4_desired_swingfoot_.txt",
+  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/7_current_foot_trajectory_.txt",
+  "/home/dg/data/walking/8_estimation_variables_.txt",
+  "/home/dg/data/walking/9_ft_sensor_.txt"
 };
 
 using namespace std;
@@ -122,6 +122,9 @@ public:
                                double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
   void vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output);
+  void massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::MatrixXd & Mass, Eigen::MatrixXd& A, Eigen::MatrixXd& B, Eigen::MatrixXd& C);
+  void discreteModel(Eigen::MatrixXd& A, Eigen::MatrixXd& B, Eigen::MatrixXd& C, int Np, double dt, Eigen::MatrixXd& Ad, Eigen::MatrixXd& Bd, Eigen::MatrixXd& Cd, Eigen::MatrixXd& Ad_total, Eigen::MatrixXd& Bd_total);
+  void slowCalc();
 
 private:
 
@@ -182,7 +185,15 @@ private:
   VectorQd start_q_;
   VectorQd desired_q_;
   VectorQd target_q_;
-  const VectorQd& current_q_;
+  const VectorQd& current_q_;  
+
+  Eigen::Vector12d current_motor_q_leg_;
+  Eigen::Vector12d current_link_q_leg_;
+  Eigen::Vector12d pre_motor_q_leg_;
+  Eigen::Vector12d pre_link_q_leg_;
+  Eigen::Vector12d lqr_output_;
+  Eigen::Vector12d lqr_output_pre_;
+
   //const double &current_time_;
   const unsigned int total_dof_;
   double start_time_[DyrosJetModel::HW_TOTAL_DOF];
@@ -308,8 +319,10 @@ private:
 
   Eigen::Vector3d com_support_dot_current_;//from support foot
 
-  Eigen::Vector3d com_support_old_;
-  Eigen::Vector3d com_support_dot_old_;
+  Eigen::Matrix<double, 3, 4> com_float_old_;  // [com(k) com(k-1) com(k-2) com(k-3)]
+  Eigen::Matrix<double, 3, 4> com_float_dot_old_;
+  Eigen::Matrix<double, 3, 4> com_support_old_;  // [con(k) com(k-1) com(k-2) com(k-3)]
+  Eigen::Matrix<double, 3, 4> com_support_dot_old_;
   Eigen::Vector2d com_support_dot_old_estimation_;
   Eigen::Vector2d com_support_old_estimation_;
 
