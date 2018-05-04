@@ -25,6 +25,8 @@ public:
 
   static constexpr size_t HW_TOTAL_DOF = 32;
   static constexpr size_t MODEL_DOF = 28;
+  static constexpr size_t MODEL_DOF_VJOINT = 34;
+
 
   static const std::string JOINT_NAME[HW_TOTAL_DOF];
   static const int JOINT_ID[HW_TOTAL_DOF];
@@ -71,13 +73,14 @@ private:
   RigidBodyDynamics::Model model_;
 
   Eigen::Vector28d q_;
+  Eigen::Matrix<double, 34, 1> q_virtual_;
   Eigen::Vector3d base_position_;
 
   Eigen::Isometry3d currnet_transform_[4];
 
   Eigen::Matrix<double, 6, 6> leg_jacobian_[2];
   Eigen::Matrix<double, 6, 7> arm_jacobian_[2];
-  Eigen::Matrix28d A_;
+  Eigen::Matrix<double, 34, 34> A_;
   Eigen::MatrixXd A_temp_;
 
   Eigen::Vector3d com_;

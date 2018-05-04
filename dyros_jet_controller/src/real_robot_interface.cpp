@@ -103,21 +103,22 @@ void RealRobotInterface::imuFilterCallback(const imu_3dm_gx4::FilterOutputConstP
   imu_data_ = q;
 }
 
+
 void RealRobotInterface::leftFootFTCallback(const geometry_msgs::WrenchStampedConstPtr msg)
 {
-  left_foot_ft_(0) = msg->wrench.force.x;
+  left_foot_ft_(0) = -msg->wrench.force.x;   // FT data is written in left handed frame so we should get - to invert in right handed frame
   left_foot_ft_(1) = msg->wrench.force.y;
   left_foot_ft_(2) = msg->wrench.force.z;
-  left_foot_ft_(3) = msg->wrench.torque.x;
+  left_foot_ft_(3) = -msg->wrench.torque.x;
   left_foot_ft_(4) = msg->wrench.torque.y;
   left_foot_ft_(5) = msg->wrench.torque.z;
 }
 void RealRobotInterface::rightFootFTCallback(const geometry_msgs::WrenchStampedConstPtr msg)
 {
-  right_foot_ft_(0) = msg->wrench.force.x;
+  right_foot_ft_(0) = -msg->wrench.force.x;
   right_foot_ft_(1) = msg->wrench.force.y;
   right_foot_ft_(2) = msg->wrench.force.z;
-  right_foot_ft_(3) = msg->wrench.torque.x;
+  right_foot_ft_(3) = -msg->wrench.torque.x;
   right_foot_ft_(4) = msg->wrench.torque.y;
   right_foot_ft_(5) = msg->wrench.torque.z;
 }

@@ -252,6 +252,14 @@ static Eigen::Isometry3d multiplyIsometry3d(Eigen::Isometry3d A,
   return AB;
 }
 
+static Eigen::Vector3d multiplyIsometry3dVector3d(Eigen::Isometry3d A,
+                                      Eigen::Vector3d B)
+{
+  Eigen::Vector3d AB;
+  AB = A.linear()*B + A.translation();
+  return AB;
+}
+
 static Eigen::Isometry3d inverseIsometry3d(Eigen::Isometry3d A)
 {
   Eigen::Isometry3d A_inv;
