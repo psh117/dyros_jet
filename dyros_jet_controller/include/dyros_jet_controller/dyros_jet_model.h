@@ -62,12 +62,18 @@ public:
 
   void getCenterOfMassPosition(Eigen::Vector3d* position);
 
+  void getInertiaMatrix34DoF(Eigen::Matrix<double, 34, 34> *inertia);
+  void getInertiaMatrix18DoF(Eigen::Matrix<double, 18, 18> *leg_inertia);
+
+
   const Eigen::Isometry3d& getCurrentTrasmfrom(EndEffector ee) { return currnet_transform_[ee]; }
   const Eigen::Matrix<double, 6, 6>& getLegJacobian(EndEffector ee) { return leg_jacobian_[ee]; }
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
   const Eigen::Vector3d getCurrentCom(){ return com_;}
   const Eigen::Vector6d getRightFootForce() {return r_ft_wrench_;}
   const Eigen::Vector6d getLeftFootForce() {return l_ft_wrench_;}
+  const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
+  const Eigen::Matrix<double, 34, 34>& getFullInertia() { return full_inertia_mat_; }
 
 private:
   RigidBodyDynamics::Model model_;
@@ -80,8 +86,8 @@ private:
 
   Eigen::Matrix<double, 6, 6> leg_jacobian_[2];
   Eigen::Matrix<double, 6, 7> arm_jacobian_[2];
-  Eigen::Matrix<double, 34, 34> A_;
-  Eigen::MatrixXd A_temp_;
+  Eigen::Matrix<double, 34, 34> full_inertia_mat_;
+  Eigen::Matrix<double, 18, 18> leg_inertia_mat_;
 
   Eigen::Vector3d com_;
 
