@@ -45,7 +45,6 @@ const int DyrosJetModel::JOINT_ID[DyrosJetModel::HW_TOTAL_DOF] = {
 DyrosJetModel::DyrosJetModel() :
   joint_start_index_{0, 6, 14, 21}
 {
-  A_temp_.resize(MODEL_DOF_VJOINT, MODEL_DOF_VJOINT);
   base_position_.setZero();
   q_.setZero();
 
@@ -104,8 +103,6 @@ void DyrosJetModel::test()
   std::cout << currnet_transform_[3].translation() << std::endl << std::endl;
   std::cout << "com" << std::endl;
   std::cout << com_<< std::endl;
-  std::cout << "A_matrix_:" <<std::endl;
-  std::cout << A_temp_ <<std::endl;
 }
 
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
@@ -114,13 +111,8 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 
   RigidBodyDynamics::UpdateKinematicsCustom(model_, &q, NULL, NULL);
 
-  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, A_temp_, true);
-
-  //A_ = A_temp_;
-  // std::cout <<"A_size: "<< A_temp_.cols() <<std::endl;
-
-  // std::cout << A_temp_ <<std::endl;
-
+  getInertiaMatrix34DoF(&full_inertia_mat_);
+  getInertiaMatrix18DoF(&leg_inertia_mat_);
   getCenterOfMassPosition(&com_);
 
   for(unsigned int i=0; i<4; i++)
@@ -129,6 +121,8 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
     if (i < 2)
     {
       getJacobianMatrix6DoF((EndEffector)i, &leg_jacobian_[i]);
+      getJacobianMatrix18DoF((EndEffector)i, &leg_with_vlink_jacobian_[i]);
+
     }
     else
     {
@@ -240,6 +234,44 @@ void DyrosJetModel::getJacobianMatrix7DoF
   }
 }
 
+void DyrosJetModel::getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double, 6, 18> *jacobian)
+{
+  // Non-realtime
+  Eigen::MatrixXd full_jacobian(6,MODEL_DOF_VJOINT);
+  full_jacobian.setZero();
+  RigidBodyDynamics::CalcPointJacobian6D(model_, q_, end_effector_id_[ee],
+                                         Eigen::Vector3d::Zero(), full_jacobian, false);
+
+  switch (ee)
+  {
+  case EE_LEFT_FOOT:
+      // swap
+      // Virtual Link
+      jacobian->block<3, 6>(0, 0) = full_jacobian.block<3, 6>(3, 0);
+      jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
+
+      // left Leg Link
+      jacobian->block<3, 6>(0, 6) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
+      jacobian->block<3, 6>(3, 6) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
+      break;
+  case EE_RIGHT_FOOT:
+    // swap
+    // Virtual Link
+    jacobian->block<3, 6>(0, 0) = full_jacobian.block<3, 6>(3, 0);
+    jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
+
+    // right Leg Link
+    jacobian->block<3, 6>(0, 12) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
+    jacobian->block<3, 6>(3, 12) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
+    break;
+  case EE_LEFT_HAND:
+  case EE_RIGHT_HAND:
+    //*jacobian = full_jacobian.block<6, 7>(0, joint_start_index_[ee]);
+    ROS_ERROR("Arm is 7 DoF. Please call getJacobianMatrix7DoF");
+    break;
+  }
+}
+
 void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
 {
   RigidBodyDynamics::Math::Vector3d position_temp;
@@ -254,6 +286,26 @@ void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
   //RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp);
 
   *position = position_temp;
+}
+
+void DyrosJetModel::getInertiaMatrix34DoF(Eigen::Matrix<double, 34, 34> *inertia)
+{
+  // Non-realtime
+  Eigen::MatrixXd full_inertia(MODEL_DOF_VJOINT, MODEL_DOF_VJOINT);
+  full_inertia.setZero();
+  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, full_inertia, false);
+
+  inertia->block<34, 34>(0, 0) = full_inertia.block<34, 34>(0, 0);
+}
+
+void DyrosJetModel::getInertiaMatrix18DoF(Eigen::Matrix<double, 18, 18> *leg_inertia)
+{
+  // Non-realtime
+  Eigen::MatrixXd full_inertia(MODEL_DOF_VJOINT, MODEL_DOF_VJOINT);
+  full_inertia.setZero();
+  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, full_inertia, false);
+
+  leg_inertia->block<18, 18>(0, 0) = full_inertia.block<18, 18>(0, 0);
 }
 
 }

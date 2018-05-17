@@ -8,6 +8,8 @@
 #include <fstream>
 #include <stdio.h>
 #include <iostream>
+#include <thread>
+#include <mutex>
 
 #define ZERO_LIBRARY_MODE
 
@@ -43,7 +45,7 @@ public:
 
 
   WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_start_flag_(false) , calc_update_flag_(false)
   {
 
     for(int i=0; i<FILE_CNT;i++)
@@ -122,8 +124,9 @@ public:
                                double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
   void vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output);
-  void massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::MatrixXd & Mass, Eigen::MatrixXd& A, Eigen::MatrixXd& B, Eigen::MatrixXd& C);
-  void discreteModel(Eigen::MatrixXd& A, Eigen::MatrixXd& B, Eigen::MatrixXd& C, int Np, double dt, Eigen::MatrixXd& Ad, Eigen::MatrixXd& Bd, Eigen::MatrixXd& Cd, Eigen::MatrixXd& Ad_total, Eigen::MatrixXd& Bd_total);
+  void massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::MatrixXd & mass, Eigen::MatrixXd& a, Eigen::MatrixXd& b, Eigen::MatrixXd& c);
+  void discreteModel(Eigen::MatrixXd& a, Eigen::MatrixXd& b, Eigen::MatrixXd& c, int np, double dt, Eigen::MatrixXd& ad, Eigen::MatrixXd& bd, Eigen::MatrixXd& cd, Eigen::MatrixXd& ad_total, Eigen::MatrixXd& bd_total);
+  void riccatiGain(Eigen::MatrixXd& ad_total, Eigen::MatrixXd& bd_total, Eigen::Matrix<double, 12*4, 12*4>& q, Eigen::Matrix12d& r, Eigen::Matrix<double, 12, 12*4>& k);
   void slowCalc();
 
 private:
@@ -187,12 +190,7 @@ private:
   VectorQd target_q_;
   const VectorQd& current_q_;  
 
-  Eigen::Vector12d current_motor_q_leg_;
-  Eigen::Vector12d current_link_q_leg_;
-  Eigen::Vector12d pre_motor_q_leg_;
-  Eigen::Vector12d pre_link_q_leg_;
-  Eigen::Vector12d lqr_output_;
-  Eigen::Vector12d lqr_output_pre_;
+
 
   //const double &current_time_;
   const unsigned int total_dof_;
@@ -298,6 +296,49 @@ private:
   Eigen::Vector12d joint_offset_angle_;
   Eigen::Vector12d grav_ground_torque_;
 
+  //vibrationCotrol
+  std::mutex slowcalc_mutex_;
+  std::thread slowcalc_thread_;
+
+  Eigen::Vector12d current_motor_q_leg_;
+  Eigen::Vector12d current_link_q_leg_;
+  Eigen::Vector12d pre_motor_q_leg_;
+  Eigen::Vector12d pre_link_q_leg_;
+  Eigen::Vector12d lqr_output_;
+  Eigen::Vector12d lqr_output_pre_;
+
+  VectorQd thread_q_;
+  unsigned int thread_tick_;
+
+  Eigen::Matrix<double, 48, 1> x_bar_right_;
+  Eigen::MatrixXd kkk_copy_;
+  Eigen::MatrixXd ad_total_copy_;
+  Eigen::MatrixXd bd_total_copy_;
+  Eigen::MatrixXd ad_copy_;
+  Eigen::MatrixXd bd_copy_;
+
+  Eigen::MatrixXd ad_right_;
+  Eigen::MatrixXd bd_right_;
+  Eigen::MatrixXd ad_total_right_;
+  Eigen::MatrixXd bd_total_right_;
+  Eigen::MatrixXd kkk_motor_right_;
+
+  Eigen::Vector12d dist_prev_;
+
+  bool calc_start_flag_;
+  bool calc_update_flag_;
+
+  Eigen::MatrixXd mass_matrix_;
+  Eigen::MatrixXd mass_matrix_pc_;
+  Eigen::MatrixXd mass_matrix_sel_;
+  Eigen::MatrixXd a_right_mat_;
+  Eigen::MatrixXd b_right_mat_;
+  Eigen::MatrixXd c_right_mat_;
+  Eigen::MatrixXd a_disc_;
+  Eigen::MatrixXd b_disc_;
+  Eigen::MatrixXd a_disc_total_;
+  Eigen::MatrixXd b_disc_total_;
+  Eigen::MatrixXd kkk_;
 
   //////////////////StateEstimation/////////////////////
   Eigen::Matrix<double, 18, 6> a_total_;
