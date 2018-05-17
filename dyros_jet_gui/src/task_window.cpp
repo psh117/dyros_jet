@@ -70,6 +70,8 @@ TaskWindow::TaskWindow(int argc, char** argv, QWidget *parent)
   time = 0.0;
   count = 0;
   space = 0;
+  LF_select = "LF_Force_X";
+  RF_select = "RF_Force_X";
 
   TimeCheck = false;
   timer = new QTimer(this);
@@ -83,7 +85,13 @@ TaskWindow::TaskWindow(int argc, char** argv, QWidget *parent)
   FT_LF->yAxis->setLabel("Force(N)");
 
   FT_LF->addGraph();
+  FT_LF->addGraph();
+  FT_LF->addGraph();
+  FT_LF->addGraph();
+  FT_LF->addGraph();
+  FT_LF->addGraph();
   FT_LF->graph()->setLineStyle(QCPGraph::lsLine);
+
 
   tracer_LF = new QCPItemTracer(FT_LF);
   tracer_LF->setGraph(FT_LF->graph(0));
@@ -97,6 +105,11 @@ TaskWindow::TaskWindow(int argc, char** argv, QWidget *parent)
   FT_RF->xAxis->setLabel("time(sec)");
   FT_RF->yAxis->setLabel("Force(N)");
 
+  FT_RF->addGraph();
+  FT_RF->addGraph();
+  FT_RF->addGraph();
+  FT_RF->addGraph();
+  FT_RF->addGraph();
   FT_RF->addGraph();
   FT_RF->graph()->setLineStyle(QCPGraph::lsLine);
 
@@ -977,26 +990,124 @@ void TaskWindow::UpdateGraph()
 {
   double lf_state, rf_state;
 
-  lf_state = 500*sin(time*3.14/1.8);
-  rf_state = 500*cos(time*3.14/1.8);
+  //lf_state = 500*sin(time*3.14/1.8);
+  //rf_state = 500*cos(time*3.14/1.8);
 
-  //  lf_state = qnode.ft_lf_msg_.wrench.force.z;
-  //  rf_state = qnode.ft_rf_msg_.wrench.force.z;
+  lf_state = qnode.ft_lf_msg_.wrench.force.z;
+  rf_state = qnode.ft_rf_msg_.wrench.force.z;
 
-  if(count > 300)
+
+
+  if(count > 1500)
   {
-    space += 0.1;
+    space += 0.02;
     FT_LF->xAxis->setRange(space,30+space);
     FT_RF->xAxis->setRange(space,30+space);
   }
 
-  FT_LF->graph(0)->addData(time, lf_state);
-  FT_RF->graph(0)->addData(time, rf_state);
+
+
+
+
+
+  //https://stackoverflow.com/questions/27417703/how-to-plot-large-time-series-with-qcustomplot-efficiently?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+  FT_LF->graph(0)->addData(time, qnode.ft_lf_msg_.wrench.force.x);
+  FT_LF->graph(1)->addData(time, qnode.ft_lf_msg_.wrench.force.y);
+  FT_LF->graph(2)->addData(time, qnode.ft_lf_msg_.wrench.force.z);
+  FT_LF->graph(3)->addData(time, qnode.ft_lf_msg_.wrench.torque.x);
+  FT_LF->graph(4)->addData(time, qnode.ft_lf_msg_.wrench.torque.y);
+  FT_LF->graph(5)->addData(time, qnode.ft_lf_msg_.wrench.torque.z);
+
+
+
+  FT_RF->graph(0)->addData(time, qnode.ft_rf_msg_.wrench.force.x);
+  FT_RF->graph(1)->addData(time, qnode.ft_rf_msg_.wrench.force.y);
+  FT_RF->graph(2)->addData(time, qnode.ft_rf_msg_.wrench.force.z);
+  FT_RF->graph(3)->addData(time, qnode.ft_rf_msg_.wrench.torque.x);
+  FT_RF->graph(4)->addData(time, qnode.ft_rf_msg_.wrench.torque.y);
+  FT_RF->graph(5)->addData(time, qnode.ft_rf_msg_.wrench.torque.z);
+
+
+  /*
+  FT_LF->graph(0)->addData(time, 500*sin(time*3.14/1.8));
+
+  FT_LF->graph(1)->addData(time, 400*sin(time*3.14/1.8));
+
+  FT_LF->graph(2)->addData(time, 300*sin(time*3.14/1.8));
+
+  FT_LF->graph(3)->addData(time, 200*sin(time*3.14/1.8));
+
+  FT_LF->graph(4)->addData(time, 100*sin(time*3.14/1.8));
+
+  FT_LF->graph(5)->addData(time, 50*sin(time*3.14/1.8));
+*/
+
+
+
+
+  for(int i=0;i<6;i++){
+    FT_RF->graph(i)->data()->removeBefore(time - 30);
+    FT_LF->graph(i)->data()->removeBefore(time-30);
+    FT_LF->graph(i)->setVisible(FALSE);
+    FT_RF->graph(i)->setVisible(FALSE);
+  }
+
+
+
+
+
+
+  if(LF_select=="LF_Force_X"){
+    FT_LF->graph(0)->setVisible(TRUE);
+  }
+  else if(LF_select =="LF_Force_Y"){
+    FT_LF->graph(1)->setVisible(TRUE);
+  }
+  else if(LF_select =="LF_Force_Z"){
+    FT_LF->graph(2)->setVisible(TRUE);
+  }
+  else if(LF_select =="LF_Torque_X"){
+    FT_LF->graph(3)->setVisible(TRUE);
+  }
+  else if(LF_select =="LF_Torque_Y"){
+    FT_LF->graph(4)->setVisible(TRUE);
+  }
+  else if(LF_select =="LF_Torque_Z"){
+    FT_LF->graph(5)->setVisible(TRUE);
+  }
+  else {
+  ROS_ERROR("ERROR AT LF Source Selection");
+  }
+
+
+  if(RF_select=="RF_Force_X"){
+    FT_RF->graph(0)->setVisible(TRUE);
+  }
+  else if(RF_select =="RF_Force_Y"){
+    FT_RF->graph(1)->setVisible(TRUE);
+  }
+  else if(RF_select =="RF_Force_Z"){
+    FT_RF->graph(2)->setVisible(TRUE);
+  }
+  else if(RF_select =="RF_Torque_X"){
+    FT_RF->graph(3)->setVisible(TRUE);
+  }
+  else if(RF_select =="RF_Torque_Y"){
+    FT_RF->graph(4)->setVisible(TRUE);
+  }
+  else if(RF_select =="RF_Torque_Z"){
+    FT_RF->graph(5)->setVisible(TRUE);
+  }
+  else {
+  ROS_ERROR("ERROR AT RF Source Selection");
+  }
+
+
 
   FT_LF->replot();
   FT_RF->replot();
 
-  time += 0.1;
+  time += 0.02;
   count += 1;
 }
 
@@ -1004,7 +1115,7 @@ void TaskWindow::on_pushButton_ft_start_clicked()
 {
   if(!TimeCheck)
   {
-    timer->start(100);
+    timer->start(20);
     connect(timer,SIGNAL(timeout()), this, SLOT(UpdateGraph()));
   }
   TimeCheck = true;
@@ -1025,12 +1136,18 @@ void TaskWindow::on_pushButton_ft_reset_clicked()
     count = 0;
     space = 0;
 
-    FT_LF->graph(0)->data()->clear();
+  for(int i=0;i<6;i++){
+    FT_LF->graph(i)->data()->clear();
+  }
+
     FT_LF->xAxis->setRange(0,30,AlignLeft);
     tracer_LF->setVisible(false);
     textLabel_LF->setVisible(false);
 
-    FT_RF->graph(0)->data()->clear();
+
+    for(int i=0;i<6;i++){
+      FT_RF->graph(i)->data()->clear();
+    }
     FT_RF->xAxis->setRange(0,30,AlignLeft);
     tracer_RF->setVisible(false);
     textLabel_RF->setVisible(false);
@@ -1114,3 +1231,12 @@ void TaskWindow::closeEvent(QCloseEvent *event)
 
 }  // namespace dyros_jet_gui
 
+void dyros_jet_gui::TaskWindow::on_comboBox_LF_currentIndexChanged(const QString &arg1)
+{
+  LF_select = arg1.toStdString().c_str();
+}
+
+void dyros_jet_gui::TaskWindow::on_comboBox_RF_currentIndexChanged(const QString &arg1)
+{
+  RF_select = arg1.toStdString().c_str();
+}

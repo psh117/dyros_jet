@@ -616,13 +616,106 @@
         <property name="title">
          <string>Sensor Control</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,1,0,1">
+        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,1,0,1">
          <item>
           <widget class="QPushButton" name="button_ft_calib">
            <property name="text">
             <string>FT Sensor  Calibration</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>LF Graph Source </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox_LF">
+             <item>
+              <property name="text">
+               <string>LF_Force_X</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Force_Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Force_Z</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Torque_X</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Torque_Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Torque_Z</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>RF Graph Source</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox_RF">
+             <item>
+              <property name="text">
+               <string>RF_Force_X</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Force_Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Force_Z</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Torque_X</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Torque_Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Torque_Z</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0">
@@ -728,7 +821,7 @@
      <x>0</x>
      <y>0</y>
      <width>1254</width>
-     <height>19</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -793,4 +886,7 @@
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>combobox_test1()</slot>
+ </slots>
 </ui>
