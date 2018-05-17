@@ -44,8 +44,8 @@ public:
   static constexpr unsigned int PRIORITY = 8;
 
 
-  WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_start_flag_(false) , calc_update_flag_(false)
+  WalkingController(DyrosJetModel& model, const VectorQd& current_q, const Eigen::Vector12d& current_q_ext, const double hz, const double& control_time) :
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), current_q_ext_(current_q_ext), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_start_flag_(false) , calc_update_flag_(false)
   {
 
     for(int i=0; i<FILE_CNT;i++)
@@ -189,6 +189,7 @@ private:
   VectorQd desired_q_;
   VectorQd target_q_;
   const VectorQd& current_q_;  
+  const VectorQd& current_q_ext_;
 
 
 

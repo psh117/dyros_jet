@@ -286,6 +286,8 @@ void WalkingController::getRobotState()
   current_leg_jacobian_r_=model_.getLegJacobian((DyrosJetModel::EndEffector) 1);
 
   thread_q_ = current_q_;
+  current_motor_q_leg_ = current_q_.segment<12>(0);
+  current_link_q_leg_ = current_q_ext_;
 }
 
 
