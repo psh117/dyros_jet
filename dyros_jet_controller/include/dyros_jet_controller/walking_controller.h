@@ -325,6 +325,7 @@ private:
   Eigen::Matrix<double, 48, 12> bd_total_right_;
   Eigen::Matrix<double, 12, 48> kkk_motor_right_;
 
+
   Eigen::Vector12d dist_prev_;
 
   bool calc_start_flag_;
@@ -341,6 +342,7 @@ private:
   Eigen::Matrix<double, 48, 48> a_disc_total_;
   Eigen::Matrix<double, 48, 12> b_disc_total_;
   Eigen::Matrix<double, 48, 48> kkk_;
+
 
   //////////////////StateEstimation/////////////////////
   Eigen::Matrix<double, 18, 6> a_total_;

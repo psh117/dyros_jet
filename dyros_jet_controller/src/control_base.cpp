@@ -10,7 +10,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   shutdown_flag_(false),
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
-  walking_controller_(model_, q_, Hz, control_time_),
+  walking_controller_(model_, q_, q_ext_, Hz, control_time_),
   joint_control_as_(nh, "/dyros_jet/joint_control", false) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
 {
   //walking_cmd_sub_ = nh.subscribe
