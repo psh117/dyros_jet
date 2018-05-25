@@ -8,6 +8,8 @@
 #include <fstream>
 #include <stdio.h>
 #include <iostream>
+#include <thread>
+#include <mutex>
 
 #define ZERO_LIBRARY_MODE
 
@@ -43,7 +45,7 @@ public:
 
 
   WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_start_flag_(false) , calc_update_flag_(false)
   {
 
     for(int i=0; i<FILE_CNT;i++)
@@ -122,6 +124,12 @@ public:
                                double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
   void vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output);
+  void massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::Matrix12d & mass, Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c);
+  void discreteModel(Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c, int np, double dt,
+                     Eigen::Matrix<double, 36, 36>& ad, Eigen::Matrix<double, 36, 12>& bd, Eigen::Matrix<double, 12, 36>& cd,
+                     Eigen::Matrix<double, 48, 48>& ad_total, Eigen::Matrix<double, 48, 12>& bd_total);
+  void riccatiGain(Eigen::Matrix<double, 48, 48>& ad_total, Eigen::Matrix<double, 48, 12>& bd_total, Eigen::Matrix<double, 48, 48>& q, Eigen::Matrix12d& r, Eigen::Matrix<double, 12, 48>& k);
+  void slowCalc();
 
 private:
 
@@ -183,6 +191,9 @@ private:
   VectorQd desired_q_;
   VectorQd target_q_;
   const VectorQd& current_q_;
+
+
+
   //const double &current_time_;
   const unsigned int total_dof_;
   double start_time_[DyrosJetModel::HW_TOTAL_DOF];
@@ -287,6 +298,49 @@ private:
   Eigen::Vector12d joint_offset_angle_;
   Eigen::Vector12d grav_ground_torque_;
 
+  //vibrationCotrol
+  std::mutex slowcalc_mutex_;
+  std::thread slowcalc_thread_;
+
+  Eigen::Vector12d current_motor_q_leg_;
+  Eigen::Vector12d current_link_q_leg_;
+  Eigen::Vector12d pre_motor_q_leg_;
+  Eigen::Vector12d pre_link_q_leg_;
+  Eigen::Vector12d lqr_output_;
+  Eigen::Vector12d lqr_output_pre_;
+
+  VectorQd thread_q_;
+  unsigned int thread_tick_;
+
+  Eigen::Matrix<double, 48, 1> x_bar_right_;
+  Eigen::Matrix<double, 12, 48> kkk_copy_;
+  Eigen::Matrix<double, 48, 48> ad_total_copy_;
+  Eigen::Matrix<double, 48, 12> bd_total_copy_;
+  Eigen::Matrix<double, 36, 36> ad_copy_;
+  Eigen::Matrix<double, 36, 12> bd_copy_;
+
+  Eigen::Matrix<double, 36, 36> ad_right_;
+  Eigen::Matrix<double, 36, 12> bd_right_;
+  Eigen::Matrix<double, 48, 48> ad_total_right_;
+  Eigen::Matrix<double, 48, 12> bd_total_right_;
+  Eigen::Matrix<double, 12, 48> kkk_motor_right_;
+
+  Eigen::Vector12d dist_prev_;
+
+  bool calc_start_flag_;
+  bool calc_update_flag_;
+
+  Eigen::Matrix<double, 18, 18> mass_matrix_;
+  Eigen::Matrix<double, 18, 18> mass_matrix_pc_;
+  Eigen::Matrix<double, 12, 12> mass_matrix_sel_;
+  Eigen::Matrix<double, 36, 36> a_right_mat_;
+  Eigen::Matrix<double, 36, 12> b_right_mat_;
+  Eigen::Matrix<double, 12, 36> c_right_mat_;
+  Eigen::Matrix<double, 36, 36> a_disc_;
+  Eigen::Matrix<double, 36, 12> b_disc_;
+  Eigen::Matrix<double, 48, 48> a_disc_total_;
+  Eigen::Matrix<double, 48, 12> b_disc_total_;
+  Eigen::Matrix<double, 48, 48> kkk_;
 
   //////////////////StateEstimation/////////////////////
   Eigen::Matrix<double, 18, 6> a_total_;
@@ -308,8 +362,10 @@ private:
 
   Eigen::Vector3d com_support_dot_current_;//from support foot
 
-  Eigen::Vector3d com_support_old_;
-  Eigen::Vector3d com_support_dot_old_;
+  Eigen::Matrix<double, 3, 4> com_float_old_;  // [com(k) com(k-1) com(k-2) com(k-3)]
+  Eigen::Matrix<double, 3, 4> com_float_dot_old_;
+  Eigen::Matrix<double, 3, 4> com_support_old_;  // [con(k) com(k-1) com(k-2) com(k-3)]
+  Eigen::Matrix<double, 3, 4> com_support_dot_old_;
   Eigen::Vector2d com_support_dot_old_estimation_;
   Eigen::Vector2d com_support_old_estimation_;
 

@@ -97,6 +97,8 @@ protected:
   Matrix3d pelvis_orientation_;
 
   VectorQd desired_q_; // current desired joint values
+  Eigen::Vector12d q_ext_;
+  Eigen::Vector12d q_ext_dot_;
 
   int total_dof_;
 

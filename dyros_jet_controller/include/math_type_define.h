@@ -252,6 +252,14 @@ static Eigen::Isometry3d multiplyIsometry3d(Eigen::Isometry3d A,
   return AB;
 }
 
+static Eigen::Vector3d multiplyIsometry3dVector3d(Eigen::Isometry3d A,
+                                      Eigen::Vector3d B)
+{
+  Eigen::Vector3d AB;
+  AB = A.linear()*B + A.translation();
+  return AB;
+}
+
 static Eigen::Isometry3d inverseIsometry3d(Eigen::Isometry3d A)
 {
   Eigen::Isometry3d A_inv;
@@ -359,55 +367,58 @@ static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference,
 }
 
 
-template <int _State_Size_, int _Input_Size_>
-Eigen::Matrix<double, _State_Size_, _State_Size_> discreteRiccatiEquation(
-    Eigen::Matrix<double, _State_Size_, _State_Size_> a,
-    Eigen::Matrix<double, _State_Size_, _Input_Size_> b,
-    Eigen::Matrix<double, _Input_Size_, _Input_Size_> r,
-    Eigen::Matrix<double, _State_Size_, _State_Size_> q)
+static Eigen::MatrixXd discreteRiccatiEquation(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd r, Eigen::MatrixXd q)
 {
-  Eigen::Matrix4d z11, z12, z21, z22;
+  int n=a.rows(); //number of rows
+  int	m=b.cols(); //number of columns
+
+  Eigen::MatrixXd z11(n, n), z12(n, n), z21(n, n), z22(n, n);
+
   z11 = a.inverse();
   z12 = a.inverse()*b*r.inverse()*b.transpose();
   z21 = q*a.inverse();
   z22 = a.transpose() + q*a.inverse()*b*r.inverse()*b.transpose();
 
-  Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_> z;
+  Eigen::MatrixXd z; z.resize(2*n, 2*n);
   z.setZero();
-  z.topLeftCorner(4,4) = z11;
-  z.topRightCorner(4,4) = z12;
-  z.bottomLeftCorner(4,4) = z21;
-  z.bottomRightCorner(4,4) = z22;
+  z.topLeftCorner(n,n) = z11;
+  z.topRightCorner(n,n) = z12;
+  z.bottomLeftCorner(n,n) = z21;
+  z.bottomRightCorner(n,n) = z22;
 
-  std::vector<double> eigVal_real(8);
-  std::vector<double> eigVal_img(8);
-  std::vector<Eigen::Vector8d> eigVec_real(8);
-  std::vector<Eigen::Vector8d> eigVec_img(8);
+
+  std::vector<Eigen::VectorXd> eigVec_real(2*n);
+  std::vector<Eigen::VectorXd> eigVec_img(2*n);
 
   for(int i=0; i<8; i++)
   {
+    eigVec_real[i].resize(2*n);
     eigVec_real[i].setZero();
+    eigVec_img[i].resize(2*n);
     eigVec_img[i].setZero();
   }
 
-  Eigen::Matrix<double, 2*_State_Size_, 1> deigVal_real, deigVal_img;
-  Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_> deigVec_real, deigVec_img;
+  Eigen::VectorXd deigVal_real(2*n);
+  Eigen::VectorXd deigVal_img(2*n);
   deigVal_real.setZero();
   deigVal_img.setZero();
+  Eigen::MatrixXd deigVec_real(2*n,2*n);
+  Eigen::MatrixXd deigVec_img(2*n,2*n);
   deigVec_real.setZero();
   deigVec_img.setZero();
+
   deigVal_real = z.eigenvalues().real();
   deigVal_img = z.eigenvalues().imag();
 
-  Eigen::EigenSolver<Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_>> ev(z);
+  Eigen::EigenSolver<Eigen::MatrixXd> ev(z);
   //EigenVector Solver
   //Matrix3D ones = Matrix3D::Ones(3,3);
   //EigenSolver<Matrix3D> ev(ones);
   //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << ev.eigenvectors().col(1) << endl;
 
-  for(int i=0;i<8; i++)
+  for(int i=0;i<2*n; i++)
   {
-    for(int j=0; j<8; j++)
+    for(int j=0; j<2*n; j++)
     {
       deigVec_real(j,i) = ev.eigenvectors().col(i)(j).real();
       deigVec_img(j,i) = ev.eigenvectors().col(i)(j).imag();
@@ -417,16 +428,16 @@ Eigen::Matrix<double, _State_Size_, _State_Size_> discreteRiccatiEquation(
   //Order the eigenvectors
   //move e-vectors correspnding to e-value outside the unite circle to the left
 
-  Eigen::Matrix8x4d tempZ_real, tempZ_img;
+  Eigen::MatrixXd tempZ_real(2*n, n), tempZ_img(2*n, n);
   tempZ_real.setZero();
   tempZ_img.setZero();
   int c=0;
 
-  for (int i=0;i<8;i++)
+  for (int i=0;i<2*n;i++)
   {
     if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
     {
-      for(int j=0; j<8; j++)
+      for(int j=0; j<2*n; j++)
       {
         tempZ_real(j,c) = deigVec_real(j,i);
         tempZ_img(j,c) = deigVec_img(j,i);
@@ -435,30 +446,31 @@ Eigen::Matrix<double, _State_Size_, _State_Size_> discreteRiccatiEquation(
     }
   }
 
-  Eigen::Matrix8x4cd tempZ_comp;
-  for(int i=0;i<8;i++)
+  Eigen::MatrixXcd tempZ_comp(2*n, n);
+  for(int i=0;i<2*n;i++)
   {
-    for(int j=0;j<4;j++)
+    for(int j=0;j<n;j++)
     {
       tempZ_comp.real()(i,j) = tempZ_real(i,j);
       tempZ_comp.imag()(i,j) = tempZ_img(i,j);
     }
   }
 
-  Eigen::Matrix4cd U11, U21, X;
-  for(int i=0;i<4;i++)
+  Eigen::MatrixXcd U11(n, n), U21(n, n), X(n, n);
+  for(int i=0;i<n;i++)
   {
-    for(int j=0;j<4;j++)
+    for(int j=0;j<n;j++)
     {
       U11(i,j) = tempZ_comp(i,j);
-      U21(i,j) = tempZ_comp(i+4,j);
+      U21(i,j) = tempZ_comp(i+n,j);
     }
   }
   X = U21*(U11.inverse());
-  Eigen::Matrix4d X_sol;
-  for(int i=0;i<4;i++)
+
+  Eigen::MatrixXd X_sol(n, n);
+  for(int i=0;i<n;i++)
   {
-    for(int j=0;j<4;j++)
+    for(int j=0;j<n;j++)
     {
       X_sol(i,j) = X.real()(i,j);
     }

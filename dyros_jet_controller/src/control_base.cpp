@@ -38,7 +38,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
   shutdown_command_sub_ = nh.subscribe("/dyros_jet/shutdown_command", 1, &ControlBase::shutdownCommandCallback,this);
   parameterInitialize();
-  // model_.test();
+  model_.test();
 }
 
 bool ControlBase::checkStateChanged()
@@ -61,8 +61,12 @@ void ControlBase::makeIDInverseList()
 
 void ControlBase::update()
 {
-  model_.updateKinematics(q_.head<DyrosJetModel::MODEL_DOF>());  // Update end effector positions and Jacobians
-  model_.updateSensorData(right_foot_ft_, left_foot_ft_);
+  Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_vjoint;
+  q_vjoint.setZero();
+  q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
+
+  model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
+  model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_);
   stateChangeEvent();
 }
 
@@ -104,6 +108,7 @@ void ControlBase::compute()
   tick_ ++;
   control_time_ = tick_ / Hz_;
 
+  //cout << "current_q_ext" << q_ext_ <<endl;
   /*
   if ((tick_ % 200) == 0 )
   {
