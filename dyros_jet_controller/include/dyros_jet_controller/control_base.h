@@ -86,6 +86,7 @@ protected:
   VectorQd q_; // current q
   VectorQd q_dot_; // current qdot
   VectorQd torque_; // current joint toruqe
+  Eigen::Vector12d q_ext_;
 
   Vector6d left_foot_ft_; // current left ft sensor values
   Vector6d right_foot_ft_; // current right ft sensor values
@@ -95,6 +96,8 @@ protected:
   Vector3d accelometer_; // current accelometer values
 
   Matrix3d pelvis_orientation_;
+
+  Vector3d com_sim_; //com position from simulation COMvisualziefunction
 
   VectorQd desired_q_; // current desired joint values
 

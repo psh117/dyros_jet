@@ -20,6 +20,7 @@ SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz):
   joint_sub_ = nh.subscribe("/vrep_ros_interface/joint_state", 100, &SimulationInterface::jointCallback, this);
   left_ft_sub_ = nh.subscribe("/vrep_ros_interface/left_foot_ft", 100, &SimulationInterface::leftFTCallback, this);
   right_ft_sub_ = nh.subscribe("/vrep_ros_interface/right_foot_ft", 100, &SimulationInterface::rightFTCallback, this);
+  com_sub_ = nh.subscribe("/vrep_ros_interface/com", 100, &SimulationInterface::comCallback, this);
 
   vrep_joint_set_pub_ = nh.advertise<sensor_msgs::JointState>("/vrep_ros_interface/joint_set", 1);
 
@@ -76,7 +77,7 @@ void SimulationInterface::vrepEnableSyncMode()
 void SimulationInterface::update()
 {
   ControlBase::update();
-
+  ControlBase::model_.updateSimCom(com_sim_);
 }
 void SimulationInterface::compute()
 {
@@ -169,6 +170,13 @@ void SimulationInterface::rightFTCallback(const geometry_msgs::WrenchStampedCons
 void SimulationInterface::imuCallback(const sensor_msgs::ImuConstPtr &msg)
 {
 
+}
+
+void SimulationInterface::comCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  com_sim_(0) = msg->x;
+  com_sim_(1) = msg->y;
+  com_sim_(2) = msg->z;
 }
 
 }

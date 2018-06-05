@@ -115,7 +115,8 @@ void WalkingController::compute()
       file[5]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<pelv_trajectory_support_.translation()(0)<<"\t"<<pelv_trajectory_support_.translation()(1)<<"\t"<<pelv_trajectory_support_.translation()(2)
             <<endl;
       file[6]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<com_support_current_(0)<<"\t"<<com_support_current_(1)<<"\t"<<com_support_current_(2)
-            <<"\t"<<pelv_support_current_.translation()(0)<<"\t"<<pelv_support_current_.translation()(1)<<"\t"<<pelv_support_current_.translation()(2)<<"\t"<<com_support_dot_current_(0)<<"\t"<<com_support_dot_current_(1)<<"\t"<<com_support_dot_current_(2)<<endl;
+            <<"\t"<<pelv_support_current_.translation()(0)<<"\t"<<pelv_support_current_.translation()(1)<<"\t"<<pelv_support_current_.translation()(2)<<"\t"<<com_support_dot_current_(0)<<"\t"<<com_support_dot_current_(1)<<"\t"<<com_support_dot_current_(2)
+           <<"\t"<<com_sim_current_(0)<<"\t"<<com_sim_current_(1)<<"\t"<<com_sim_current_(2)<<endl;
       file[7]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_support_current_.translation()(0)<<"\t"<<rfoot_support_current_.translation()(1)<<"\t"<<rfoot_support_current_.translation()(2)
             <<"\t"<<lfoot_support_current_.translation()(0)<<"\t"<<lfoot_support_current_.translation()(1)<<"\t"<<lfoot_support_current_.translation()(2)<<endl;
       file[8]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<vars.x[0]<<"\t"<<vars.x[1]<<"\t"<<vars.x[2]<<"\t"<<vars.x[3]<<"\t"<<vars.x[4]<<"\t"<<vars.x[5]<<"\t"<<zmp_measured_(0)<<"\t"<<zmp_measured_(1)<<"\t"<<zmp_r_(0)<<"\t"<<zmp_r_(1)<<"\t"<<zmp_l_(0)<<"\t"<<zmp_l_(1)<<endl;
@@ -210,9 +211,9 @@ void WalkingController::parameterSetting()
 
   t_double1_= 0.1*hz_;
   t_double2_= 0.1*hz_;
-  t_rest_init_ = 3.0*hz_;
-  t_rest_last_= 3.0*hz_;
-  t_total_= 7.2*hz_;
+  t_rest_init_ = 2.0*hz_;
+  t_rest_last_= 2.0*hz_;
+  t_total_= 5.2*hz_;
   t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -246,8 +247,11 @@ void WalkingController::getRobotState()
   lfoot_float_current_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)0);
   rfoot_float_current_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)1);
   com_float_current_ = model_.getCurrentCom();
+  com_sim_current_ = model_.getSimulationCom();
   r_ft_ = model_.getRightFootForce();
   l_ft_ = model_.getLeftFootForce();
+
+  std::cout<<com_sim_current_<<endl;
 
   pelv_float_current_.setIdentity();
 
@@ -275,7 +279,7 @@ void WalkingController::getRobotState()
   rfoot_support_current_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(ref_frame),rfoot_float_current_);
   pelv_support_current_ = DyrosMath::inverseIsometry3d(ref_frame);
   com_support_current_ = pelv_support_current_.linear()*com_float_current_ + pelv_support_current_.translation();
-
+  com_sim_current_ = pelv_support_current_.linear()*com_sim_current_ + pelv_support_current_.translation();
   for(int i=0; i<com_size; i++)
   {
     com_support_old_.col(i) = pelv_support_current_.linear()*com_float_old_.col(i) + pelv_support_current_.translation();
@@ -3154,34 +3158,32 @@ void WalkingController::getEstimationInputMatrix()
 
       //com_support_old_.col(1) = DyrosMath::multiplyIsometry3dVector3d(lfoot_support_current_, com_support_old_.col(1));
 
-      com_support_dot_old_estimation_(0) = DyrosMath::multiplyIsometry3dVector3d(lfoot_support_current_, com_dot_se_support_old)(0);
-      com_support_dot_old_estimation_(1) = DyrosMath::multiplyIsometry3dVector3d(lfoot_support_current_, com_dot_se_support_old)(1);
+      com_support_dot_old_estimation_(0) = (lfoot_support_current_.linear()*com_dot_se_support_old)(0);
+      com_support_dot_old_estimation_(1) = (lfoot_support_current_.linear()*com_dot_se_support_old)(1);
       com_support_old_estimation_(0) = DyrosMath::multiplyIsometry3dVector3d(lfoot_support_current_, com_se_support_old)(0);
       com_support_old_estimation_(1) = DyrosMath::multiplyIsometry3dVector3d(lfoot_support_current_, com_se_support_old)(1);
       zmp_old_estimation_(0) = DyrosMath::multiplyIsometry3dVector3d(lfoot_support_current_, zmp_se_support_old)(0);
       zmp_old_estimation_(1) = DyrosMath::multiplyIsometry3dVector3d(lfoot_support_current_, zmp_se_support_old)(1);
-      std::cout<<"check0"<<endl;
     }
     else if(foot_step_(current_step_num_, 6) == 1)
     {
       //com_support_old_.col(1) = DyrosMath::multiplyIsometry3dVector3d(rfoot_support_current_,com_support_old_.col(1));
 
-      com_support_dot_old_estimation_(0) = DyrosMath::multiplyIsometry3dVector3d(rfoot_support_current_, com_dot_se_support_old)(0);
-      com_support_dot_old_estimation_(1) = DyrosMath::multiplyIsometry3dVector3d(rfoot_support_current_, com_dot_se_support_old)(1);
+      com_support_dot_old_estimation_(0) = (rfoot_support_current_.linear()*com_dot_se_support_old)(0);
+      com_support_dot_old_estimation_(1) = (rfoot_support_current_.linear()*com_dot_se_support_old)(1);
       com_support_old_estimation_(0) = DyrosMath::multiplyIsometry3dVector3d(rfoot_support_current_, com_se_support_old)(0);
       com_support_old_estimation_(1) = DyrosMath::multiplyIsometry3dVector3d(rfoot_support_current_, com_se_support_old)(1);
       zmp_old_estimation_(0) = DyrosMath::multiplyIsometry3dVector3d(rfoot_support_current_, zmp_se_support_old)(0);
       zmp_old_estimation_(1) = DyrosMath::multiplyIsometry3dVector3d(rfoot_support_current_, zmp_se_support_old)(1);
-      std::cout<<"check1"<<endl;
     }
 
   }
   else if(walking_tick_ != 0)
   {
-    if(walking_tick_ < com_support_old_.cols()-1)
-    {
-      com_support_dot_current_ =(com_support_old_.col(0)-com_support_old_.col(1))*hz_;
-    }
+    //if(walking_tick_ < 10)
+    //{
+    //  com_support_dot_current_.setZero();
+    //}
     //com_support_dot_current_ = (-2*com_support_old_.col(3)+9*com_support_old_.col(2)-18*com_support_old_.col(1)+11*com_support_old_.col(0))*hz_/6;
     com_support_dot_current_ =(com_support_old_.col(0)-com_support_old_.col(1))*hz_;
     com_support_dot_old_estimation_(0) = vars.x[0];
@@ -3253,7 +3255,7 @@ void WalkingController::getEstimationInputMatrix()
 
   a_noise_.setIdentity();
 
-  if(walking_tick_ == 0 || walking_tick_ == t_start_ )
+  if(walking_tick_ == 0 )
   {
     b_noise_(0) = com_support_dot_current_(0);
     b_noise_(1) = com_support_dot_current_(1);
@@ -3276,7 +3278,7 @@ void WalkingController::getEstimationInputMatrix()
   /////////////////////////////////////////////////////////////////////////////////////////////
   Eigen::Matrix<double, 10, 1> coeff;
   coeff.setIdentity();
-
+  /*
   coeff(0) = 5e2;		//kinematic
   coeff(1) = 1e3;		//c_dot_x
   coeff(2) = 1e3;		//c_dot_y
@@ -3287,7 +3289,22 @@ void WalkingController::getEstimationInputMatrix()
   coeff(7) = 7e3;	    //noise of c_dot
   coeff(8) = 1.5e1;	    //noise of c
   coeff(9) = 5e4;	    //noise of zmp
+  */
 
+
+  coeff(0) = 1e3;		//kinematic
+  coeff(1) = 1e2;		//c_dot_x
+  coeff(2) = 1e2;		//c_dot_y
+  coeff(3) = 3e2;		//c
+  coeff(4) = 9e3;		//zmp
+  coeff(5) = 6e2;		//approximation
+  coeff(6) = 2e-1;	//FT-accer
+  coeff(7) = 0e2;	    //noise of c_dot
+  coeff(8) = 4e0;	    //noise of c
+  coeff(9) = 2e4;	    //noise of zmp
+
+
+  /* for simluation*/
   /*
   coeff(0) = 1e2;		//kinematic
   coeff(1) = 3e1;		//c_dot_x
@@ -3300,6 +3317,7 @@ void WalkingController::getEstimationInputMatrix()
   coeff(8) = 0e0;	    //noise of c
   coeff(9) = 3e4;	    //noise of zmp
   */
+
   /*
   coeff(0) = 1e0;		//kinematic
   coeff(1) = 1e0;		//c_dot_x
@@ -3314,17 +3332,19 @@ void WalkingController::getEstimationInputMatrix()
   */
 
 
+  /*
+  coeff(0) = 0e0;		//kinematic
+  coeff(1) = 1e0;		//c_dot_x
+  coeff(2) = 1e0;		//c_dot_y
+  coeff(3) = 3e0;		//c
+  coeff(4) = 9e0;		//zmp
+  coeff(5) = 1e0;		//approximation
+  coeff(6) = 0e0;	//FT-accer
+  coeff(7) = 0e-1;	    //noise of c_dot
+  coeff(8) = 0e-1;	    //noise of c
+  coeff(9) = 0e0;	    //noise of zmp
+  */
 
-  //coeff(0) = 0e0;		//kinematic
-  //coeff(1) = 1e0;		//c_dot_x
-  //coeff(2) = 1e0;		//c_dot_y
-  //coeff(3) = 3e0;		//c
-  //coeff(4) = 9e0;		//zmp
-  //coeff(5) = 1e0;		//approximation
-  //coeff(6) = 0e0;	//FT-accer
-  //coeff(7) = 0e-1;	    //noise of c_dot
-  //coeff(8) = 0e-1;	    //noise of c
-  //coeff(9) = 0e0;	    //noise of zmp
 
   a_total_.block<2, 6>(0, 0) = coeff(0)*a_kin_;
   a_total_.block<1, 6>(2, 0) = coeff(1)*a_c_dot_.block<1, 6>(0, 0);

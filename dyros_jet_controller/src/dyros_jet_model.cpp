@@ -137,6 +137,11 @@ void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::V
   l_ft_wrench_ = l_ft;
 }
 
+void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)
+{
+  com_simulation_ = sim_com;
+}
+
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
 (EndEffector ee, Eigen::Isometry3d* transform_matrix)
 {

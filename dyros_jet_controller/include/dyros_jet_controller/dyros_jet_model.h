@@ -49,6 +49,7 @@ public:
   void updateKinematics(const Eigen::VectorXd &q);
 
   void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft);
+  void updateSimCom(const Eigen::Vector3d &sim_com);
 
   void getTransformEndEffector(EndEffector ee, Eigen::Isometry3d* transform_matrix);
   void getTransformEndEffector(EndEffector ee, Eigen::Vector3d* position, Eigen::Matrix3d* rotation);
@@ -72,6 +73,7 @@ public:
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
   const Eigen::Matrix<double, 6, 18>& getLegWithVLinkJacobian(EndEffector ee) { return leg_with_vlink_jacobian_[ee]; }
   const Eigen::Vector3d& getCurrentCom(){ return com_;}
+  const Eigen::Vector3d& getSimulationCom(){return com_simulation_;}
   const Eigen::Vector6d& getRightFootForce() {return r_ft_wrench_;}
   const Eigen::Vector6d& getLeftFootForce() {return l_ft_wrench_;}
   const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
@@ -94,6 +96,7 @@ private:
   Eigen::Matrix<double, 18, 18> leg_inertia_mat_;
 
   Eigen::Vector3d com_;
+  Eigen::Vector3d com_simulation_;
 
   Eigen::Vector6d r_ft_wrench_;
   Eigen::Vector6d l_ft_wrench_;
