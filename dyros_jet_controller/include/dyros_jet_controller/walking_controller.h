@@ -44,8 +44,8 @@ public:
   static constexpr unsigned int PRIORITY = 8;
 
 
-  WalkingController(DyrosJetModel& model, const VectorQd& current_q, const Eigen::Vector12d& current_q_ext, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), current_q_ext_(current_q_ext), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_start_flag_(false) , calc_update_flag_(false)
+  WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_start_flag_(false) , calc_update_flag_(false)
   {
 
     for(int i=0; i<FILE_CNT;i++)
@@ -125,9 +125,11 @@ public:
                                double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
   void vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output);
-  void massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::MatrixXd & mass, Eigen::MatrixXd& a, Eigen::MatrixXd& b, Eigen::MatrixXd& c);
-  void discreteModel(Eigen::MatrixXd& a, Eigen::MatrixXd& b, Eigen::MatrixXd& c, int np, double dt, Eigen::MatrixXd& ad, Eigen::MatrixXd& bd, Eigen::MatrixXd& cd, Eigen::MatrixXd& ad_total, Eigen::MatrixXd& bd_total);
-  void riccatiGain(Eigen::MatrixXd& ad_total, Eigen::MatrixXd& bd_total, Eigen::Matrix<double, 12*4, 12*4>& q, Eigen::Matrix12d& r, Eigen::Matrix<double, 12, 12*4>& k);
+  void massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::Matrix12d & mass, Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c);
+  void discreteModel(Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c, int np, double dt,
+                     Eigen::Matrix<double, 36, 36>& ad, Eigen::Matrix<double, 36, 12>& bd, Eigen::Matrix<double, 12, 36>& cd,
+                     Eigen::Matrix<double, 48, 48>& ad_total, Eigen::Matrix<double, 48, 12>& bd_total);
+  void riccatiGain(Eigen::Matrix<double, 48, 48>& ad_total, Eigen::Matrix<double, 48, 12>& bd_total, Eigen::Matrix<double, 48, 48>& q, Eigen::Matrix12d& r, Eigen::Matrix<double, 12, 48>& k);
   void slowCalc();
 
 private:
@@ -190,7 +192,7 @@ private:
   VectorQd desired_q_;
   VectorQd target_q_;
   const VectorQd& current_q_;  
-  const Eigen::Vector12d& current_q_ext_;
+
 
 
 
@@ -315,34 +317,36 @@ private:
   unsigned int thread_tick_;
 
   Eigen::Matrix<double, 48, 1> x_bar_right_;
-  Eigen::MatrixXd kkk_copy_;
-  Eigen::MatrixXd ad_total_copy_;
-  Eigen::MatrixXd bd_total_copy_;
-  Eigen::MatrixXd ad_copy_;
-  Eigen::MatrixXd bd_copy_;
+  Eigen::Matrix<double, 12, 48> kkk_copy_;
+  Eigen::Matrix<double, 48, 48> ad_total_copy_;
+  Eigen::Matrix<double, 48, 12> bd_total_copy_;
+  Eigen::Matrix<double, 36, 36> ad_copy_;
+  Eigen::Matrix<double, 36, 12> bd_copy_;
 
-  Eigen::MatrixXd ad_right_;
-  Eigen::MatrixXd bd_right_;
-  Eigen::MatrixXd ad_total_right_;
-  Eigen::MatrixXd bd_total_right_;
-  Eigen::MatrixXd kkk_motor_right_;
+  Eigen::Matrix<double, 36, 36> ad_right_;
+  Eigen::Matrix<double, 36, 12> bd_right_;
+  Eigen::Matrix<double, 48, 48> ad_total_right_;
+  Eigen::Matrix<double, 48, 12> bd_total_right_;
+  Eigen::Matrix<double, 12, 48> kkk_motor_right_;
+
 
   Eigen::Vector12d dist_prev_;
 
   bool calc_start_flag_;
   bool calc_update_flag_;
 
-  Eigen::MatrixXd mass_matrix_;
-  Eigen::MatrixXd mass_matrix_pc_;
-  Eigen::MatrixXd mass_matrix_sel_;
-  Eigen::MatrixXd a_right_mat_;
-  Eigen::MatrixXd b_right_mat_;
-  Eigen::MatrixXd c_right_mat_;
-  Eigen::MatrixXd a_disc_;
-  Eigen::MatrixXd b_disc_;
-  Eigen::MatrixXd a_disc_total_;
-  Eigen::MatrixXd b_disc_total_;
-  Eigen::MatrixXd kkk_;
+  Eigen::Matrix<double, 18, 18> mass_matrix_;
+  Eigen::Matrix<double, 18, 18> mass_matrix_pc_;
+  Eigen::Matrix<double, 12, 12> mass_matrix_sel_;
+  Eigen::Matrix<double, 36, 36> a_right_mat_;
+  Eigen::Matrix<double, 36, 12> b_right_mat_;
+  Eigen::Matrix<double, 12, 36> c_right_mat_;
+  Eigen::Matrix<double, 36, 36> a_disc_;
+  Eigen::Matrix<double, 36, 12> b_disc_;
+  Eigen::Matrix<double, 48, 48> a_disc_total_;
+  Eigen::Matrix<double, 48, 12> b_disc_total_;
+  Eigen::Matrix<double, 48, 48> kkk_;
+
 
   //////////////////StateEstimation/////////////////////
   Eigen::Matrix<double, 18, 6> a_total_;

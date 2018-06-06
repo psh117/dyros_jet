@@ -47,6 +47,8 @@ DyrosJetModel::DyrosJetModel() :
 {
   base_position_.setZero();
   q_.setZero();
+  q_ext_.setZero();
+  extencoder_init_flag_ = false;
 
   std::string desc_package_path = ros::package::getPath("dyros_jet_description");
   std::string urdf_path = desc_package_path + "/robots/dyros_jet_robot.urdf";
@@ -131,10 +133,24 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
   }
 }
 
-void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft)
+void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext)
 {
   r_ft_wrench_ = r_ft;
   l_ft_wrench_ = l_ft;
+
+  q_ext_ = q_ext;
+  if(extencoder_init_flag_ == false)
+  {
+    for (int i=0; i<12; i++)
+      extencoder_offset_(i) = q_virtual_(6+i)-q_ext_(i);
+
+    extencoder_init_flag_ = true;
+  }
+
+  if(extencoder_init_flag_ == true)
+  {
+    q_ext_ = q_ext_ + extencoder_offset_;
+  }
 }
 
 void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)

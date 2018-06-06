@@ -48,8 +48,9 @@ public:
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
 
-  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft);
+  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext);
   void updateSimCom(const Eigen::Vector3d &sim_com);
+
 
   void getTransformEndEffector(EndEffector ee, Eigen::Isometry3d* transform_matrix);
   void getTransformEndEffector(EndEffector ee, Eigen::Vector3d* position, Eigen::Matrix3d* rotation);
@@ -68,6 +69,7 @@ public:
   void getInertiaMatrix18DoF(Eigen::Matrix<double, 18, 18> *leg_inertia);
 
 
+  const Eigen::Vector12d& getCurrentExtencoder(){ return q_ext_; }
   const Eigen::Isometry3d& getCurrentTrasmfrom(EndEffector ee) { return currnet_transform_[ee]; }
   const Eigen::Matrix<double, 6, 6>& getLegJacobian(EndEffector ee) { return leg_jacobian_[ee]; }
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
@@ -84,6 +86,10 @@ private:
 
   Eigen::Vector28d q_;
   Eigen::Matrix<double, 34, 1> q_virtual_;
+  Eigen::Vector12d q_ext_;
+  Eigen::Vector12d extencoder_offset_;
+  bool extencoder_init_flag_;
+
   Eigen::Vector3d base_position_;
 
   Eigen::Isometry3d currnet_transform_[4];

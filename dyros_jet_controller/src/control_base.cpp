@@ -10,7 +10,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   shutdown_flag_(false),
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
-  walking_controller_(model_, q_, q_ext_, Hz, control_time_),
+  walking_controller_(model_, q_,  Hz, control_time_),
   joint_control_as_(nh, "/dyros_jet/joint_control", false) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
 {
   //walking_cmd_sub_ = nh.subscribe
@@ -66,7 +66,7 @@ void ControlBase::update()
   q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
 
   model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
-  model_.updateSensorData(right_foot_ft_, left_foot_ft_);
+  model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_);
   stateChangeEvent();
 }
 
@@ -108,6 +108,7 @@ void ControlBase::compute()
   tick_ ++;
   control_time_ = tick_ / Hz_;
 
+  //cout << "current_q_ext" << q_ext_ <<endl;
   /*
   if ((tick_ % 200) == 0 )
   {

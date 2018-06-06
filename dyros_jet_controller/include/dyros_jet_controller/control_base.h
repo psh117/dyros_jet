@@ -87,6 +87,7 @@ protected:
   VectorQd q_dot_; // current qdot
   VectorQd torque_; // current joint toruqe
   Eigen::Vector12d q_ext_;
+  Eigen::Vector12d q_ext_dot_;
 
   Vector6d left_foot_ft_; // current left ft sensor values
   Vector6d right_foot_ft_; // current right ft sensor values
