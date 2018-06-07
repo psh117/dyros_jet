@@ -210,9 +210,9 @@ void WalkingController::parameterSetting()
 
   t_double1_= 0.1*hz_;
   t_double2_= 0.1*hz_;
-  t_rest_init_ = 2.0*hz_;
-  t_rest_last_= 2.0*hz_;
-  t_total_= 5.2*hz_;
+  t_rest_init_ = 1.0*hz_;
+  t_rest_last_= 1.0*hz_;
+  t_total_= 3.2*hz_;
 
   t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
@@ -251,7 +251,6 @@ void WalkingController::getRobotState()
   r_ft_ = model_.getRightFootForce();
   l_ft_ = model_.getLeftFootForce();
 
-  std::cout<<rfoot_support_current_.linear()<<endl;
 
   pelv_float_current_.setIdentity();
 
@@ -3303,10 +3302,10 @@ void WalkingController::getEstimationInputMatrix()
   */
 
 
-  coeff(0) = 3e3;		//kinematic
-  coeff(1) = 1.5e2;		//c_dot_x
-  coeff(2) = 1.5e2;		//c_dot_y
-  coeff(3) = 4e2;		//c
+  coeff(0) = 7e2;		//kinematic
+  coeff(1) = 2e2;		//c_dot_x
+  coeff(2) = 2e2;		//c_dot_y
+  coeff(3) = 3e2;		//c
   coeff(4) = 9e3;		//zmp
   coeff(5) = 1e2;		//approximation
   coeff(6) = 1e-3;	//FT-accer
@@ -3316,18 +3315,18 @@ void WalkingController::getEstimationInputMatrix()
 
 
   /* for simluation*/
-  /*
-  coeff(0) = 1e2;		//kinematic
-  coeff(1) = 3e1;		//c_dot_x
-  coeff(2) = 3e1;		//c_dot_y
-  coeff(3) = 7e2;		//c
-  coeff(4) = 8e3;		//zmp
-  coeff(5) = 6e2;		//approximation
-  coeff(6) = 2e0;	//FT-accer
-  coeff(7) = 1e2;	    //noise of c_dot
-  coeff(8) = 0e0;	    //noise of c
-  coeff(9) = 3e4;	    //noise of zmp
-  */
+
+  //coeff(0) = 1e2;		//kinematic
+  //coeff(1) = 3e1;		//c_dot_x
+  //coeff(2) = 3e1;		//c_dot_y
+  //coeff(3) = 7e2;		//c
+  //coeff(4) = 8e3;		//zmp
+  //coeff(5) = 6e2;		//approximation
+  //coeff(6) = 2e0;	//FT-accer
+  //coeff(7) = 1e2;	    //noise of c_dot
+  //coeff(8) = 1e0;	    //noise of c
+  //coeff(9) = 3e4;	    //noise of zmp
+
 
 
 
