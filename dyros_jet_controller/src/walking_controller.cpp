@@ -94,7 +94,6 @@ void WalkingController::compute()
       ///////////////////////////////////////////////
 
       updateNextStepTime();
-        std::cout<<"gg"<<endl;
 
     }
     else
