@@ -70,7 +70,6 @@ int main(int argc, char **argv) {
 
 
 
-      w1.
     app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
     int result = app.exec();
 
