@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1254</width>
-    <height>1214</height>
+    <width>1920</width>
+    <height>1080</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,7 +20,7 @@
    <string>DYROS THORMANG User Interface</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/images.qrc">
+   <iconset resource="../../../thormang_user/dyros_black_ui/resources/images.qrc">
     <normaloff>:/images/icon_2.png</normaloff>:/images/icon_2.png</iconset>
   </property>
   <property name="locale">
@@ -820,8 +820,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1254</width>
-     <height>23</height>
+     <width>1920</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -866,7 +866,7 @@
   </action>
  </widget>
  <resources>
-  <include location="../resources/images.qrc"/>
+  <include location="../../../thormang_user/dyros_black_ui/resources/images.qrc"/>
  </resources>
  <connections>
   <connection>

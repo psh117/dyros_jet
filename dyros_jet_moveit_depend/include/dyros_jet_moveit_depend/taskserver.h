@@ -6,7 +6,7 @@
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <sensor_msgs/JointState.h>
-#include "dyros_jet_msgs/JointState.h"
+#include <dyros_jet_msgs/JointState.h>
 
 
 
