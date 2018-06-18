@@ -79,6 +79,8 @@ public Q_SLOTS:
     void ClickedGraph_LF(QMouseEvent* event);
     void ClickedGraph_RF(QMouseEvent* event);
 
+    void on_comboBox_LF_currentIndexChanged(const QString &arg1);
+    void on_comboBox_RF_currentIndexChanged(const QString &arg1);
     /******************************************
     ** Code based UI connections
     *******************************************/
@@ -124,6 +126,10 @@ public:
     bool TimeCheck;
     int count;
     double space;
+
+    std::string LF_select;
+    std::string RF_select;
+
 
 };
 }  // namespace dyros_jet_gui

@@ -61,8 +61,8 @@ void ControlBase::makeIDInverseList()
 
 void ControlBase::update()
 {
-  //q_.setZero();
   model_.updateKinematics(q_.head<DyrosJetModel::MODEL_DOF>());  // Update end effector positions and Jacobians
+  model_.updateSensorData(right_foot_ft_, left_foot_ft_);
   stateChangeEvent();
 }
 
@@ -218,6 +218,7 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   }
   else
   {
+    cout<<"fffffffffff"<<endl;
     walking_controller_.setEnable(false);
   }
 }

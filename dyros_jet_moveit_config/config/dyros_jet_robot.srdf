@@ -99,7 +99,7 @@
     <end_effector name="right_hand_ee" parent_link="R_HandYaw_Link" group="right_arm" />
     <end_effector name="left_hand_ee" parent_link="L_HandYaw_Link" group="left_arm" />
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
-    <virtual_joint name="virtual_joint" type="floating" parent_frame="odom_combined" child_link="world" />
+    <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="base_link" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="L_AnklePitch_Link" link2="L_AnkleRoll_Link" reason="Adjacent" />
     <disable_collisions link1="L_AnklePitch_Link" link2="L_HipPitch_Link" reason="Never" />

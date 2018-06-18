@@ -15,14 +15,14 @@ const int FILE_CNT = 8;
 const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
-  "/home/pen/data/walking/0_desired_zmp_.txt",
-  "/home/pen/data/walking/1_desired_com_.txt",
-  "/home/pen/data/walking/2_desired_q_.txt",
-  "/home/pen/data/walking/3_real_q_.txt",
-  "/home/pen/data/walking/4_desired_swingfoot_.txt",
-  "/home/pen/data/walking/5_desired_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/7_current_foot_trajectory_.txt"
+  "/home/junhyung/data/walking/0_desired_zmp_.txt",
+  "/home/junhyung/data/walking/1_desired_com_.txt",
+  "/home/junhyung/data/walking/2_desired_q_.txt",
+  "/home/junhyung/data/walking/3_real_q_.txt",
+  "/home/junhyung/data/walking/4_desired_swingfoot_.txt",
+  "/home/junhyung/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/junhyung/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/junhyung/data/walking/7_current_foot_trajectory_.txt"
 };
 
 using namespace std;
@@ -116,7 +116,12 @@ public:
   void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_,
                                double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
+  //LQR && External Encoder
   void vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output);
+
+  //ImpedanceControl
+  void impedancefootUpdate();
+  void impedanceControl();
 
 private:
 
@@ -124,6 +129,10 @@ private:
   const double &current_time_; // updated by control_base
   unsigned int walking_tick_ = 0;
   double walking_time_ = 0;
+
+
+  Eigen::Vector6d r_ft_;
+  Eigen::Vector6d l_ft_;
 
   //parameterSetting()
   double t_last_;
@@ -269,7 +278,6 @@ private:
   Eigen::Vector3d b_;
   Eigen::Matrix1x3d c_;
 
-
   //resolved momentum control
   Eigen::Vector3d p_ref_;
   Eigen::Vector3d l_ref_;
@@ -278,7 +286,20 @@ private:
   Eigen::Vector12d joint_offset_angle_;
   Eigen::Vector12d grav_ground_torque_;
 
+  //ImpedanceControl
+  Eigen::Vector3d impedance_rfoot_float_prev1;
+  Eigen::Vector3d impedance_rfoot_float_prev2;
+  Eigen::Vector3d impedance_rfoot_float_current;
+  Eigen::Vector3d impedance_lfoot_float_prev1;
+  Eigen::Vector3d impedance_lfoot_float_prev2;
+  Eigen::Vector3d impedance_lfoot_float_current;
 
+  Eigen::Vector3d impedance_rfoot_float_euler_prev1;
+  Eigen::Vector3d impedance_rfoot_float_euler_prev2;
+  Eigen::Vector3d impedance_rfoot_float_euler_current;
+  Eigen::Vector3d impedance_lfoot_float_euler_prev1;
+  Eigen::Vector3d impedance_lfoot_float_euler_prev2;
+  Eigen::Vector3d impedance_lfoot_float_euler_current;
 
 };
 

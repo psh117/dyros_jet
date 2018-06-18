@@ -3,6 +3,7 @@ project(dyros_jet_moveit_depend)
 
 
 find_package(catkin REQUIRED COMPONENTS
+  dyros_jet_msgs
   roscpp
   rospy
   std_msgs
@@ -11,13 +12,15 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   control_msgs
   sensor_msgs
-  dyros_jet_msgs
 )
 
 catkin_package(
-   DEPENDS 
-   dyros_jet_msgs
-)
+    DEPENDS   dyros_jet_msgs
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS include
+    LIBRARIES # TODO
+    )
+
 
 include_directories(
 # include
