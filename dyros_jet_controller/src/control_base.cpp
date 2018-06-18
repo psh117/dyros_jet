@@ -11,6 +11,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
   walking_controller_(model_, q_, Hz, control_time_),
+  moveit_controller_(model_, q_, Hz),
   joint_control_as_(nh, "/dyros_jet/joint_control", false) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
 {
   //walking_cmd_sub_ = nh.subscribe
@@ -24,12 +25,20 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   joint_state_pub_.msg_.current.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.error.resize(DyrosJetModel::HW_TOTAL_DOF);
 
+  joint_robot_state_pub_.init(nh, "/joint_states", 3);
+  joint_robot_state_pub_.msg_.name.resize(DyrosJetModel::HW_TOTAL_DOF-4);
+  joint_robot_state_pub_.msg_.position.resize(DyrosJetModel::HW_TOTAL_DOF-4);
+  //joint_robot_state_pub_.msg_.velocity.resize(DyrosJetModel::HW_TOTAL_DOF-4);
+  //joint_robot_state_pub_.msg_.effort.resize(DyrosJetModel::HW_TOTAL_DOF-4);
+
   for (int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     joint_state_pub_.msg_.name[i] = DyrosJetModel::JOINT_NAME[i];
-    //joint_state_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
   }
-
+  for (int i=0; i< DyrosJetModel::HW_TOTAL_DOF-4; i++)
+  {
+    joint_robot_state_pub_.msg_.name[i] = DyrosJetModel::JOINT_NAME[i];
+  }
 
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
@@ -92,14 +101,17 @@ void ControlBase::compute()
   task_controller_.compute();
   joint_controller_.compute();
   walking_controller_.compute();
+  moveit_controller_.compute();
 
   task_controller_.updateControlMask(control_mask_);
   joint_controller_.updateControlMask(control_mask_);
   walking_controller_.updateControlMask(control_mask_);
+  moveit_controller_.updateControlMask(control_mask_);
 
   task_controller_.writeDesired(control_mask_, desired_q_);
   joint_controller_.writeDesired(control_mask_, desired_q_);
   walking_controller_.writeDesired(control_mask_, desired_q_);
+  moveit_controller_.writeDesired(control_mask_, desired_q_);
 
   tick_ ++;
   control_time_ = tick_ / Hz_;
@@ -114,6 +126,7 @@ void ControlBase::compute()
 
 void ControlBase::reflect()
 {
+  joint_robot_state_pub_.msg_.header.stamp = ros::Time::now();
   for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     joint_state_pub_.msg_.angle[i] = q_(i);
@@ -121,9 +134,20 @@ void ControlBase::reflect()
     joint_state_pub_.msg_.current[i] = torque_(i);
   }
 
+  for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF - 4; i++)
+  {
+    joint_robot_state_pub_.msg_.position[i] = q_(i);
+    //joint_robot_state_pub_.msg_.velocity[i] = q_dot_(i);
+    //joint_robot_state_pub_.msg_.effort[i] = torque_(i);
+  }
+
   if(joint_state_pub_.trylock())
   {
     joint_state_pub_.unlockAndPublish();
+  }
+  if(joint_robot_state_pub_.trylock())
+  {
+    joint_robot_state_pub_.unlockAndPublish();
   }
 
   if(joint_control_as_.isActive())

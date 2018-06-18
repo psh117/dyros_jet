@@ -73,7 +73,7 @@ public:
 private:
   RigidBodyDynamics::Model model_;
 
-  Eigen::Vector28d q_;
+  Eigen::Vector28d q_;pro
   Eigen::Vector3d base_position_;
 
   Eigen::Isometry3d currnet_transform_[4];

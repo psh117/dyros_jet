@@ -34,5 +34,6 @@ private:
   double end_time_[DyrosJetModel::HW_TOTAL_DOF];
 };
 
-}
+} // namespace dyros_jet_controller
+
 #endif // JOINT_CONTROLLER_H

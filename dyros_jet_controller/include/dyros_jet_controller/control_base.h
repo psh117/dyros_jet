@@ -41,6 +41,8 @@
 #include "dyros_jet_controller/task_controller.h"
 #include "dyros_jet_controller/joint_controller.h"
 #include "dyros_jet_controller/walking_controller.h"
+#include "dyros_jet_controller/moveit_controller.h"
+
 // #include "Upperbody_Controller.h"
 
 
@@ -104,10 +106,12 @@ protected:
   TaskController task_controller_;
   JointController joint_controller_;
   WalkingController walking_controller_;
+  MoveitController moveit_controller_;
 
 protected:
   string current_state_;
   realtime_tools::RealtimePublisher<dyros_jet_msgs::JointState> joint_state_pub_;
+  realtime_tools::RealtimePublisher<sensor_msgs::JointState> joint_robot_state_pub_;
 
 private:
   double Hz_; ///< control
