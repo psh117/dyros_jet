@@ -7,8 +7,7 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <sensor_msgs/JointState.h>
 #include <dyros_jet_msgs/JointState.h>
-
-
+#include <eigen3/Eigen/Dense>
 
 
 
@@ -60,8 +59,11 @@ public:
 
   void waitForClient();
 
+  int randTest;
+
 private:
   int feedbackHeaderStamp;
+
 
 };
 
