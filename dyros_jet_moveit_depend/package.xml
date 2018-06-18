@@ -52,8 +52,10 @@
   <build_depend>tf roscpp</build_depend>
   <build_depend>dyros_jet_msgs</build_depend>
   <build_export_depend>tf roscpp </build_export_depend>
+  <build_depend>eigen_conversions</build_depend>
   <exec_depend>tf roscpp </exec_depend>
   <exec_depend>dyros_jet_msgs </exec_depend>
+  <exec_depend>eigen_conversions</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
