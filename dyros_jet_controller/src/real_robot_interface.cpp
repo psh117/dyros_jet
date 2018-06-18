@@ -30,6 +30,8 @@ RealRobotInterface::RealRobotInterface(ros::NodeHandle &nh, double Hz):
   right_foot_ft_sub_ = nh.subscribe("/ati_ft_sensor/right_foot_ft", 1,
                                     &RealRobotInterface::rightFootFTCallback, this);
 
+  extEncoderSub = nh.subscribe("/dyros_jet/ext_encoder", 1, &RealRobotInterface::extEncoderCallback, this);
+
   dxl_joint_set_pub_.msg_.angle.resize(DyrosJetModel::HW_TOTAL_DOF);
   dxl_joint_set_pub_.msg_.id.resize(DyrosJetModel::HW_TOTAL_DOF);
 
@@ -85,6 +87,36 @@ void RealRobotInterface::jointCallback(const rt_dynamixel_msgs::JointStateConstP
   {is_first_boot_ = false;}
 }
 
+void RealRobotInterface::extEncoderCallback(const sensor_msgs::JointStateConstPtr joint)
+{
+  for (int i=0; i<6;i++)
+  {
+    q_ext_(i+6) = joint->position[i];
+    q_ext_(i) = joint->position[i+6]; //LEFT FIRST
+    q_ext_dot_(i+6) = joint->velocity[i];
+    q_ext_dot_(i) = joint->velocity[i+6];
+  }
+
+  /*
+    for(int i=0; i<total_dof; i++)
+    {
+        string target_joint = JointName[i];
+        for (int j=0; j<joint->name.size(); j++)
+        {
+            string joint_name = joint->name[j].data();
+            joint_name = joint_name + "0";
+            //ROS_INFO("JOINT NAME = %s",joint_name.c_str());
+            if(target_joint == joint_name)
+            {
+                q(i) = joint->position[j];
+                q_dot(i) = joint->velocity[j];
+                //torque(i) = joint->effort[j];
+
+            }
+
+        }
+    }*/
+}
 
 void RealRobotInterface::imuCallback(const sensor_msgs::ImuConstPtr msg)
 {
@@ -103,21 +135,22 @@ void RealRobotInterface::imuFilterCallback(const imu_3dm_gx4::FilterOutputConstP
   imu_data_ = q;
 }
 
+
 void RealRobotInterface::leftFootFTCallback(const geometry_msgs::WrenchStampedConstPtr msg)
 {
-  left_foot_ft_(0) = msg->wrench.force.x;
+  left_foot_ft_(0) = -msg->wrench.force.x;   // FT data is written in left handed frame so we should get - to invert in right handed frame
   left_foot_ft_(1) = msg->wrench.force.y;
   left_foot_ft_(2) = msg->wrench.force.z;
-  left_foot_ft_(3) = msg->wrench.torque.x;
+  left_foot_ft_(3) = -msg->wrench.torque.x;
   left_foot_ft_(4) = msg->wrench.torque.y;
   left_foot_ft_(5) = msg->wrench.torque.z;
 }
 void RealRobotInterface::rightFootFTCallback(const geometry_msgs::WrenchStampedConstPtr msg)
 {
-  right_foot_ft_(0) = msg->wrench.force.x;
+  right_foot_ft_(0) = -msg->wrench.force.x;
   right_foot_ft_(1) = msg->wrench.force.y;
   right_foot_ft_(2) = msg->wrench.force.z;
-  right_foot_ft_(3) = msg->wrench.torque.x;
+  right_foot_ft_(3) = -msg->wrench.torque.x;
   right_foot_ft_(4) = msg->wrench.torque.y;
   right_foot_ft_(5) = msg->wrench.torque.z;
 }

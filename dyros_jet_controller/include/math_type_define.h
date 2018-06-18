@@ -41,6 +41,7 @@ typedef Matrix<rScalar, 4, 3>	Matrix4x3d;
 typedef Matrix<rScalar, 6, 3>	Matrix6x3d;
 typedef Matrix<rScalar, 6, 7>	Matrix6x7d;
 typedef Matrix<rScalar, 8, 4>	Matrix8x4d;
+typedef Matrix<rScalar, 8, 2>	Matrix8x2d;
 typedef Matrix<rScalar, -1, 1, 0, MAX_DOF, 1> VectorJXd;
 typedef Matrix<rScalar, -1, 1, 0, 12, 1> VectorLXd; //Leg IK
 typedef Matrix<rScalar, -1, -1, 0, MAX_DOF, MAX_DOF> MatrixJXd;
@@ -52,8 +53,7 @@ typedef Matrix<std::complex<double>,8,4> Matrix8x4cd;
 
 namespace DyrosMath
 {
-
-//constexpr double GRAVITY {9.80665};
+  //constexpr double GRAVITY {9.80665};
 //constexpr double DEG2RAD {};
 
 static double cubic(double time,     ///< Current time
@@ -252,6 +252,14 @@ static Eigen::Isometry3d multiplyIsometry3d(Eigen::Isometry3d A,
   return AB;
 }
 
+static Eigen::Vector3d multiplyIsometry3dVector3d(Eigen::Isometry3d A,
+                                      Eigen::Vector3d B)
+{
+  Eigen::Vector3d AB;
+  AB = A.linear()*B + A.translation();
+  return AB;
+}
+
 static Eigen::Isometry3d inverseIsometry3d(Eigen::Isometry3d A)
 {
   Eigen::Isometry3d A_inv;
@@ -356,115 +364,6 @@ static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference,
 
   new_trunk.linear() = temp*trunk.linear();
   new_trunk.translation() = temp*(trunk.translation() - reference.translation());
-}
-
-
-template <int _State_Size_, int _Input_Size_>
-Eigen::Matrix<double, _State_Size_, _State_Size_> discreteRiccatiEquation(
-    Eigen::Matrix<double, _State_Size_, _State_Size_> a,
-    Eigen::Matrix<double, _State_Size_, _Input_Size_> b,
-    Eigen::Matrix<double, _Input_Size_, _Input_Size_> r,
-    Eigen::Matrix<double, _State_Size_, _State_Size_> q)
-{
-  Eigen::Matrix4d z11, z12, z21, z22;
-  z11 = a.inverse();
-  z12 = a.inverse()*b*r.inverse()*b.transpose();
-  z21 = q*a.inverse();
-  z22 = a.transpose() + q*a.inverse()*b*r.inverse()*b.transpose();
-
-  Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_> z;
-  z.setZero();
-  z.topLeftCorner(4,4) = z11;
-  z.topRightCorner(4,4) = z12;
-  z.bottomLeftCorner(4,4) = z21;
-  z.bottomRightCorner(4,4) = z22;
-
-  std::vector<double> eigVal_real(8);
-  std::vector<double> eigVal_img(8);
-  std::vector<Eigen::Vector8d> eigVec_real(8);
-  std::vector<Eigen::Vector8d> eigVec_img(8);
-
-  for(int i=0; i<8; i++)
-  {
-    eigVec_real[i].setZero();
-    eigVec_img[i].setZero();
-  }
-
-  Eigen::Matrix<double, 2*_State_Size_, 1> deigVal_real, deigVal_img;
-  Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_> deigVec_real, deigVec_img;
-  deigVal_real.setZero();
-  deigVal_img.setZero();
-  deigVec_real.setZero();
-  deigVec_img.setZero();
-  deigVal_real = z.eigenvalues().real();
-  deigVal_img = z.eigenvalues().imag();
-
-  Eigen::EigenSolver<Eigen::Matrix<double, 2*_State_Size_, 2*_State_Size_>> ev(z);
-  //EigenVector Solver
-  //Matrix3D ones = Matrix3D::Ones(3,3);
-  //EigenSolver<Matrix3D> ev(ones);
-  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << ev.eigenvectors().col(1) << endl;
-
-  for(int i=0;i<8; i++)
-  {
-    for(int j=0; j<8; j++)
-    {
-      deigVec_real(j,i) = ev.eigenvectors().col(i)(j).real();
-      deigVec_img(j,i) = ev.eigenvectors().col(i)(j).imag();
-    }
-  }
-
-  //Order the eigenvectors
-  //move e-vectors correspnding to e-value outside the unite circle to the left
-
-  Eigen::Matrix8x4d tempZ_real, tempZ_img;
-  tempZ_real.setZero();
-  tempZ_img.setZero();
-  int c=0;
-
-  for (int i=0;i<8;i++)
-  {
-    if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
-    {
-      for(int j=0; j<8; j++)
-      {
-        tempZ_real(j,c) = deigVec_real(j,i);
-        tempZ_img(j,c) = deigVec_img(j,i);
-      }
-      c++;
-    }
-  }
-
-  Eigen::Matrix8x4cd tempZ_comp;
-  for(int i=0;i<8;i++)
-  {
-    for(int j=0;j<4;j++)
-    {
-      tempZ_comp.real()(i,j) = tempZ_real(i,j);
-      tempZ_comp.imag()(i,j) = tempZ_img(i,j);
-    }
-  }
-
-  Eigen::Matrix4cd U11, U21, X;
-  for(int i=0;i<4;i++)
-  {
-    for(int j=0;j<4;j++)
-    {
-      U11(i,j) = tempZ_comp(i,j);
-      U21(i,j) = tempZ_comp(i+4,j);
-    }
-  }
-  X = U21*(U11.inverse());
-  Eigen::Matrix4d X_sol;
-  for(int i=0;i<4;i++)
-  {
-    for(int j=0;j<4;j++)
-    {
-      X_sol(i,j) = X.real()(i,j);
-    }
-  }
-
-  return X_sol;
 }
 
 static Eigen::Vector3d legGetPhi(Eigen::Isometry3d rotation_matrix1, Eigen::Isometry3d active_r1, Eigen::Vector6d ctrl_pos_ori)

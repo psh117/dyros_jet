@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(dyros_jet_controller)
 
 add_compile_options(-std=c++11)
+#add_compile_options(-ofast)
 
 find_package(catkin REQUIRED COMPONENTS
     dyros_jet_msgs
@@ -58,6 +59,7 @@ file(GLOB WALKING_SRC
 file(GLOB CONTROLLER_SRC
     "src/dyros_jet_model.cpp"
     "src/task_controller.cpp"
+    "src/haptic_controller.cpp"
     "src/joint_controller.cpp"
     )
 

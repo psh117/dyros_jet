@@ -4,7 +4,7 @@ project(dyros_jet_ext_encoder)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  #dyros_jet_msgs
+  dyros_jet_msgs
   geometry_msgs
   roscpp
   sensor_msgs
