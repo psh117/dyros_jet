@@ -7,6 +7,7 @@
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/Imu.h>
+
 // Used data structures:
 
 namespace dyros_jet_controller
@@ -29,7 +30,7 @@ private:  // CALLBACK
   void leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
   void rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
   void imuCallback(const sensor_msgs::ImuConstPtr& msg);
-
+  void comCallback(const geometry_msgs::PointConstPtr &msg);
 
 
 private:
@@ -63,7 +64,7 @@ private:
   ros::Subscriber joint_sub_;
   ros::Subscriber left_ft_sub_;
   ros::Subscriber right_ft_sub_;
-
+  ros::Subscriber com_sub_;
 
 };
 

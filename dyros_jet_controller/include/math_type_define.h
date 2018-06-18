@@ -366,6 +366,122 @@ static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference,
   new_trunk.translation() = temp*(trunk.translation() - reference.translation());
 }
 
+<<<<<<< HEAD
+=======
+
+static Eigen::MatrixXd discreteRiccatiEquation(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd r, Eigen::MatrixXd q)
+{
+  int n=a.rows(); //number of rows
+  int	m=b.cols(); //number of columns
+
+  Eigen::MatrixXd z11(n, n), z12(n, n), z21(n, n), z22(n, n);
+
+  z11 = a.inverse();
+  z12 = a.inverse()*b*r.inverse()*b.transpose();
+  z21 = q*a.inverse();
+  z22 = a.transpose() + q*a.inverse()*b*r.inverse()*b.transpose();
+
+  Eigen::MatrixXd z; z.resize(2*n, 2*n);
+  z.setZero();
+  z.topLeftCorner(n,n) = z11;
+  z.topRightCorner(n,n) = z12;
+  z.bottomLeftCorner(n,n) = z21;
+  z.bottomRightCorner(n,n) = z22;
+
+
+  std::vector<Eigen::VectorXd> eigVec_real(2*n);
+  std::vector<Eigen::VectorXd> eigVec_img(2*n);
+
+  for(int i=0; i<8; i++)
+  {
+    eigVec_real[i].resize(2*n);
+    eigVec_real[i].setZero();
+    eigVec_img[i].resize(2*n);
+    eigVec_img[i].setZero();
+  }
+
+  Eigen::VectorXd deigVal_real(2*n);
+  Eigen::VectorXd deigVal_img(2*n);
+  deigVal_real.setZero();
+  deigVal_img.setZero();
+  Eigen::MatrixXd deigVec_real(2*n,2*n);
+  Eigen::MatrixXd deigVec_img(2*n,2*n);
+  deigVec_real.setZero();
+  deigVec_img.setZero();
+
+  deigVal_real = z.eigenvalues().real();
+  deigVal_img = z.eigenvalues().imag();
+
+  Eigen::EigenSolver<Eigen::MatrixXd> ev(z);
+  //EigenVector Solver
+  //Matrix3D ones = Matrix3D::Ones(3,3);
+  //EigenSolver<Matrix3D> ev(ones);
+  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << ev.eigenvectors().col(1) << endl;
+
+  for(int i=0;i<2*n; i++)
+  {
+    for(int j=0; j<2*n; j++)
+    {
+      deigVec_real(j,i) = ev.eigenvectors().col(i)(j).real();
+      deigVec_img(j,i) = ev.eigenvectors().col(i)(j).imag();
+    }
+  }
+
+  //Order the eigenvectors
+  //move e-vectors correspnding to e-value outside the unite circle to the left
+
+  Eigen::MatrixXd tempZ_real(2*n, n), tempZ_img(2*n, n);
+  tempZ_real.setZero();
+  tempZ_img.setZero();
+  int c=0;
+
+  for (int i=0;i<2*n;i++)
+  {
+    if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
+    {
+      for(int j=0; j<2*n; j++)
+      {
+        tempZ_real(j,c) = deigVec_real(j,i);
+        tempZ_img(j,c) = deigVec_img(j,i);
+      }
+      c++;
+    }
+  }
+
+  Eigen::MatrixXcd tempZ_comp(2*n, n);
+  for(int i=0;i<2*n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      tempZ_comp.real()(i,j) = tempZ_real(i,j);
+      tempZ_comp.imag()(i,j) = tempZ_img(i,j);
+    }
+  }
+
+  Eigen::MatrixXcd U11(n, n), U21(n, n), X(n, n);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      U11(i,j) = tempZ_comp(i,j);
+      U21(i,j) = tempZ_comp(i+n,j);
+    }
+  }
+  X = U21*(U11.inverse());
+
+  Eigen::MatrixXd X_sol(n, n);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      X_sol(i,j) = X.real()(i,j);
+    }
+  }
+
+  return X_sol;
+}
+
+>>>>>>> 27c7bbb1f3dbf9e0d71e7e0beb882b63d5c10007
 static Eigen::Vector3d legGetPhi(Eigen::Isometry3d rotation_matrix1, Eigen::Isometry3d active_r1, Eigen::Vector6d ctrl_pos_ori)
 {
    Eigen::Matrix3d active_r, rotation_matrix, x_rot, y_rot, z_rot, d_rot, s1_skew, s2_skew, s3_skew;
