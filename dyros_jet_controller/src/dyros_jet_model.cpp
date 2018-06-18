@@ -10,7 +10,8 @@ constexpr const char* DyrosJetModel::EE_NAME[4];
 constexpr const size_t DyrosJetModel::HW_TOTAL_DOF;
 constexpr const size_t DyrosJetModel::MODEL_DOF;
 constexpr const size_t DyrosJetModel::MODEL_WITH_VIRTUAL_DOF;
-
+constexpr const size_t DyrosJetModel::HW_HAND_DOF;
+  
 // These should be replaced by YAML or URDF or something
 const std::string DyrosJetModel::JOINT_NAME[DyrosJetModel::HW_TOTAL_DOF] = {
   "L_HipYaw","L_HipRoll","L_HipPitch","L_KneePitch","L_AnklePitch","L_AnkleRoll",
