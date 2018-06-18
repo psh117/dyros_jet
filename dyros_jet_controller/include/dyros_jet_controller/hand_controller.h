@@ -1,5 +1,5 @@
-#ifndef JOINT_CONTROLLER_H
-#define JOINT_CONTROLLER_H
+#ifndef HAND_CONTROLLER_H
+#define HAND_CONTROLLER_H
 
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "math_type_define.h"
@@ -22,7 +22,7 @@ public:
   void writeDesired(const unsigned int *mask, Vector4d& desired_q_hand);
   bool isEnabled(int index) { return joint_enable_[index]; }
 private:
-  bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
+  bool joint_enable_[DyrosJetModel::HW_HAND_DOF];
 
   const unsigned int total_dof_;
   VectorQd start_q_;
