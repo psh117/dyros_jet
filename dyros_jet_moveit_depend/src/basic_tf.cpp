@@ -6,6 +6,7 @@
 #include <sensor_msgs/JointState.h>
 #include <tf/transform_broadcaster.h>
 #include <dyros_jet_msgs/JointState.h>
+#include <taskserver.h>
 
 ros::Publisher rviz_joint_pub;
 
@@ -28,8 +29,122 @@ float rot_y=0.0;
 float rot_z=0.0;
 float rot_w=1.0;
 
+
+
+int randTest;
+
+FollowJointTrajectoryActionServer::FollowJointTrajectoryActionServer(std::string name) :
+   // as_(nh_, name, boost::bind(&FollowJointTrajectoryActionServer::executeCB, this, _1),false),
+  as_(nh_, name, false),
+  action_name_(name)
+{
+  ROS_INFO("::::::::DYROS_JET_ACTION_SERVER::ACTIVATE");
+
+  //register the goal and feedback callbacks
+  as_.registerGoalCallback(boost::bind(&FollowJointTrajectoryActionServer::goalCB, this));
+  as_.registerPreemptCallback(boost::bind(&FollowJointTrajectoryActionServer::preemptCB, this));
+
+
+  // subscribe current state of the action
+  jointStateSubscriber = nh_.subscribe("dyros_jet/joint_state",1,&FollowJointTrajectoryActionServer::jointCB, this);
+
+  as_.start();
+}
+FollowJointTrajectoryActionServer::~FollowJointTrajectoryActionServer(void) {}
+
+
+
+
+
+
+
+// receive action goal function
+void FollowJointTrajectoryActionServer::goalCB() {
+  feedbackHeaderStamp=0;
+  goal_ = as_.acceptNewGoal();
+  ROS_INFO("Goal received :::: ");
+  goalStartTime = ros::Time::now();
+
+
+  randTest = rand()%3;
+  int pointSize;
+  pointSize = static_cast<int>(goal_->trajectory.points.size());
+  std::cout<<"Total size of point : "<< pointSize <<std::endl;
+
+  for(int i=0;i<pointSize;i++){
+    std::cout<<"time: "<<goal_->trajectory.points[i].time_from_start<<"\t "<<goal_->trajectory.joint_names[0]<<"\t position : "
+            <<goal_->trajectory.points[i].positions[0]<<"\t velocity : "
+           <<goal_->trajectory.points[i].velocities[0]<<"\t acceleration : "
+          <<goal_->trajectory.points[i].accelerations[0]<<std::endl;
+
+
+
+  }
+
+
+
+  goalLastTime = goal_->trajectory.points[pointSize-1].time_from_start;
+  std::cout<<"Last time of point :: \n \t sec :"<< goalLastTime.sec << "\t nsec : " <<goalLastTime.nsec<<std::endl;
+
+}
+
+
+
+
+
+// cancel the action
+void FollowJointTrajectoryActionServer::preemptCB() {
+  ROS_INFO("[%s] Preempted", action_name_.c_str());
+  as_.setPreempted();
+}
+
+
+
+
+
+// get current state of the action
+void FollowJointTrajectoryActionServer::jointCB(const dyros_jet_msgs::JointState &msg) {
+  if (!as_.isActive())
+    return;
+
+
+  jointState=msg;
+  ros::Duration passedTime = ros::Time::now() - goalStartTime;
+
+
+  if(goalLastTime<passedTime){
+
+    if(randTest==0){
+      as_.setSucceeded();
+      ROS_INFO("Random TEST :: Succeeded");
+    }
+    else if(randTest == 1){
+      as_.setAborted();
+      ROS_INFO("Random TEST :: Aborted");
+    }
+    else {
+      ROS_INFO_ONCE("Random TEST :: DO nothing");
+    }
+  }
+
+  //feedback publisher
+  feedback_.actual.time_from_start=ros::Time::now()-goalStartTime;
+  feedback_.header.seq=feedbackHeaderStamp;
+  feedbackHeaderStamp++;
+  as_.publishFeedback(feedback_);
+
+
+}
+
+
+
+
+
+
 void sub_joint_cb(const dyros_jet_msgs::JointStateConstPtr &joint_value)
 {
+
+
   int joint_size = joint_value->name.size();
   joint_size=joint_size-4;
   sensor_msgs::JointState view_model;
@@ -52,9 +167,9 @@ int main(int argc, char **argv)
    tf::TransformBroadcaster br;
    tf::Transform tr;
    ros::Rate r(30);
-   rviz_joint_pub = nh.advertise<sensor_msgs::JointState>("joint_states",1);
-   ros::Subscriber jet_simul_sub = nh.subscribe<dyros_jet_msgs::JointState>("dyros_jet/joint_state",1,sub_joint_cb);
-
+   rviz_joint_pub = nh.advertise<sensor_msgs::JointState>("joint_states",100);
+   ros::Subscriber Joint_Status_subscriber = nh.subscribe<dyros_jet_msgs::JointState>("/dyros_jet/joint_state",1,sub_joint_cb);
+   FollowJointTrajectoryActionServer server("right_arm_controller/joint_action_server");
 
    while(ros::ok()){
      /*while (sub2.getNumPublishers() < 1)
@@ -72,10 +187,10 @@ int main(int argc, char **argv)
      tr.setRotation(tf::Quaternion(rot_x,rot_y,rot_z,rot_w));
      //tr.setOrigin(tf::Vector3(0,0,1));
      //tr.setRotation(tf::Quaternion(0,0,0,1));
-     br.sendTransform(tf::StampedTransform(tr,ros::Time::now(),"odom_combined","world"));
+     br.sendTransform(tf::StampedTransform(tr,ros::Time::now(),"world","base_link"));
 
      ros::spinOnce();
      r.sleep();
    }
-
+  return 0;
 }

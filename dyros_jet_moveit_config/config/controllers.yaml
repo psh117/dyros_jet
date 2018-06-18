@@ -1,5 +1,5 @@
 controller_list:
-  - name: ""
+  - name: "right_arm_controller"
     action_ns: joint_action_server
     type: FollowJointTrajectory
     joints: [L_HipYaw, L_HipRoll, L_HipPitch, L_KneePitch, L_AnklePitch, L_AnkleRoll, R_HipYaw,
