@@ -35,3 +35,5 @@ add_executable(taskserver src/taskserver.cpp)
 target_link_libraries(taskserver ${catkin_LIBRARIES})
 
 add_dependencies(dyros_jet_moveit_depend ${catkin_EXPORTED_TARGETS})
+add_dependencies(interactive ${catkin_EXPORTED_TARGETS})
+add_dependencies(taskserver ${catkin_EXPORTED_TARGETS})
