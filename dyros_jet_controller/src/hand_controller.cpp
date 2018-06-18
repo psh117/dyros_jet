@@ -29,6 +29,7 @@ void JointController::compute()
   }
 }
 
+ //joint 0:finger1 , 1:finger2 . 2:thumb_fe , 3:thumb_ab
 void JointController::setTarget(unsigned int joint_number, double target, double start_time, double end_time)
 {
   if(joint_number >= total_dof_)
@@ -74,13 +75,15 @@ void JointController::updateControlMask(unsigned int *mask)
   }
 }
 
+ //what is the size of vectorQd and is there any vector outside get desired_q_hand? 
 void JointController::writeDesired(const unsigned int *mask, VectorQd& desired_q_hand)
 {
   for(unsigned int i=0; i<total_dof_; i++)
   {
     if( mask[i] >= PRIORITY && mask[i] < PRIORITY * 2 )
     {
-      desired_q_hand(i) = desired_q_(i);
+     // publisher here? how?
+     desired_q_hand(i) = desired_q_(i);
     }
   }
 }
