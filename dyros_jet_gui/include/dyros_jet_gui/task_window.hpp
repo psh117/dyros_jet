@@ -73,6 +73,9 @@ public Q_SLOTS:
     void on_button_ft_calib_clicked();
 
     void on_button_hand_command_clicked();
+    void on_button_hand_preset_open_clicked();
+    void on_button_hand_preset_drill_power_clicked();
+    void on_button_hand_preset_box_pinch_clicked();
 
 
     void on_pushButton_ft_start_clicked();

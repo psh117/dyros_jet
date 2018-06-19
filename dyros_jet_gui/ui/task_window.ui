@@ -20,7 +20,7 @@
    <string>DYROS THORMANG User Interface</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/images.qrc">
+   <iconset resource="../../../dyros_black_ui/resources/images.qrc">
     <normaloff>:/images/icon_2.png</normaloff>:/images/icon_2.png</iconset>
   </property>
   <property name="locale">
@@ -727,23 +727,23 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_8">
               <item>
-               <widget class="QPushButton" name="button_hand_preset_name1">
+               <widget class="QPushButton" name="button_hand_preset_open">
                 <property name="text">
-                 <string>PushButton</string>
+                 <string>Open</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButton_2">
+               <widget class="QPushButton" name="button_hand_preset_drill_power">
                 <property name="text">
-                 <string>PushButton</string>
+                 <string>Drill(power)</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="button_hand_preset_box_pinch">
                 <property name="text">
-                 <string>PushButton</string>
+                 <string>Box(pinch)</string>
                 </property>
                </widget>
               </item>
@@ -979,7 +979,7 @@
      <x>0</x>
      <y>0</y>
      <width>1920</width>
-     <height>30</height>
+     <height>34</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -1024,7 +1024,7 @@
   </action>
  </widget>
  <resources>
-  <include location="../resources/images.qrc"/>
+  <include location="../../../dyros_black_ui/resources/images.qrc"/>
  </resources>
  <connections>
   <connection>

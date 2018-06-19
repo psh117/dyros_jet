@@ -1251,3 +1251,29 @@ void dyros_jet_gui::TaskWindow::on_button_hand_command_clicked()
   qnode.send_hand_cmd();
 }
 
+void dyros_jet_gui::TaskWindow::on_button_hand_preset_open_clicked()
+{
+  qnode.hand_cmd_msg_.position[0] = 0 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[1] = 0 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[2] = 0 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[3] = 0 * M_PI / 180.;
+  qnode.send_hand_cmd();
+}
+
+void dyros_jet_gui::TaskWindow::on_button_hand_preset_drill_power_clicked()
+{
+  qnode.hand_cmd_msg_.position[0] = 80 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[1] = 80 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[2] = 80 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[3] = 15 * M_PI / 180.;
+  qnode.send_hand_cmd();
+}
+
+void dyros_jet_gui::TaskWindow::on_button_hand_preset_box_pinch_clicked()
+{
+  qnode.hand_cmd_msg_.position[0] = 45 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[1] = 45 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[2] = 45 * M_PI / 180.;
+  qnode.hand_cmd_msg_.position[3] = -10 * M_PI / 180.;
+  qnode.send_hand_cmd();
+}
