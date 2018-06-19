@@ -64,12 +64,18 @@ public Q_SLOTS:
   *******************************************/
     void on_actionAbout_triggered();
 
+    // on_{the name of button}_clicked() --> Automatically slot(connect to UI)
 
     void on_button_walk_start_clicked();
     void on_button_walk_init_wholebody_clicked();
     void on_button_walk_init_lowerbody_clicked();
     void on_button_walk_stop_clicked();
     void on_button_ft_calib_clicked();
+
+    void on_button_hand_command_clicked();
+    void on_button_hand_preset_open_clicked();
+    void on_button_hand_preset_drill_power_clicked();
+    void on_button_hand_preset_box_pinch_clicked();
 
 
     void on_pushButton_ft_start_clicked();

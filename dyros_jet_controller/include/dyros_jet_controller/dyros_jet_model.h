@@ -26,6 +26,7 @@ public:
   static constexpr size_t HW_TOTAL_DOF = 32;
   static constexpr size_t MODEL_DOF = 28;
   static constexpr size_t MODEL_WITH_VIRTUAL_DOF = 34;
+  static constexpr size_t HW_HAND_DOF = 4;
 
   static const std::string JOINT_NAME[HW_TOTAL_DOF];
   static const int JOINT_ID[HW_TOTAL_DOF];
