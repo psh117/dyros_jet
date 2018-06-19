@@ -2811,7 +2811,7 @@ void WalkingController::vibrationControl(const Eigen::Vector12d desired_leg_q, E
 
 
   del_u_right = -kkk_copy_*x_bar_right_;
- }
+  }
 }
 
 void WalkingController::massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::Matrix12d & mass, Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c)
