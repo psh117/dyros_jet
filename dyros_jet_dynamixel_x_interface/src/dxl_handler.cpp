@@ -8,10 +8,26 @@ DXLHandler::DXLHandler(const char* port_name, float protocol_version, int baud_r
   joint_name_map_["hand_thumb_aa"] = 56;
 
   hand_motor_offset_["hand_finger1"] = 3533;
-  hand_motor_offset_["hand_finger2"] = 1252;
-  hand_motor_offset_["hand_thumb_fe"] = 1653;
+  hand_motor_offset_["hand_finger2"] = 1479;
+  hand_motor_offset_["hand_thumb_fe"] = 1721;
   hand_motor_offset_["hand_thumb_aa"] = 433;
 
+  
+  hand_motor_sign_["hand_finger1"] = -1;
+  hand_motor_sign_["hand_finger2"] = -1;
+  hand_motor_sign_["hand_thumb_fe"] = -1;
+  hand_motor_sign_["hand_thumb_aa"] = +1;
+
+  hand_motor_min_["hand_finger1"] = 0 * M_PI / 180;
+  hand_motor_min_["hand_finger2"] = 0 * M_PI / 180;
+  hand_motor_min_["hand_thumb_fe"] = 0 * M_PI / 180;
+  hand_motor_min_["hand_thumb_aa"] = -15 * M_PI / 180;
+
+  hand_motor_max_["hand_finger1"] = 90 * M_PI / 180;
+  hand_motor_max_["hand_finger2"] = 90 * M_PI / 180;
+  hand_motor_max_["hand_thumb_fe"] = 90 * M_PI / 180;
+  hand_motor_max_["hand_thumb_aa"] = 90 * M_PI / 180;
+  
   joint_command_sub_ = nh.subscribe("/dyros_jet/hand_command", 5, &DXLHandler::commandCallback, this);
 
   joint_pub_ = nh.advertise<sensor_msgs::JointState>("/thormang/head_joint",1);
@@ -163,6 +179,24 @@ void DXLHandler::commandCallback(const sensor_msgs::JointState::ConstPtr & msg)
       ROS_WARN("I got a wrong name :%s", msg->name[i].c_str());
       continue;
     }
-    setPositionX(joint_name_map_[msg->name[i]], hand_motor_offset_[msg->name[i]] + msg->position[i]*4096./M_PI);
+	
+		if(msg->position[i] < hand_motor_min_[msg->name[i]])
+			{
+				setPositionX(joint_name_map_[msg->name[i]],
+			hand_motor_offset_[msg->name[i]] +
+			hand_motor_min_[msg->name[i]] * 2048/M_PI * hand_motor_sign_[msg->name[i]]);
+			}
+		else if(msg->position[i] > hand_motor_max_[msg->name[i]])
+			{
+				setPositionX(joint_name_map_[msg->name[i]],
+			hand_motor_offset_[msg->name[i]] +
+			hand_motor_max_[msg->name[i]] * 2048/M_PI * hand_motor_sign_[msg->name[i]]);
+			}
+		else
+			{
+					setPositionX(joint_name_map_[msg->name[i]],
+				hand_motor_offset_[msg->name[i]] +
+				msg->position[i] * 2048/M_PI * hand_motor_sign_[msg->name[i]]);
+			}
   }
 }

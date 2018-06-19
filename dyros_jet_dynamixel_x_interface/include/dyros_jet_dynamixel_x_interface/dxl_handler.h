@@ -62,6 +62,10 @@ private:
 
   std::map<std::string, int> joint_name_map_;
   std::map<std::string, int> hand_motor_offset_;
+  std::map<std::string, double> hand_motor_sign_;
+  std::map<std::string, double> hand_motor_min_;
+  std::map<std::string, double> hand_motor_max_;
+
 };
 
 
