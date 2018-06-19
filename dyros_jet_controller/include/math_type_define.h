@@ -366,9 +366,6 @@ static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference,
   new_trunk.translation() = temp*(trunk.translation() - reference.translation());
 }
 
-<<<<<<< HEAD
-=======
-
 static Eigen::MatrixXd discreteRiccatiEquation(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd r, Eigen::MatrixXd q)
 {
   int n=a.rows(); //number of rows
@@ -481,7 +478,6 @@ static Eigen::MatrixXd discreteRiccatiEquation(Eigen::MatrixXd a, Eigen::MatrixX
   return X_sol;
 }
 
->>>>>>> 27c7bbb1f3dbf9e0d71e7e0beb882b63d5c10007
 static Eigen::Vector3d legGetPhi(Eigen::Isometry3d rotation_matrix1, Eigen::Isometry3d active_r1, Eigen::Vector6d ctrl_pos_ori)
 {
    Eigen::Matrix3d active_r, rotation_matrix, x_rot, y_rot, z_rot, d_rot, s1_skew, s2_skew, s3_skew;

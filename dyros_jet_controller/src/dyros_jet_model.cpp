@@ -48,10 +48,7 @@ DyrosJetModel::DyrosJetModel() :
   base_position_.setZero();
   q_.setZero();
   q_ext_.setZero();
-<<<<<<< HEAD
-=======
   extencoder_init_flag_ = false;
->>>>>>> 27c7bbb1f3dbf9e0d71e7e0beb882b63d5c10007
 
   std::string desc_package_path = ros::package::getPath("dyros_jet_description");
   std::string urdf_path = desc_package_path + "/robots/dyros_jet_robot.urdf";
@@ -141,9 +138,7 @@ void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::V
   l_ft_wrench_ = l_ft;
 
   q_ext_ = q_ext;
-<<<<<<< HEAD
 
-=======
   if(extencoder_init_flag_ == false)
   {
     for (int i=0; i<12; i++)
@@ -161,7 +156,6 @@ void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::V
 void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)
 {
   com_simulation_ = sim_com;
->>>>>>> 27c7bbb1f3dbf9e0d71e7e0beb882b63d5c10007
 }
 
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
@@ -278,13 +272,8 @@ void DyrosJetModel::getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double,
       jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
 
       // left Leg Link
-<<<<<<< HEAD
       jacobian->block<3, 6>(0, 6) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]+6);
       jacobian->block<3, 6>(3, 6) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]+6);
-=======
-      jacobian->block<3, 6>(0, 6) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
-      jacobian->block<3, 6>(3, 6) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
->>>>>>> 27c7bbb1f3dbf9e0d71e7e0beb882b63d5c10007
       break;
   case EE_RIGHT_FOOT:
     // swap
@@ -293,13 +282,8 @@ void DyrosJetModel::getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double,
     jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
 
     // right Leg Link
-<<<<<<< HEAD
     jacobian->block<3, 6>(0, 12) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]+6);
     jacobian->block<3, 6>(3, 12) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]+6);
-=======
-    jacobian->block<3, 6>(0, 12) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
-    jacobian->block<3, 6>(3, 12) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
->>>>>>> 27c7bbb1f3dbf9e0d71e7e0beb882b63d5c10007
     break;
   case EE_LEFT_HAND:
   case EE_RIGHT_HAND:

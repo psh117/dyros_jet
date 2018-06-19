@@ -103,8 +103,6 @@ protected:
   Vector3d com_sim_; //com position from simulation COMvisualziefunction
 
   VectorQd desired_q_; // current desired joint values
-  Eigen::Vector12d q_ext_;
-  Eigen::Vector12d q_ext_dot_;
   Eigen::Vector12d extencoder_offset_;
 
 

@@ -10,12 +10,8 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   shutdown_flag_(false),
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
-<<<<<<< HEAD
   haptic_controller_(model_,q_,Hz, control_time_),
   walking_controller_(model_, q_, Hz, control_time_),
-=======
-  walking_controller_(model_, q_,  Hz, control_time_),
->>>>>>> 27c7bbb1f3dbf9e0d71e7e0beb882b63d5c10007
   joint_control_as_(nh, "/dyros_jet/joint_control", false) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
 {
   //walking_cmd_sub_ = nh.subscribe
@@ -90,10 +86,6 @@ void ControlBase::update()
   //q_vjoint.segment<12>(6) = q_ext_;
 
   model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
-<<<<<<< HEAD
-=======
-  model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_);
->>>>>>> 27c7bbb1f3dbf9e0d71e7e0beb882b63d5c10007
   stateChangeEvent();
 }
 
