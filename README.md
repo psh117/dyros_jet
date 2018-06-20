@@ -9,6 +9,7 @@ sudo apt-get install ros-kinetic-qt-build ros-kinetic-realtime-tools ros-kinetic
 cd ~/catkin_ws/src
 git clone https://github.com/KumarRobotics/imu_3dm_gx4
 git clone https://github.com/psh117/rt_dynamixel_msgs
+git clone -b 3.6.0 https://github.com/ROBOTIS-GIT/DynamixelSDK.git
 ```
 
 ### RBDL Setup ###
@@ -39,6 +40,10 @@ dyros_jet_vrep/scene/dyros_jet_new_api.ttt
 ```sh
 roslaunch dyros_jet_launch simulation.launch
 ```
+* If you get an error about the .so file when launching simulation, add the following command to ~/.bashrc
+```sh
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+```
 * GUI
 ```sh
 rosrun dyros_jet_gui dyros_jet_gui
@@ -57,7 +62,7 @@ rosrun dyros_jet_mission_commander commander.py
 
 * Launch moveit
 ```sh
-roslaunch dyros_jet_moveit_config demo.launch connect:=true
+roslaunch dyros_jet_moveit_config demo.launch
 ```
 
 
