@@ -57,7 +57,7 @@ rosrun dyros_jet_mission_commander commander.py
 
 * Launch moveit
 ```sh
-roslaunch dyros_jet_moveit_config demo.launch connect:=true
+roslaunch dyros_jet_moveit_config demo.launch
 ```
 
 
