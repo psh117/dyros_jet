@@ -47,65 +47,65 @@ void DXLHandler::open(int baud)
   // Open port
   if (portHandler_->openPort())
   {
-      ROS_INFO("THRMNG DXL - Succeeded to open the dynamixel port!");
+    ROS_INFO("THRMNG DXL - Succeeded to open the dynamixel port!");
   }
   else
   {
-      ROS_ERROR("THRMNG DXL - Failed to open the port!");
-      return ;
+    ROS_ERROR("THRMNG DXL - Failed to open the port!");
+    return ;
   }
 
   // Set port baudrate
   if (portHandler_->setBaudRate(baud))
   {
-      ROS_INFO("THRMNG DXL - Succeeded to change the baudrate!");
+    ROS_INFO("THRMNG DXL - Succeeded to change the baudrate!");
   }
   else
   {
-      ROS_ERROR("THRMNG DXL - Failed to change the baudrate!");
-      return ;
+    ROS_ERROR("THRMNG DXL - Failed to change the baudrate!");
+    return ;
   }
 }
 
 void DXLHandler::setTorqueX(int id, int enable)
 {
   comm_result_ = packetHandler_->write1ByteTxRx(portHandler_,
-                                                  id,
-                                                  ADDR_X_TORQUE_ENABLE,
-                                                  enable,
-                                                  &error_);
+                                                id,
+                                                ADDR_X_TORQUE_ENABLE,
+                                                enable,
+                                                &error_);
 }
 void DXLHandler::setTorquePro(int id, int enable)
 {
   comm_result_ = packetHandler_->write1ByteTxRx(portHandler_,
-                                                  id,
-                                                  ADDR_PRO_TORQUE_ENABLE,
-                                                  enable,
-                                                  &error_);
+                                                id,
+                                                ADDR_PRO_TORQUE_ENABLE,
+                                                enable,
+                                                &error_);
 }
 void DXLHandler::setPositionPro(int id, int position)
 {
   comm_result_ = packetHandler_->write4ByteTxRx(portHandler_,
-                                                  id,
-                                                  ADDR_PRO_GOAL_POSITION,
-                                                  position,
-                                                  &error_);
+                                                id,
+                                                ADDR_PRO_GOAL_POSITION,
+                                                position,
+                                                &error_);
 }
 void DXLHandler::setPositionX(int id, int position)
 {
   comm_result_ = packetHandler_->write4ByteTxRx(portHandler_,
-                                                  id,
-                                                  ADDR_X_GOAL_POSITION,
-                                                  position,
-                                                  &error_);
+                                                id,
+                                                ADDR_X_GOAL_POSITION,
+                                                position,
+                                                &error_);
 }
 void DXLHandler::setVelocityX(int id, int velocity)
 {
   comm_result_ = packetHandler_->write4ByteTxRx(portHandler_,
-                                                  id,
-                                                  ADDR_X_GOAL_VELOCITY,
-                                                  velocity,
-                                                  &error_);
+                                                id,
+                                                ADDR_X_GOAL_VELOCITY,
+                                                velocity,
+                                                &error_);
 }
 
 void DXLHandler::allTorqueOn()
@@ -179,24 +179,12 @@ void DXLHandler::commandCallback(const sensor_msgs::JointState::ConstPtr & msg)
       ROS_WARN("I got a wrong name :%s", msg->name[i].c_str());
       continue;
     }
-	
-		if(msg->position[i] < hand_motor_min_[msg->name[i]])
-			{
-				setPositionX(joint_name_map_[msg->name[i]],
-			hand_motor_offset_[msg->name[i]] +
-			hand_motor_min_[msg->name[i]] * 2048/M_PI * hand_motor_sign_[msg->name[i]]);
-			}
-		else if(msg->position[i] > hand_motor_max_[msg->name[i]])
-			{
-				setPositionX(joint_name_map_[msg->name[i]],
-			hand_motor_offset_[msg->name[i]] +
-			hand_motor_max_[msg->name[i]] * 2048/M_PI * hand_motor_sign_[msg->name[i]]);
-			}
-		else
-			{
-					setPositionX(joint_name_map_[msg->name[i]],
-				hand_motor_offset_[msg->name[i]] +
-				msg->position[i] * 2048/M_PI * hand_motor_sign_[msg->name[i]]);
-			}
+    double target_pos = hand_motor_offset_[msg->name[i]] +
+        max(hand_motor_min_[msg->name[i]],
+        min(hand_motor_max_[msg->name[i]], msg->position[i])
+        ) * hand_motor_sign_[msg->name[i]] * 2048./M_PI;
+
+    setPositionX(joint_name_map_[msg->name[i]],target_pos);
+
   }
 }
