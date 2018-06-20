@@ -148,7 +148,6 @@ void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired
     if( mask[i] >= PRIORITY && mask[i] < PRIORITY * 2 )
     {
       desired_q(i) = desired_q_(i);
-      WalkingController::target_x_ =1;
     }
   }
 }
