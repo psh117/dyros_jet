@@ -46,7 +46,7 @@ public:
 
 
   WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_update_flag_(false), calc_start_flag_(false), ready_for_thread_flag_(false), ready_for_compute_flag_(false)
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_update_flag_(false), calc_start_flag_(false), ready_for_thread_flag_(false), ready_for_compute_flag_(false), foot_step_planner_mode_(false), walking_end_foot_side_ (false), foot_plan_walking_last_(false)
 
   {
 
@@ -69,6 +69,7 @@ public:
     file[9]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"r_ft_(0)"<<"\t"<<"r_ft_(1)"<<"\t"<<"r_ft_(2)"<<"\t"<<"r_ft_(3)"<<"\t"<<"r_ft_(4)"<<"\t"<<"r_ft_(5)"<<"\t"<<"l_ft_(0)"<<"\t"<<"l_ft_(1)"<<"\t"<<"l_ft_(2)"<<"\t"<<"l_ft_(3)"<<"\t"<<"l_ft_(4)"<<"\t"<<"l_ft_(5)"<<endl;
     file[10]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"current_link_q_leg_(0)"<<"\t"<<"current_link_q_leg_(1)"<<"\t"<<"current_link_q_leg_(2)"<<"\t"<<"current_link_q_leg_(3)"<<"\t"<<"current_link_q_leg_(4)"<<"\t"<<"current_link_q_leg_(5)"<<"\t"<<
               "current_link_q_leg_(6)"<<"\t"<<"current_link_q_leg_(7)"<<"\t"<<"current_link_q_leg_(8)"<<"\t"<<"current_link_q_leg_(9)"<<"\t"<<"current_link_q_leg_(10)"<<"\t"<<"current_link_q_leg_(11)"<<endl;
+
   }
   //WalkingController::~WalkingController()
   //{
@@ -84,6 +85,7 @@ public:
                  bool is_right_foot_swing, double x, double y, double z, double height, double theta,
                  double step_length, double step_length_y);
   void setEnable(bool enable);
+  void setFootPlan(int footnum, int startfoot, Eigen::MatrixXd footpose);
   void updateControlMask(unsigned int *mask);
   void writeDesired(const unsigned int *mask, VectorQd& desired_q);
 
@@ -105,6 +107,7 @@ public:
   //functions for getFootStep()
   void calculateFootStepTotal();
   void calculateFootStepSeparate();
+  void usingFootStepPlanner();
 
   //functions for getZMPTrajectory()
   void floatToSupportFootstep();
@@ -136,10 +139,16 @@ public:
   void slowCalcContent();
 
 
+
   void discreteRiccatiEquationInitialize(Eigen::MatrixXd a, Eigen::MatrixXd b);
   Eigen::MatrixXd discreteRiccatiEquationLQR(Eigen::MatrixXd A, Eigen::MatrixXd B, Eigen::MatrixXd R, Eigen::MatrixXd Q);
   Eigen::MatrixXd discreteRiccatiEquationPrev(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd r, Eigen::MatrixXd q);
 
+  VectorQd desired_q_not_compensated_;
+
+  bool walking_end_foot_side_;
+  bool walking_end_;
+  bool foot_plan_walking_last_;
 
 private:
 
@@ -171,6 +180,7 @@ private:
   bool gyro_frame_flag_;
   bool ready_for_thread_flag_;
   bool ready_for_compute_flag_;
+  bool estimator_flag_;
 
   int ik_mode_;
   int walk_mode_;
@@ -178,6 +188,7 @@ private:
   bool lqr_compensator_mode_;
   int heel_toe_mode_;
   int is_right_foot_swing_;
+  bool foot_step_planner_mode_;
 
   bool walking_enable_;
   bool joint_enable_[DyrosJetModel::HW_TOTAL_DOF];
@@ -191,6 +202,9 @@ private:
   double target_theta_;
   double total_step_num_;
   double current_step_num_;
+  int foot_step_plan_num_;
+  int foot_step_start_foot_;
+  Eigen::MatrixXd foot_pose_;
 
   Eigen::MatrixXd foot_step_;
   Eigen::MatrixXd foot_step_support_frame_;
@@ -244,6 +258,7 @@ private:
   Eigen::Vector3d com_support_current_;
   Eigen::Vector3d com_sim_current_;
 
+  Eigen::Isometry3d supportfoot_float_current_;
   Eigen::Isometry3d pelv_support_current_;
   Eigen::Isometry3d lfoot_support_current_;
   Eigen::Isometry3d rfoot_support_current_;
@@ -255,7 +270,6 @@ private:
 
   Eigen::Matrix6d current_leg_jacobian_l_;
   Eigen::Matrix6d current_leg_jacobian_r_;
-
   DyrosJetModel &model_;
 
 

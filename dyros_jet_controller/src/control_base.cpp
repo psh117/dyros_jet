@@ -33,12 +33,14 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
 
 
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
+  walkingstate_command_pub_ = nh.advertise<dyros_jet_msgs::WalkingState>("dyros_jet/walking_state",1);
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   haptic_command_sub_ = nh.subscribe("/dyros_jet/haptic_command", 3, &ControlBase::hapticCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
   walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
   shutdown_command_sub_ = nh.subscribe("/dyros_jet/shutdown_command", 1, &ControlBase::shutdownCommandCallback,this);
+  footplan_comman_sub_ = nh.subscribe("/local_walking_step",3, &ControlBase::footPlanCallback,this);
   parameterInitialize();
   model_.test();
 }
@@ -67,23 +69,26 @@ void ControlBase::update()
   {
     for (int i=0; i<12; i++)
       extencoder_offset_(i) = q_(i)-q_ext_(i);
-
-    cout<<"extencoder_offset_"<<extencoder_offset_<<endl;
-    cout<<"q_ext_"<<q_ext_<<endl;
+      //extencoder_offset_(i) = 0;
+    cout<<"one time "<<endl;
+    //cout<<"extencoder_offset_"<<extencoder_offset_<<endl;
+    //cout<<"q_ext_"<<q_ext_<<endl;
+    //cout<<"q_"<<q_<<endl;
 
     extencoder_init_flag_ = true;
   }
 
   if(extencoder_init_flag_ == true)
   {
-    q_ext_ = q_ext_ + extencoder_offset_;
-    model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_);
-  }
+    q_ext_offset_ = q_ext_ + extencoder_offset_;
 
+    model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_);
+  }
   Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_vjoint;
   q_vjoint.setZero();
   q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
-  //q_vjoint.segment<12>(6) = q_ext_;
+  q_vjoint.segment<12>(6) = q_ext_offset_;
+  //q_vjoint.segment<12>(6) = WalkingController::desired_q_not_compensated_;
 
   model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
   stateChangeEvent();
@@ -141,6 +146,7 @@ void ControlBase::compute()
 
 void ControlBase::reflect()
 {
+  dyros_jet_msgs::WalkingState msg;
   for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     joint_state_pub_.msg_.angle[i] = q_(i);
@@ -169,6 +175,9 @@ void ControlBase::reflect()
       joint_control_as_.setSucceeded(joint_control_result_);
     }
   }
+  msg.walking_end = walking_controller_.walking_end_;
+  msg.walking_end_foot_side = walking_controller_.walking_end_foot_side_;
+  walkingstate_command_pub_.publish(msg);
 }
 
 void ControlBase::parameterInitialize()
@@ -289,5 +298,30 @@ void ControlBase::jointControlActionCallback(const dyros_jet_msgs::JointControlG
   joint_control_feedback_.percent_complete = 0.0;
 }
 
+void ControlBase::footPlanCallback(const jet_planner_msgs::foot_step::ConstPtr& msg)
+{
+  int footNum;
+  Eigen::MatrixXd footPose;
+  footNum = msg->idx.size();
+  footPose.resize(footNum,6);
+  footPose.setZero();
+
+
+  double r,p,y;
+
+
+  for(int i=0; i<footNum; i++)
+    {
+      footPose(i,0) = msg->foot_pose[i].position.x;
+      footPose(i,1) = msg->foot_pose[i].position.y;
+      footPose(i,2) = msg->foot_pose[i].position.z;
+      tf::Quaternion ori_tmp(msg->foot_pose[i].orientation.x,msg->foot_pose[i].orientation.y,msg->foot_pose[i].orientation.z,msg->foot_pose[i].orientation.w);
+      tf::Matrix3x3(ori_tmp).getRPY(r,p,y);
+      footPose(i,3) = r;
+      footPose(i,4) = p;
+      footPose(i,5) = y;
+    }
+  walking_controller_.setFootPlan(msg->idx.size(), msg->idx[0], footPose);
+}
 
 }

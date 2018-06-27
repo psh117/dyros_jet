@@ -31,6 +31,7 @@
 #include <dyros_jet_msgs/TaskCommand.h>
 #include <dyros_jet_msgs/JointCommand.h>
 #include <dyros_jet_msgs/WalkingCommand.h>
+#include <dyros_jet_msgs/WalkingState.h>
 #include <dyros_jet_msgs/JointControlAction.h>
 //#include "dyros_jet_msgs/RecogCmd.h"
 //#include "dyros_jet_msgs/TaskCmdboth.h"
@@ -43,6 +44,7 @@
 #include "dyros_jet_controller/joint_controller.h"
 #include "dyros_jet_controller/walking_controller.h"
 // #include "Upperbody_Controller.h"
+#include "jet_planner_msgs/foot_step.h"
 
 
 namespace dyros_jet_controller
@@ -90,6 +92,8 @@ protected:
   VectorQd torque_; // current joint toruqe
   Eigen::Vector12d q_ext_;
   Eigen::Vector12d q_ext_dot_;
+  Eigen::Vector12d q_ext_offset_;
+
 
   Vector6d left_foot_ft_; // current left ft sensor values
   Vector6d right_foot_ft_; // current right ft sensor values
@@ -135,6 +139,8 @@ private:
   ros::Subscriber joint_command_sub_;
   ros::Subscriber walking_command_sub_;
   ros::Subscriber shutdown_command_sub_;
+  ros::Subscriber footplan_comman_sub_;
+  ros::Publisher walkingstate_command_pub_;
 
   // TODO: realtime_tools
   dyros_jet_msgs::JointControlFeedback joint_control_feedback_;
@@ -154,7 +160,7 @@ private:
   void jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg);
   void walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg);
   void shutdownCommandCallback(const std_msgs::StringConstPtr& msg);
-
+  void footPlanCallback(const jet_planner_msgs::foot_step::ConstPtr& msg);
   void jointControlActionCallback(const dyros_jet_msgs::JointControlGoalConstPtr &goal);
 private:
 

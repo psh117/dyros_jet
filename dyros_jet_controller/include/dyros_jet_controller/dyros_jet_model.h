@@ -90,7 +90,6 @@ private:
   Eigen::Matrix<double, 34, 1> q_virtual_;
   Eigen::Vector12d q_ext_;
 
-  Eigen::Vector12d extencoder_offset_;
   bool extencoder_init_flag_;
 
   Eigen::Vector3d base_position_;
