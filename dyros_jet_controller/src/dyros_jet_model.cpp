@@ -272,8 +272,8 @@ void DyrosJetModel::getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double,
       jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
 
       // left Leg Link
-      jacobian->block<3, 6>(0, 6) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
-      jacobian->block<3, 6>(3, 6) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
+      jacobian->block<3, 6>(0, 6) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]+6);
+      jacobian->block<3, 6>(3, 6) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]+6);
       break;
   case EE_RIGHT_FOOT:
     // swap
@@ -282,8 +282,8 @@ void DyrosJetModel::getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double,
     jacobian->block<3, 6>(3, 0) = full_jacobian.block<3, 6>(0, 0);
 
     // right Leg Link
-    jacobian->block<3, 6>(0, 12) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]);
-    jacobian->block<3, 6>(3, 12) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]);
+    jacobian->block<3, 6>(0, 12) = full_jacobian.block<3, 6>(3, joint_start_index_[ee]+6);
+    jacobian->block<3, 6>(3, 12) = full_jacobian.block<3, 6>(0, joint_start_index_[ee]+6);
     break;
   case EE_LEFT_HAND:
   case EE_RIGHT_HAND:

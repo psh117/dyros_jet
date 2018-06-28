@@ -292,11 +292,19 @@ void WalkingController::getRobotState()
   slowcalc_mutex_.lock();
   thread_q_ = current_q_;
   current_motor_q_leg_ = current_q_.segment<12>(0);
-  current_link_q_leg_ = model_.getCurrentExtencoder();
+  //current_link_q_leg_ = model_.getCurrentExtencoder();
+  current_link_q_leg_ = current_q_.segment<12>(0);
+
   slowcalc_mutex_.unlock();
 
 }
+/*
+void WalkingController::generateStep()
+{
 
+
+}
+*/
 
 void WalkingController::calculateFootStepTotal()
 {
@@ -2978,6 +2986,9 @@ void WalkingController::slowCalc()
 
       discreteModel(a_right_mat_, b_right_mat_, c_right_mat_, 0, 1.0/hz_, a_disc_, b_disc_, c_right_mat_, a_disc_total_, b_disc_total_);
 
+      //std::cout << "a_disc_total_" << a_disc_total_ << endl;
+      //std::cout << "b_disc_total_" << b_disc_total_ << endl;
+
 
 
       q_mat.setIdentity();
@@ -3302,13 +3313,13 @@ void WalkingController::getEstimationInputMatrix()
   */
 
 
-  coeff(0) = 7e2;		//kinematic
-  coeff(1) = 2e2;		//c_dot_x
-  coeff(2) = 2e2;		//c_dot_y
-  coeff(3) = 3e2;		//c
-  coeff(4) = 9e3;		//zmp
+  coeff(0) = 1e3;		//kinematic
+  coeff(1) = 1e2;		//c_dot_x
+  coeff(2) = 1e2;		//c_dot_y
+  coeff(3) = 1e2;		//c
+  coeff(4) = 1e4;		//zmp
   coeff(5) = 1e2;		//approximation
-  coeff(6) = 1e-3;	//FT-accer
+  coeff(6) = 1e-2;	//FT-accer
   coeff(7) = 4e0;	    //noise of c_dot
   coeff(8) = 1e1;	    //noise of c
   coeff(9) = 2e4;	    //noise of zmp
