@@ -49,6 +49,7 @@ public:
   void updateKinematics(const Eigen::VectorXd &q);
 
   void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext);
+
   void updateSimCom(const Eigen::Vector3d &sim_com);
 
 
@@ -75,6 +76,7 @@ public:
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
   const Eigen::Matrix<double, 6, 18>& getLegWithVLinkJacobian(EndEffector ee) { return leg_with_vlink_jacobian_[ee]; }
   const Eigen::Vector3d& getCurrentCom(){ return com_;}
+
   const Eigen::Vector3d& getSimulationCom(){return com_simulation_;}
   const Eigen::Vector6d& getRightFootForce() {return r_ft_wrench_;}
   const Eigen::Vector6d& getLeftFootForce() {return l_ft_wrench_;}
@@ -87,7 +89,7 @@ private:
   Eigen::Vector28d q_;
   Eigen::Matrix<double, 34, 1> q_virtual_;
   Eigen::Vector12d q_ext_;
-  Eigen::Vector12d extencoder_offset_;
+
   bool extencoder_init_flag_;
 
   Eigen::Vector3d base_position_;

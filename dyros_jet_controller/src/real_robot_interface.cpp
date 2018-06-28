@@ -92,7 +92,8 @@ void RealRobotInterface::extEncoderCallback(const sensor_msgs::JointStateConstPt
   for (int i=0; i<6;i++)
   {
     q_ext_(i+6) = joint->position[i];
-    q_ext_(i) = joint->position[i+6];
+    q_ext_(i) = joint->position[i+6]; //LEFT FIRST
+
     q_ext_dot_(i+6) = joint->velocity[i];
     q_ext_dot_(i) = joint->velocity[i+6];
   }

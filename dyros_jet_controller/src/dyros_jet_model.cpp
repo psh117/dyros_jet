@@ -33,7 +33,7 @@ const std::map<string, unsigned int> JOINT_MAP = {
   "HeadYaw", "HeadPitch", "R_Gripper", "L_Gripper"
 };
 */
-// Dynamixel Hardware ID
+// Dynamixel Hardware IDs
 const int DyrosJetModel::JOINT_ID[DyrosJetModel::HW_TOTAL_DOF] = {
   16,18,20,22,24,26,  // 6
   15,17,19,21,23,25,  // 6
@@ -110,7 +110,6 @@ void DyrosJetModel::test()
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
 {
   q_virtual_ = q;
-
   RigidBodyDynamics::UpdateKinematicsCustom(model_, &q, NULL, NULL);
 
   getInertiaMatrix34DoF(&full_inertia_mat_);
@@ -139,18 +138,7 @@ void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::V
   l_ft_wrench_ = l_ft;
 
   q_ext_ = q_ext;
-  if(extencoder_init_flag_ == false)
-  {
-    for (int i=0; i<12; i++)
-      extencoder_offset_(i) = q_virtual_(6+i)-q_ext_(i);
 
-    extencoder_init_flag_ = true;
-  }
-
-  if(extencoder_init_flag_ == true)
-  {
-    q_ext_ = q_ext_ + extencoder_offset_;
-  }
 }
 
 void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)
@@ -181,8 +169,8 @@ void DyrosJetModel::getTransformEndEffector
 (EndEffector ee, const Eigen::VectorXd& q, bool update_kinematics,
  Eigen::Vector3d* position, Eigen::Matrix3d* rotation)
 {
-  Eigen::Vector28d q_new;
-  q_new = q_;
+  Eigen::Matrix<double, 34,1> q_new;
+  q_new = q_virtual_;
   switch (ee)
   {
   case EE_LEFT_FOOT:
@@ -196,7 +184,7 @@ void DyrosJetModel::getTransformEndEffector
   }
   if (update_kinematics)
   {
-    q_ = q_new;
+    q_virtual_ = q_new;
   }
   *position = RigidBodyDynamics::CalcBodyToBaseCoordinates
       (model_,q_new,end_effector_id_[ee], base_position_, update_kinematics);
@@ -260,7 +248,7 @@ void DyrosJetModel::getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double,
   // Non-realtime
   Eigen::MatrixXd full_jacobian(6,MODEL_DOF_VJOINT);
   full_jacobian.setZero();
-  RigidBodyDynamics::CalcPointJacobian6D(model_, q_, end_effector_id_[ee],
+  RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, end_effector_id_[ee],
                                          Eigen::Vector3d::Zero(), full_jacobian, false);
 
   switch (ee)
@@ -314,7 +302,7 @@ void DyrosJetModel::getInertiaMatrix34DoF(Eigen::Matrix<double, 34, 34> *inertia
   // Non-realtime
   Eigen::MatrixXd full_inertia(MODEL_DOF_VJOINT, MODEL_DOF_VJOINT);
   full_inertia.setZero();
-  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, full_inertia, false);
+  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, full_inertia, false);
 
   inertia->block<34, 34>(0, 0) = full_inertia.block<34, 34>(0, 0);
 }
@@ -324,7 +312,7 @@ void DyrosJetModel::getInertiaMatrix18DoF(Eigen::Matrix<double, 18, 18> *leg_ine
   // Non-realtime
   Eigen::MatrixXd full_inertia(MODEL_DOF_VJOINT, MODEL_DOF_VJOINT);
   full_inertia.setZero();
-  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_, full_inertia, false);
+  RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, full_inertia, false);
 
   leg_inertia->block<18, 18>(0, 0) = full_inertia.block<18, 18>(0, 0);
 }

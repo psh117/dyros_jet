@@ -41,6 +41,7 @@ typedef Matrix<rScalar, 4, 3>	Matrix4x3d;
 typedef Matrix<rScalar, 6, 3>	Matrix6x3d;
 typedef Matrix<rScalar, 6, 7>	Matrix6x7d;
 typedef Matrix<rScalar, 8, 4>	Matrix8x4d;
+typedef Matrix<rScalar, 8, 2>	Matrix8x2d;
 typedef Matrix<rScalar, -1, 1, 0, MAX_DOF, 1> VectorJXd;
 typedef Matrix<rScalar, -1, 1, 0, 12, 1> VectorLXd; //Leg IK
 typedef Matrix<rScalar, -1, -1, 0, MAX_DOF, MAX_DOF> MatrixJXd;
@@ -52,8 +53,7 @@ typedef Matrix<std::complex<double>,8,4> Matrix8x4cd;
 
 namespace DyrosMath
 {
-
-//constexpr double GRAVITY {9.80665};
+  //constexpr double GRAVITY {9.80665};
 //constexpr double DEG2RAD {};
 
 static double cubic(double time,     ///< Current time
@@ -366,7 +366,6 @@ static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference,
   new_trunk.translation() = temp*(trunk.translation() - reference.translation());
 }
 
-
 static Eigen::MatrixXd discreteRiccatiEquation(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd r, Eigen::MatrixXd q)
 {
   int n=a.rows(); //number of rows
@@ -516,6 +515,22 @@ static Eigen::Vector3d legGetPhi(Eigen::Isometry3d rotation_matrix1, Eigen::Isom
 
   return phi;
 }
+static void toEulerAngle(double qx, double qy, double qz, double qw, double& roll, double& pitch, double& yaw)
+{
+  double sinr = +2.0*(qw * qx + qy * qz);
+  double cosr = +1.0-2.0*(qx * qx + qy * qy);
+  roll = atan2(sinr,cosr);
 
+  double sinp = +2.0*(qw * qy - qz * qx);
+  if (fabs(sinp) >= 1)
+    pitch = copysign(M_PI/2, sinp);
+  else
+    pitch = asin(sinp);
+
+  double siny = +2.0*(qw * qz + qx * qy);
+  double cosy = +1.0-2.0*(qy * qy + qz * qz);
+  yaw = atan2(siny, cosy);
+
+}
 }
 #endif

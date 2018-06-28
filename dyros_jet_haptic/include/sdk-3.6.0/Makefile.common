@@ -1,0 +1,31 @@
+#  (C) 2001-2015 Force Dimension
+#  All Rights Reserved.
+#
+#  Version 3.6.0
+
+
+# target
+CFG     = release
+OS      = lin
+ARCH   ?= $(shell echo `uname -m`)
+
+# compiler
+CC       = gcc
+CXX      = g++
+COMPILER = $(CC)
+
+# common compiler flags
+CXXFLAGS = -O3 -DLINUX -std=c++0x -I$(INC_DIR) -fsigned-char
+
+# library location
+BIN_DIR = $(TOP_DIR)/bin
+INC_DIR = $(TOP_DIR)/include
+LIB_DIR = $(TOP_DIR)/lib/release/$(OS)-$(ARCH)-gcc
+
+# common linker flags
+LDFLAGS += -L$(LIB_DIR)
+LDLIBS  += -lpthread -lusb-1.0 -lrt -ldl
+
+# platform-specific settings
+BUILD_GLUT  = 1
+LDLIBS_GLUT = -lGL -lGLU -lglut
