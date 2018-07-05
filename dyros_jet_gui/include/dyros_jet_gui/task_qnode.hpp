@@ -28,7 +28,6 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/WrenchStamped.h>
-#include <sensor_msgs/JointState.h>
 
 #include <dyros_jet_msgs/JointCommand.h>
 #include <dyros_jet_msgs/TaskCommand.h>
@@ -60,7 +59,6 @@ public:
     void publish_joint_ctrl();
     void send_walk_ctrl();
     void send_bool_cb();
-    void send_hand_cmd();
 
     void left_ftStateCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
     void right_ftStateCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
@@ -71,8 +69,6 @@ public:
     //ft_sensor_msg
     geometry_msgs::WrenchStamped ft_lf_msg_;
     geometry_msgs::WrenchStamped ft_rf_msg_;
-
-    sensor_msgs::JointState hand_cmd_msg_;
 
     std_msgs::Bool controlbase_bool_;
 
@@ -87,8 +83,6 @@ private:
     ros::Publisher walking_cmd_publisher;
     ros::Publisher controlbase_bool_publisher;
     ros::Publisher task_cmd_publisher;
-
-    ros::Publisher hand_cmd_publisher_;
 
     ros::Publisher ft_sensor_calib_publisher;
     ros::Subscriber ft_sensor_lf_state_subscriber;

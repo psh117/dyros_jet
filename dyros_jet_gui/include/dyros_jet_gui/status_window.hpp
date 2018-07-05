@@ -58,7 +58,7 @@ public Q_SLOTS:
 
     void on_button_scan_clicked();
     void on_button_estop_clicked();
-    //void on_button_torque_on_clicked();
+    void on_button_torque_on_clicked();
     /******************************************
     ** Code based UI connections
     *******************************************/

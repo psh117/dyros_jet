@@ -5,11 +5,6 @@
   <!-- Allow user to specify database location -->
   <arg name="db_path" default="$(find dyros_jet_moveit_config)/default_warehouse_mongo_db" />
 
-  <!-- Static transform from root to base_link -->
-  <arg name="stf" default="true" />
-
-  <arg name="connect" default="false"/>
-
   <!-- By default, we are not in debug mode -->
   <arg name="debug" default="false" />
 
@@ -28,21 +23,25 @@
     <arg name="load_robot_description" value="true"/>
   </include>
 
-  
+  <!-- If needed, broadcast static tf for robot root -->
+    <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0.9 0 0 0 odom_combined world 100" />
 
-  <node name="root_static_tf_publisher" pkg="tf" type="static_transform_publisher" args="0 0 1 0 0 0 world base_link 100"/>
+
+  <!-- We do not have a robot connected, so publish fake joint states -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="/use_gui" value="$(arg use_gui)"/>
+    <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
+  </node>
 
   <!-- Given the published joint states, publish tf for the robot links -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
-		<!--remap from="joint_states" to="/dyros_jet/joint_robot_state"/-->
+    <param name="publish_frequency" value="100"/>
   </node>
 
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <include file="$(find dyros_jet_moveit_config)/launch/move_group.launch">
-		
-		<!--remap from="joint_states" to="/dyros_jet/joint_robot_state"/-->
     <arg name="allow_trajectory_execution" value="true"/>
-    <arg name="fake_execution" value="false"/>
+    <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>

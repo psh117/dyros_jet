@@ -2,7 +2,6 @@
 
 namespace dyros_jet_controller
 {
-
 SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz):
   ControlBase(nh, Hz), rate_(Hz), simulation_step_done_(false)
 {
@@ -21,6 +20,7 @@ SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz):
   joint_sub_ = nh.subscribe("/vrep_ros_interface/joint_state", 100, &SimulationInterface::jointCallback, this);
   left_ft_sub_ = nh.subscribe("/vrep_ros_interface/left_foot_ft", 100, &SimulationInterface::leftFTCallback, this);
   right_ft_sub_ = nh.subscribe("/vrep_ros_interface/right_foot_ft", 100, &SimulationInterface::rightFTCallback, this);
+  com_sub_ = nh.subscribe("/vrep_ros_interface/com", 100, &SimulationInterface::comCallback, this);
 
   vrep_joint_set_pub_ = nh.advertise<sensor_msgs::JointState>("/vrep_ros_interface/joint_set", 1);
 
@@ -77,7 +77,7 @@ void SimulationInterface::vrepEnableSyncMode()
 void SimulationInterface::update()
 {
   ControlBase::update();
-
+  ControlBase::model_.updateSimCom(com_sim_);
 }
 void SimulationInterface::compute()
 {
@@ -149,17 +149,34 @@ void SimulationInterface::jointCallback(const sensor_msgs::JointStateConstPtr& m
 
 void SimulationInterface::leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg)
 {
-
+  left_foot_ft_(0) = msg->wrench.force.x;
+  left_foot_ft_(1) = msg->wrench.force.y;
+  left_foot_ft_(2) = msg->wrench.force.z;
+  left_foot_ft_(3) = msg->wrench.torque.x;
+  left_foot_ft_(4) = msg->wrench.torque.y;
+  left_foot_ft_(5) = msg->wrench.torque.z;
 }
 
 void SimulationInterface::rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg)
 {
-
+  right_foot_ft_(0) = msg->wrench.force.x;
+  right_foot_ft_(1) = msg->wrench.force.y;
+  right_foot_ft_(2) = msg->wrench.force.z;
+  right_foot_ft_(3) = msg->wrench.torque.x;
+  right_foot_ft_(4) = msg->wrench.torque.y;
+  right_foot_ft_(5) = msg->wrench.torque.z;
 }
 
 void SimulationInterface::imuCallback(const sensor_msgs::ImuConstPtr &msg)
 {
 
+}
+
+void SimulationInterface::comCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  com_sim_(0) = msg->x;
+  com_sim_(1) = msg->y;
+  com_sim_(2) = msg->z;
 }
 
 }

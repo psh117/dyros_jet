@@ -2,12 +2,107 @@
 # Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]
 # Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]
 joint_limits:
+  L_AnklePitch:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_AnkleRoll:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_ElbowRoll:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_HandYaw:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_HipPitch:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_HipRoll:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_HipYaw:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_KneePitch:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_ShoulderPitch:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_ShoulderRoll:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_ShoulderYaw:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_WristRoll:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  L_WristYaw:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  R_AnklePitch:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  R_AnkleRoll:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
   R_ElbowRoll:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
   R_HandYaw:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  R_HipPitch:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  R_HipRoll:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  R_HipYaw:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  R_KneePitch:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false
@@ -33,6 +128,16 @@ joint_limits:
     has_acceleration_limits: false
     max_acceleration: 0
   R_WristYaw:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  WaistPitch:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  WaistYaw:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false

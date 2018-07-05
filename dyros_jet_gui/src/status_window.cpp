@@ -209,14 +209,13 @@ void StatusWindow::on_button_estop_clicked()
   qnode.shutdown();
   std::cout << " DONE" << std::endl;
 }
-/*
+
 void StatusWindow::on_button_torque_on_clicked()
 {
   qnode.changeDxlMode(rt_dynamixel_msgs::ModeSetting::Request::SETTING);
   qnode.setTorque(1);
   qnode.changeDxlMode(rt_dynamixel_msgs::ModeSetting::Request::CONTROL_RUN);
-}*/
-
+}
 
 void StatusWindow::stateButtonClicked()
 {

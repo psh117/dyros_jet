@@ -31,6 +31,7 @@
 #include <dyros_jet_msgs/TaskCommand.h>
 #include <dyros_jet_msgs/JointCommand.h>
 #include <dyros_jet_msgs/WalkingCommand.h>
+#include <dyros_jet_msgs/WalkingState.h>
 #include <dyros_jet_msgs/JointControlAction.h>
 //#include "dyros_jet_msgs/RecogCmd.h"
 //#include "dyros_jet_msgs/TaskCmdboth.h"
@@ -39,11 +40,11 @@
 #include "math_type_define.h"
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "dyros_jet_controller/task_controller.h"
+#include "dyros_jet_controller/haptic_controller.h"
 #include "dyros_jet_controller/joint_controller.h"
 #include "dyros_jet_controller/walking_controller.h"
-#include "dyros_jet_controller/moveit_controller.h"
-
 // #include "Upperbody_Controller.h"
+
 
 
 namespace dyros_jet_controller
@@ -84,10 +85,15 @@ protected:
 
   int ui_update_count_;
   bool is_first_boot_;
+  bool extencoder_init_flag_;
 
   VectorQd q_; // current q
   VectorQd q_dot_; // current qdot
   VectorQd torque_; // current joint toruqe
+  Eigen::Vector12d q_ext_;
+  Eigen::Vector12d q_ext_dot_;
+  Eigen::Vector12d q_ext_offset_;
+
 
   Vector6d left_foot_ft_; // current left ft sensor values
   Vector6d right_foot_ft_; // current right ft sensor values
@@ -98,20 +104,23 @@ protected:
 
   Matrix3d pelvis_orientation_;
 
+  Vector3d com_sim_; //com position from simulation COMvisualziefunction
+
   VectorQd desired_q_; // current desired joint values
+  Eigen::Vector12d extencoder_offset_;
+
 
   int total_dof_;
 
   DyrosJetModel model_;
   TaskController task_controller_;
+  HapticController haptic_controller_;
   JointController joint_controller_;
   WalkingController walking_controller_;
-  MoveitController moveit_controller_;
 
 protected:
   string current_state_;
   realtime_tools::RealtimePublisher<dyros_jet_msgs::JointState> joint_state_pub_;
-  realtime_tools::RealtimePublisher<sensor_msgs::JointState> joint_robot_state_pub_;
 
 private:
   double Hz_; ///< control
@@ -126,9 +135,11 @@ private:
   ros::Subscriber task_cmd_sub_;
   ros::Subscriber joint_cmd_sub_;
   ros::Subscriber task_comamnd_sub_;
+  ros::Subscriber haptic_command_sub_;
   ros::Subscriber joint_command_sub_;
   ros::Subscriber walking_command_sub_;
   ros::Subscriber shutdown_command_sub_;
+  ros::Publisher walkingstate_command_pub_;
 
   // TODO: realtime_tools
   dyros_jet_msgs::JointControlFeedback joint_control_feedback_;
@@ -144,10 +155,10 @@ private:
 
   void smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg);
   void taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
+  void hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
   void jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg);
   void walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg);
   void shutdownCommandCallback(const std_msgs::StringConstPtr& msg);
-
   void jointControlActionCallback(const dyros_jet_msgs::JointControlGoalConstPtr &goal);
 private:
 

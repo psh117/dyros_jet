@@ -10,13 +10,13 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   shutdown_flag_(false),
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
+  haptic_controller_(model_,q_,Hz, control_time_),
   walking_controller_(model_, q_, Hz, control_time_),
-  moveit_controller_(model_, q_, Hz),
   joint_control_as_(nh, "/dyros_jet/joint_control", false) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
 {
   //walking_cmd_sub_ = nh.subscribe
   makeIDInverseList();
-  //joint_control_as_.
+  //joint_control_as_
   joint_control_as_.start();
   joint_state_pub_.init(nh, "/dyros_jet/joint_state", 3);
   joint_state_pub_.msg_.name.resize(DyrosJetModel::HW_TOTAL_DOF);
@@ -25,29 +25,23 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   joint_state_pub_.msg_.current.resize(DyrosJetModel::HW_TOTAL_DOF);
   joint_state_pub_.msg_.error.resize(DyrosJetModel::HW_TOTAL_DOF);
 
-  joint_robot_state_pub_.init(nh, "/joint_states", 3);
-  joint_robot_state_pub_.msg_.name.resize(DyrosJetModel::HW_TOTAL_DOF-4);
-  joint_robot_state_pub_.msg_.position.resize(DyrosJetModel::HW_TOTAL_DOF-4);
-  //joint_robot_state_pub_.msg_.velocity.resize(DyrosJetModel::HW_TOTAL_DOF-4);
-  //joint_robot_state_pub_.msg_.effort.resize(DyrosJetModel::HW_TOTAL_DOF-4);
-
   for (int i=0; i< DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     joint_state_pub_.msg_.name[i] = DyrosJetModel::JOINT_NAME[i];
-  }
-  for (int i=0; i< DyrosJetModel::HW_TOTAL_DOF-4; i++)
-  {
-    joint_robot_state_pub_.msg_.name[i] = DyrosJetModel::JOINT_NAME[i];
+    //joint_state_pub_.msg_.id[i] = DyrosJetModel::JOINT_ID[i];
   }
 
+
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
+  walkingstate_command_pub_ = nh.advertise<dyros_jet_msgs::WalkingState>("dyros_jet/walking_state",1);
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
+  haptic_command_sub_ = nh.subscribe("/dyros_jet/haptic_command", 3, &ControlBase::hapticCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
   walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
   shutdown_command_sub_ = nh.subscribe("/dyros_jet/shutdown_command", 1, &ControlBase::shutdownCommandCallback,this);
   parameterInitialize();
-  // model_.test();
+  model_.test();
 }
 
 bool ControlBase::checkStateChanged()
@@ -70,8 +64,32 @@ void ControlBase::makeIDInverseList()
 
 void ControlBase::update()
 {
-  model_.updateKinematics(q_.head<DyrosJetModel::MODEL_DOF>());  // Update end effector positions and Jacobians
-  model_.updateSensorData(right_foot_ft_, left_foot_ft_);
+  if(extencoder_init_flag_ == false && q_ext_.transpose()*q_ext_ !=0 && q_.transpose()*q_ !=0)
+  {
+    for (int i=0; i<12; i++)
+      extencoder_offset_(i) = q_(i)-q_ext_(i);
+      //extencoder_offset_(i) = 0;
+    cout<<"one time "<<endl;
+    //cout<<"extencoder_offset_"<<extencoder_offset_<<endl;
+    //cout<<"q_ext_"<<q_ext_<<endl;
+    //cout<<"q_"<<q_<<endl;
+
+    extencoder_init_flag_ = true;
+  }
+
+  if(extencoder_init_flag_ == true)
+  {
+    q_ext_offset_ = q_ext_ + extencoder_offset_;
+
+    model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_);
+  }
+  Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_vjoint;
+  q_vjoint.setZero();
+  q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
+  //q_vjoint.segment<12>(6) = q_ext_offset_;
+  //q_vjoint.segment<12>(6) = WalkingController::desired_q_not_compensated_;
+
+  model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
   stateChangeEvent();
 }
 
@@ -99,23 +117,24 @@ void ControlBase::compute()
 {
 
   task_controller_.compute();
+  haptic_controller_.compute();
   joint_controller_.compute();
   walking_controller_.compute();
-  moveit_controller_.compute();
 
   task_controller_.updateControlMask(control_mask_);
+  haptic_controller_.updateControlMask(control_mask_);
   joint_controller_.updateControlMask(control_mask_);
   walking_controller_.updateControlMask(control_mask_);
-  moveit_controller_.updateControlMask(control_mask_);
 
   task_controller_.writeDesired(control_mask_, desired_q_);
+  haptic_controller_.writeDesired(control_mask_, desired_q_);
   joint_controller_.writeDesired(control_mask_, desired_q_);
   walking_controller_.writeDesired(control_mask_, desired_q_);
-  moveit_controller_.writeDesired(control_mask_, desired_q_);
 
   tick_ ++;
   control_time_ = tick_ / Hz_;
 
+  //cout << "current_q_ext" << q_ext_ <<endl;
   /*
   if ((tick_ % 200) == 0 )
   {
@@ -126,7 +145,7 @@ void ControlBase::compute()
 
 void ControlBase::reflect()
 {
-  joint_robot_state_pub_.msg_.header.stamp = ros::Time::now();
+  dyros_jet_msgs::WalkingState msg;
   for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     joint_state_pub_.msg_.angle[i] = q_(i);
@@ -134,20 +153,9 @@ void ControlBase::reflect()
     joint_state_pub_.msg_.current[i] = torque_(i);
   }
 
-  for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF - 4; i++)
-  {
-    joint_robot_state_pub_.msg_.position[i] = q_(i);
-    //joint_robot_state_pub_.msg_.velocity[i] = q_dot_(i);
-    //joint_robot_state_pub_.msg_.effort[i] = torque_(i);
-  }
-
   if(joint_state_pub_.trylock())
   {
     joint_state_pub_.unlockAndPublish();
-  }
-  if(joint_robot_state_pub_.trylock())
-  {
-    joint_robot_state_pub_.unlockAndPublish();
   }
 
   if(joint_control_as_.isActive())
@@ -166,6 +174,9 @@ void ControlBase::reflect()
       joint_control_as_.setSucceeded(joint_control_result_);
     }
   }
+  msg.walking_end = walking_controller_.walking_end_;
+  msg.walking_end_foot_side = walking_controller_.walking_end_foot_side_;
+  walkingstate_command_pub_.publish(msg);
 }
 
 void ControlBase::parameterInitialize()
@@ -176,6 +187,7 @@ void ControlBase::parameterInitialize()
   left_foot_ft_.setZero();
   left_foot_ft_.setZero();
   desired_q_.setZero();
+  extencoder_init_flag_ = false;
 }
 void ControlBase::readDevice()
 {
@@ -214,6 +226,27 @@ void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr&
   }
 }
 
+void ControlBase::hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg)
+{
+  for(unsigned int i=0; i<4; i++)
+  {
+    if(msg->end_effector[i])
+    {
+      Eigen::Isometry3d target;
+      tf::poseMsgToEigen(msg->pose[i], target);
+
+      if(msg->mode[i] == dyros_jet_msgs::TaskCommand::RELATIVE)
+      {
+        const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
+        target.translation() = target.translation() + current.translation();
+        target.linear() = current.linear() * target.linear();
+      }
+      haptic_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
+      haptic_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
+    }
+  }
+}
+
 void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg)
 {
   for (unsigned int i=0; i<msg->name.size(); i++)
@@ -242,7 +275,6 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   }
   else
   {
-    cout<<"fffffffffff"<<endl;
     walking_controller_.setEnable(false);
   }
 }
@@ -264,6 +296,4 @@ void ControlBase::jointControlActionCallback(const dyros_jet_msgs::JointControlG
   }
   joint_control_feedback_.percent_complete = 0.0;
 }
-
-
 }

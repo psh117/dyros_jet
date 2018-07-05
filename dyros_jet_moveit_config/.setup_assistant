@@ -6,5 +6,5 @@ moveit_setup_assistant_config:
     relative_path: config/dyros_jet_robot.srdf
   CONFIG:
     author_name: jhAhn
-    author_email: june992@snu.ac.kr
-    generated_timestamp: 1529313878
+    author_email: june992@gmail.com
+    generated_timestamp: 1517967500
