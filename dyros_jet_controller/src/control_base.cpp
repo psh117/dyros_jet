@@ -33,7 +33,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
 
 
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
-  walkingstate_command_pub_ = nh.advertise<dyros_jet_msgs::WalkingState>("dyros_jet/walking_state",1);
+  walkingstate_command_pub_ = nh.advertise<std_msgs::Bool>("/dyros_jet/walking_state",1);
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   haptic_command_sub_ = nh.subscribe("/dyros_jet/haptic_command", 3, &ControlBase::hapticCommandCallback, this);
@@ -146,7 +146,6 @@ void ControlBase::compute()
 
 void ControlBase::reflect()
 {
-  dyros_jet_msgs::WalkingState msg;
   for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     joint_state_pub_.msg_.angle[i] = q_(i);
@@ -175,9 +174,12 @@ void ControlBase::reflect()
       joint_control_as_.setSucceeded(joint_control_result_);
     }
   }
-  msg.walking_end = walking_controller_.walking_end_;
-  msg.walking_end_foot_side = walking_controller_.walking_end_foot_side_;
-  walkingstate_command_pub_.publish(msg);
+  if (walking_controller_.walking_state_send == true)
+    {
+      std::cout << "PUUUUUBLLIISHH" << std::endl;
+      walkingState_msg.data = walking_controller_.walking_end_;
+      walkingstate_command_pub_.publish(walkingState_msg);
+    }
 }
 
 void ControlBase::parameterInitialize()
@@ -309,7 +311,6 @@ void ControlBase::footPlanCallback(const jet_planner_msgs::foot_step::ConstPtr& 
 
   double r,p,y;
 
-
   for(int i=0; i<footNum; i++)
     {
       footPose(i,0) = msg->foot_pose[i].position.x;
@@ -317,10 +318,32 @@ void ControlBase::footPlanCallback(const jet_planner_msgs::foot_step::ConstPtr& 
       footPose(i,2) = msg->foot_pose[i].position.z;
       tf::Quaternion ori_tmp(msg->foot_pose[i].orientation.x,msg->foot_pose[i].orientation.y,msg->foot_pose[i].orientation.z,msg->foot_pose[i].orientation.w);
       tf::Matrix3x3(ori_tmp).getRPY(r,p,y);
-      footPose(i,3) = r;
-      footPose(i,4) = p;
-      footPose(i,5) = y;
+
+/*      if (i == 0)
+        {
+          r_prev = 0;
+          p_prev = 0;
+          y_prev = 0;
+          r_prev1 = r;
+          p_prev1 = p;
+          y_prev1 = y;
+        }
+      else
+        {
+          r_prev = r_prev1;
+          p_prev = p_prev1;
+          y_prev = y_prev1;
+          r_prev1 = r;
+          p_prev1 = p;
+          y_prev1 = y;
+        }
+*/
+      footPose(i,3) = r;//-r_prev;
+      footPose(i,4) = p;//-p_prev;
+      footPose(i,5) = y;//-y_prev;
     }
+
+  std::cout << "callback size" << footNum <<std::endl;
   walking_controller_.setFootPlan(msg->idx.size(), msg->idx[0], footPose);
 }
 

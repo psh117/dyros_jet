@@ -46,10 +46,11 @@ public:
 
 
   WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_update_flag_(false), calc_start_flag_(false), ready_for_thread_flag_(false), ready_for_compute_flag_(false), foot_step_planner_mode_(false), walking_end_foot_side_ (false), foot_plan_walking_last_(false)
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_update_flag_(false), calc_start_flag_(false), ready_for_thread_flag_(false), ready_for_compute_flag_(false), foot_step_planner_mode_(false), walking_end_foot_side_ (false), foot_plan_walking_last_(false), foot_last_walking_end_(false)
 
   {
-
+    walking_state_send = false;
+    walking_end_ = false;
     for(int i=0; i<FILE_CNT;i++)
     {
       file[i].open(FILE_NAMES[i].c_str(),ios_base::out);
@@ -149,6 +150,8 @@ public:
   bool walking_end_foot_side_;
   bool walking_end_;
   bool foot_plan_walking_last_;
+  bool foot_last_walking_end_;
+  bool walking_state_send;
 
 private:
 

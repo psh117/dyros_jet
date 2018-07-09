@@ -15,10 +15,9 @@ namespace dyros_jet_controller
 
 void WalkingController::compute()
 {
-
   if((walking_enable_ == true))
   {
-     std::cout<<"walking_tick_:"<<walking_tick_<<endl;
+//     std::cout<<"walking_tick_:"<<walking_tick_<<endl;
 //     std::cout<<"current_step_num_:"<<current_step_num_<<endl;
 //     std::cout<<"total_step_num:"<<total_step_num_<<endl;
 //     std::cout<<"t_last_:"<<t_last_<<endl;
@@ -173,30 +172,35 @@ void WalkingController::setTarget(int walk_mode, bool hip_compensation, bool lqr
 
 void WalkingController::setFootPlan(int footnum, int startfoot, Eigen::MatrixXd footpose)
 {
-  foot_step_plan_num_ = footnum;
-  foot_step_start_foot_ = startfoot-1;
-  foot_pose_.resize(foot_step_plan_num_,6);
-
-  for(int i=0; i<foot_step_plan_num_; i++)
-    {
-      foot_pose_(i,0) = footpose(i,0);
-      foot_pose_(i,1) = footpose(i,1);
-      foot_pose_(i,5) = footpose(i,5);
-    }
-
   if (footnum != 0)
     {
       foot_step_planner_mode_ = true;
-      if(footnum == 1)
+      if(footnum == 1 && startfoot == 100)
         {
           foot_plan_walking_last_ = true;
+        }
+      else if(footnum != 1 && foot_plan_walking_last_ == false)
+        {
+          foot_step_plan_num_ = footnum;
+          foot_step_start_foot_ = startfoot-1;
+          foot_pose_.resize(foot_step_plan_num_,6);
+
+
+          for(int i=0; i<foot_step_plan_num_; i++)
+            {
+              foot_pose_(i,0) = footpose(i,0);
+              foot_pose_(i,1) = footpose(i,1);
+              foot_pose_(i,5) = footpose(i,5);
+            }
         }
     }
   else
     {
       foot_step_planner_mode_ = false;
     }
- // std::cout << "foot_step_planner_mode_ " <<foot_step_planner_mode_  <<std::endl;
+//  std::cout << "foot_num" <<footnum <<std::endl;
+//  std::cout << "foot_step_planner_mode_ " <<foot_step_planner_mode_  <<std::endl;
+// std::cout << "foot_plan_walking_last_"<<foot_plan_walking_last_ << std::endl;
 }
 
 void WalkingController::setEnable(bool enable)
@@ -282,6 +286,7 @@ void WalkingController::parameterSetting()
   //com_update_flag_ = true; // frome A to B1
   gyro_frame_flag_ = false;
   com_control_mode_ = true;
+  estimator_flag_ = false;
 
   //zc_ = 0.75;
 
@@ -949,24 +954,76 @@ void WalkingController::calculateFootStepSeparate()
 
 void WalkingController::usingFootStepPlanner()
 {
-  foot_step_.resize(foot_step_plan_num_, 7);
-  foot_step_.setZero();
-  foot_step_support_frame_.resize(foot_step_plan_num_, 7);
-  foot_step_support_frame_.setZero();
-  foot_step_support_frame_offset_.resize(foot_step_plan_num_, 7);
-  foot_step_support_frame_offset_.setZero();
+  if( foot_plan_walking_last_ == true)
+    {
+      int temp1 = foot_step_(foot_step_plan_num_-1, 6);
+      double foot_stepx, foot_stepy,foot_step_angle, foot_stepx_prev, foot_stepy_prev;
 
-  int temp = foot_step_start_foot_ ;
-  int index = 0;
-  for (int i =0 ; i<foot_step_plan_num_; i++)
-  {
-    foot_step_(index,0) = foot_pose_(index,0);
-    foot_step_(index,1) = foot_pose_(index,1);
-    foot_step_(index,5) = foot_pose_(index,5);
-    foot_step_(index,6) = 0.5+0.5*temp;
-    temp *= -1;
-    index++;
-  }
+      foot_stepy_prev = foot_step_(foot_step_plan_num_ -2, 1);
+      foot_stepx_prev = foot_step_(foot_step_plan_num_ -2, 0);
+      foot_stepx = foot_step_(foot_step_plan_num_ -1, 0);
+      foot_stepy = foot_step_(foot_step_plan_num_ -1, 1);
+      foot_step_angle =  foot_step_(foot_step_plan_num_ -1,5);
+      foot_step_.resize(1,7);
+      foot_step_.setZero();
+      foot_step_support_frame_.resize(1, 7);
+      foot_step_support_frame_.setZero();
+      foot_step_support_frame_offset_.resize(1, 7);
+      foot_step_support_frame_offset_.setZero();
+      foot_last_walking_end_ = true;
+
+      if(temp1 == 0)
+        {
+      //    std::cout << "asdfaswwwww" << std::endl;
+          foot_step_(0,0) = (foot_stepx - foot_stepx_prev)/2.0 + 2*(0.127794)*sin(foot_step_angle);
+          foot_step_(0,1) = (foot_stepy - foot_stepy_prev)/2.0 -2*(0.127794)*cos(foot_step_angle);
+          foot_step_(0,5) = foot_step_angle;
+          foot_step_(0,6) = 1;
+        }
+      if(temp1 == 1)
+        {
+          std::cout << "asdfaswwwww11111" << std::endl;
+          foot_step_(0,0) = (foot_stepx - foot_stepx_prev)/2.0 - 2*(0.127794)*sin(foot_step_angle);
+          foot_step_(0,1) = (foot_stepy - foot_stepy_prev)/2.0 + 2*(0.127794)*cos(foot_step_angle);
+          foot_step_(0,5) = foot_step_angle;
+          foot_step_(0,6) = 0;
+        }
+    }
+  else
+    {
+      foot_step_.resize(foot_step_plan_num_, 7);
+      foot_step_.setZero();
+      foot_step_support_frame_.resize(foot_step_plan_num_, 7);
+      foot_step_support_frame_.setZero();
+      foot_step_support_frame_offset_.resize(foot_step_plan_num_, 7);
+      foot_step_support_frame_offset_.setZero();
+
+      int temp = foot_step_start_foot_ ;
+      int index = 0;
+      for (int i =0 ; i<foot_step_plan_num_; i++)
+      {
+        foot_step_(index,0) = foot_pose_(index,0);
+        foot_step_(index,1) = foot_pose_(index,1);
+        foot_step_(index,5) = foot_pose_(index,5);
+        foot_step_(index,6) = 0.5+0.5*temp;
+        temp *= -1;
+        index++;
+      }
+
+      for (int i =0 ; i<foot_step_plan_num_; i++)
+      {
+          if(i==0)
+            {
+              foot_step_(i,0) = foot_pose_(0,0);
+            }
+          else
+            {
+              foot_step_(i,0) = foot_pose_(i,0) + foot_pose_(i-1,0);
+            }
+         }
+
+    }
+
 
   std::cout << "foot_step_plan_num_" <<foot_step_plan_num_ <<std::endl;
 
@@ -1125,7 +1182,6 @@ void WalkingController::updateInitialState()
 {  
   if( walking_tick_ ==0)
   {
-    estimator_flag_ = false;
     thread_tick_ = 0;
     if (foot_step_planner_mode_)
       {
@@ -1272,23 +1328,31 @@ void WalkingController::updateNextStepTime()
     }
   }
 
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +4.0*hz_)
+  {
+    walking_state_send = true;
+    walking_end_ = !walking_end_;
+  }
+
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +4.0*hz_+1)
+  {
+    walking_state_send = false;
+  }
+
   if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +5.0*hz_)
   {
-    if(foot_step_planner_mode_ == true && foot_plan_walking_last_ == false)
+    if(foot_step_planner_mode_ == true && foot_last_walking_end_ == false)
       {
          walking_enable_ = true;
-         std::cout<<"DFSFEW"<<std::endl;
       }
-    else if(foot_step_planner_mode_ == true && foot_plan_walking_last_ == true)
-    {
+    else if(foot_step_planner_mode_ == true && foot_last_walking_end_ == true)
+      {
         walking_enable_ = false;
-    }
+      }
     else
     {
       walking_enable_ = false;
     }
-   walking_end_ = true;
-   walking_end_foot_side_ = foot_step_(total_step_num_-1,6);
   }
 
   walking_tick_ ++;
@@ -1296,11 +1360,11 @@ void WalkingController::updateNextStepTime()
 
   if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +5.0*hz_+1)
   {
-    if(foot_step_planner_mode_ == true && foot_plan_walking_last_ == false)
+    if(foot_step_planner_mode_ == true && foot_last_walking_end_ == false)
       {
          walking_enable_ = true;
          parameterSetting();
-         std::cout<<"DFSFEW"<<std::endl;
+         std::cout<<"DFSF1111EW"<<std::endl;
       }
   }
 
@@ -2498,7 +2562,7 @@ void WalkingController::compensator()
 
 void WalkingController::hipCompensator()
 {
-  double left_hip_angle = 5.0*DEG2RAD, right_hip_angle = 5.6*DEG2RAD, left_hip_angle_first_step = 5.0*DEG2RAD, right_hip_angle_first_step = 5.2*DEG2RAD,
+  double left_hip_angle = 6.0*DEG2RAD, right_hip_angle = 6.3*DEG2RAD, left_hip_angle_first_step = 5.8*DEG2RAD, right_hip_angle_first_step = 5.9*DEG2RAD,
 
 
       left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
@@ -2724,7 +2788,7 @@ void WalkingController::hipCompensation()
     grav_ground_torque_(i) = lTau[i];
     grav_ground_torque_(i+6) = rTau[i];
   }
-
+ // cout<<joint_offset_angle_<<endl;
 }
 
 

@@ -169,7 +169,7 @@ void DyrosJetModel::getTransformEndEffector
 (EndEffector ee, const Eigen::VectorXd& q, bool update_kinematics,
  Eigen::Vector3d* position, Eigen::Matrix3d* rotation)
 {
-  Eigen::Vector28d q_new;
+  Eigen::Matrix<double, 34, 1> q_new;
   q_new = q_virtual_;
   switch (ee)
   {
