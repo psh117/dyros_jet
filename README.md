@@ -69,6 +69,18 @@ sudo apt install ros-kinetic-moveit
 roslaunch dyros_jet_moveit dyros_jet_moveit.launch
 ```
 
+* Get pointcloud to moveit 
+```sh
+rosrun pcl_ros pcd_to_pointcloud ~/example.pcd _frame_id:=odom
+```
+if you want new frame of pointcloud,
+```sh
+rosrun tf static_transform_publisher 0 0 0 -1.5708 0 -1.5708 base_link odom2 100
+```
+tf static_tranform_publisher x y z α β γ parent_frame child_frame period(milliseconds)
+
+
+
 
 ### How do I contribuite to this repo? ###
 * Read this http://wiki.ros.org/CppStyleGuide
