@@ -218,8 +218,11 @@ void ControlBase::jointCommandCallback(const dyros_jet_msgs::JointCommandConstPt
 {
   for (unsigned int i=0; i<msg->name.size(); i++)
   {
-    joint_controller_.setTarget(model_.getIndex(msg->name[i]), msg->position[i], msg->duration[i]);
-    joint_controller_.setEnable(model_.getIndex(msg->name[i]), true);
+    if(model_.isPossibleIndex(msg->name[i]))
+    {
+      joint_controller_.setTarget(model_.getIndex(msg->name[i]), msg->position[i], msg->duration[i]);
+      joint_controller_.setEnable(model_.getIndex(msg->name[i]), true);
+    }
   }
 }
 
@@ -238,7 +241,7 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   {
     walking_controller_.setEnable(true);
     walking_controller_.setTarget(msg->walk_mode, msg->compensator_mode[0], msg->compensator_mode[1], msg->ik_mode, msg->heel_toe, msg->first_foot_step,
-    msg->x, msg->y, msg->z, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
+        msg->x, msg->y, msg->z, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
   }
   else
   {
@@ -259,8 +262,11 @@ void ControlBase::jointControlActionCallback(const dyros_jet_msgs::JointControlG
 {
   for (unsigned int i=0; i<goal->command.name.size(); i++)
   {
-    joint_controller_.setTarget(model_.getIndex(goal->command.name[i]), goal->command.position[i], goal->command.duration[i]);
-    joint_controller_.setEnable(model_.getIndex(goal->command.name[i]), true);
+    if(model_.isPossibleIndex(goal->command.name[i]))
+    {
+      joint_controller_.setTarget(model_.getIndex(goal->command.name[i]), goal->command.position[i], goal->command.duration[i]);
+      joint_controller_.setEnable(model_.getIndex(goal->command.name[i]), true);
+    }
   }
   joint_control_feedback_.percent_complete = 0.0;
 }

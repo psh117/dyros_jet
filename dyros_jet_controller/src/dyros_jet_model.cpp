@@ -113,10 +113,9 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
     getTransformEndEffector((EndEffector)i, &currnet_transform_[i]);
     if (i < 2)
     {
-
       getJacobianMatrix6DoF((EndEffector)i, &leg_jacobian_[i]);
     }
-    else
+    else 
     {
       getJacobianMatrix7DoF((EndEffector)i, &arm_jacobian_[i-2]);
     }
