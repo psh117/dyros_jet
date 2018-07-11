@@ -48,7 +48,7 @@ public:
 
   inline bool isPossibleIndex(const std::string& joint_name) const
   {
-    return (joint_name_map_.find(joint_name) == joint_name_map_.end());
+    return (joint_name_map_.find(joint_name) != joint_name_map_.end());
   }
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
