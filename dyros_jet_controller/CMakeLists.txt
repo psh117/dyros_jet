@@ -42,15 +42,12 @@ file(GLOB BRIDGE_SRC
     "src/real_robot_interface.cpp"
     "src/simulation_interface.cpp"
     "src/control_base.cpp"
-    #"include/dyros_jet_controller/dyros_jet_model.h"
-    #  "src/hardware_interface.cpp"
-    )
-file(GLOB WALKING_SRC
-    "src/walking_controller.cpp"
     )
 file(GLOB CONTROLLER_SRC
     "src/dyros_jet_model.cpp"
+    "src/walking_controller.cpp"
     "src/task_controller.cpp"
+    "src/haptic_controller.cpp"
     "src/joint_controller.cpp"
     "src/moveit_controller.cpp"
     )
@@ -59,8 +56,6 @@ file(GLOB CONTROLLER_SRC
 add_library(dyros_jet_controller_lib
     ${BRIDGE_SRC}
     ${CONTROLLER_SRC}
-    ${WALKING_SRC}
-    #  ${UPPER_SRC}
     )
 
 add_executable(dyros_jet_controller src/dyros_jet_controller.cpp)
