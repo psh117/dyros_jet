@@ -229,7 +229,7 @@ right_hand:
     - SPARSkConfigDefault
     - SPARStwokConfigDefault
 arms:
-  default_planner_config: RRTkConfigDefault
+  default_planner_config: kConfigDefault
   planner_configs:
     - SBLkConfigDefault
     - ESTkConfigDefault
