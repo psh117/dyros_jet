@@ -1,12 +1,12 @@
 <package>
 
-  <name>dyros_jet_moveit_config</name>
+  <name>dyros_jet_moveit</name>
   <version>0.3.0</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the dyros_jet_robot with the MoveIt! Motion Planning Framework
   </description>
-  <author email="june992@snu.ac.kr">jhAhn</author>
-  <maintainer email="june992@snu.ac.kr">jhAhn</maintainer>
+  <author email="june992@snu.ac.kr">jh_ahn</author>
+  <maintainer email="june992@snu.ac.kr">jh_ahn</maintainer>
 
   <license>BSD</license>
 

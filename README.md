@@ -66,7 +66,7 @@ sudo apt install ros-kinetic-moveit
 
 * Launch moveit
 ```sh
-roslaunch dyros_jet_moveit_config demo.launch
+roslaunch dyros_jet_moveit dyros_jet_moveit.launch
 ```
 
 
