@@ -45,6 +45,11 @@ public:
   {
     return joint_name_map_.at(joint_name);
   }
+
+  inline bool isPossibleIndex(const std::string& joint_name) const
+  {
+    return (joint_name_map_.find(joint_name) == joint_name_map_.end());
+  }
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
   void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft);
