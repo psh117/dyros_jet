@@ -42,7 +42,7 @@ private:
 
   const DyrosJetModel& model_;
 
-
+  int moveit_controller_joint_size = 14;
 
   // For action server
   ros::NodeHandle nh_;
