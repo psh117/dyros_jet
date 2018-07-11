@@ -59,6 +59,10 @@ rosrun dyros_jet_mission_commander commander.py
 ```
 
 ### About Moveit ###
+* Install moveit
+```sh
+sudo apt install ros-kinetic-moveit
+```
 
 * Launch moveit
 ```sh
