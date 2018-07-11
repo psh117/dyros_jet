@@ -42,6 +42,7 @@
 #include "dyros_jet_controller/joint_controller.h"
 #include "dyros_jet_controller/walking_controller.h"
 #include "dyros_jet_controller/moveit_controller.h"
+#include "dyros_jet_controller/haptic_controller.h"
 
 // #include "Upperbody_Controller.h"
 
@@ -104,6 +105,7 @@ protected:
 
   DyrosJetModel model_;
   TaskController task_controller_;
+  HapticController haptic_controller_;
   JointController joint_controller_;
   WalkingController walking_controller_;
   MoveitController moveit_controller_;
@@ -126,6 +128,7 @@ private:
   ros::Subscriber task_cmd_sub_;
   ros::Subscriber joint_cmd_sub_;
   ros::Subscriber task_comamnd_sub_;
+  ros::Subscriber haptic_command_sub_;
   ros::Subscriber joint_command_sub_;
   ros::Subscriber walking_command_sub_;
   ros::Subscriber shutdown_command_sub_;
@@ -144,6 +147,7 @@ private:
 
   void smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg);
   void taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
+  void hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
   void jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg);
   void walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg);
   void shutdownCommandCallback(const std_msgs::StringConstPtr& msg);

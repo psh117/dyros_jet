@@ -10,6 +10,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   shutdown_flag_(false),
   joint_controller_(q_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
+  haptic_controller_(model_,q_,Hz, control_time_),
   walking_controller_(model_, q_, Hz, control_time_),
   moveit_controller_(model_, q_, Hz),
   joint_control_as_(nh, "/dyros_jet/joint_control", false) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
@@ -43,6 +44,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
+  haptic_command_sub_ = nh.subscribe("/dyros_jet/haptic_command", 3, &ControlBase::hapticCommandCallback, this);
   joint_command_sub_ = nh.subscribe("/dyros_jet/joint_command", 3, &ControlBase::jointCommandCallback, this);
   walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
   shutdown_command_sub_ = nh.subscribe("/dyros_jet/shutdown_command", 1, &ControlBase::shutdownCommandCallback,this);
@@ -99,16 +101,19 @@ void ControlBase::compute()
 {
 
   task_controller_.compute();
+  haptic_controller_.compute();
   joint_controller_.compute();
   walking_controller_.compute();
   moveit_controller_.compute();
 
   task_controller_.updateControlMask(control_mask_);
+  haptic_controller_.updateControlMask(control_mask_);
   joint_controller_.updateControlMask(control_mask_);
   walking_controller_.updateControlMask(control_mask_);
   moveit_controller_.updateControlMask(control_mask_);
 
   task_controller_.writeDesired(control_mask_, desired_q_);
+  haptic_controller_.writeDesired(control_mask_, desired_q_);
   joint_controller_.writeDesired(control_mask_, desired_q_);
   walking_controller_.writeDesired(control_mask_, desired_q_);
   moveit_controller_.writeDesired(control_mask_, desired_q_);
@@ -210,6 +215,27 @@ void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr&
       }
       task_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
       task_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
+    }
+  }
+}
+
+void ControlBase::hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg)
+{
+  for(unsigned int i=0; i<4; i++)
+  {
+    if(msg->end_effector[i])
+    {
+      Eigen::Isometry3d target;
+      tf::poseMsgToEigen(msg->pose[i], target);
+
+      if(msg->mode[i] == dyros_jet_msgs::TaskCommand::RELATIVE)
+      {
+        const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
+        target.translation() = target.translation() + current.translation();
+        target.linear() = current.linear() * target.linear();
+      }
+      haptic_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
+      haptic_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
     }
   }
 }
