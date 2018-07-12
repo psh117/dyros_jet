@@ -33,6 +33,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
 
 
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
+  walkingstate_command_pub_ = nh.advertise<std_msgs::Bool>("/dyros_jet/walking_state",1);
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   haptic_command_sub_ = nh.subscribe("/dyros_jet/haptic_command", 3, &ControlBase::hapticCommandCallback, this);
@@ -67,23 +68,28 @@ void ControlBase::update()
   {
     for (int i=0; i<12; i++)
       extencoder_offset_(i) = q_(i)-q_ext_(i);
-
-    cout<<"extencoder_offset_"<<extencoder_offset_<<endl;
-    cout<<"q_ext_"<<q_ext_<<endl;
+      //extencoder_offset_(i) = 0;
+    //cout<<"extencoder_offset_"<<extencoder_offset_<<endl;
+    //cout<<"q_ext_"<<q_ext_<<endl;
+    //cout<<"q_"<<q_<<endl;
 
     extencoder_init_flag_ = true;
   }
 
   if(extencoder_init_flag_ == true)
   {
-    q_ext_ = q_ext_ + extencoder_offset_;
-    model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_);
+    q_ext_offset_ = q_ext_ + extencoder_offset_;
   }
+  DyrosMath::toEulerAngle(imu_data_.x(), imu_data_.y(), imu_data_.z(), imu_data_.w(), imu_grav_rpy_(0), imu_grav_rpy_(1), imu_grav_rpy_(2));
+  model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_, accelometer_, gyro_, imu_grav_rpy_);
+  cout<<"accelometer_"<<accelometer_<<endl;
+  cout<<"imu_grav_rpy_"<<imu_grav_rpy_<<endl;
 
   Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_vjoint;
   q_vjoint.setZero();
   q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
-  //q_vjoint.segment<12>(6) = q_ext_;
+  //q_vjoint.segment<12>(6) = q_ext_offset_;
+  //q_vjoint.segment<12>(6) = WalkingController::desired_q_not_compensated_;
 
   model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
   stateChangeEvent();
@@ -169,6 +175,12 @@ void ControlBase::reflect()
       joint_control_as_.setSucceeded(joint_control_result_);
     }
   }
+  if (walking_controller_.walking_state_send == true)
+    {
+      std::cout << "PUUUUUBLLIISHH" << std::endl;
+      walkingState_msg.data = walking_controller_.walking_end_;
+      walkingstate_command_pub_.publish(walkingState_msg);
+    }
 }
 
 void ControlBase::parameterInitialize()
@@ -288,6 +300,5 @@ void ControlBase::jointControlActionCallback(const dyros_jet_msgs::JointControlG
   }
   joint_control_feedback_.percent_complete = 0.0;
 }
-
 
 }

@@ -48,9 +48,14 @@ public:
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
 
-  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext);
+  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy);
 
   void updateSimCom(const Eigen::Vector3d &sim_com);
+  void updateSimGyro(const Eigen::Vector3d &sim_gyro);
+  void updateSimAccel(const Eigen::Vector3d &sim_accel);
+  void updateSimRfoot(const Eigen::Isometry3d &sim_rfoot);
+  void updateSimLfoot(const Eigen::Isometry3d &sim_lfoot);
+  void updateSimBase(const Eigen::Isometry3d &sim_base);
 
 
   void getTransformEndEffector(EndEffector ee, Eigen::Isometry3d* transform_matrix);
@@ -78,8 +83,20 @@ public:
   const Eigen::Vector3d& getCurrentCom(){ return com_;}
 
   const Eigen::Vector3d& getSimulationCom(){return com_simulation_;}
+  const Eigen::Vector3d& getSimulationGyro(){return gyro_simulation_;}
+  const Eigen::Vector3d& getSimulationAccel(){return accel_simulation_;}
+
+  const Eigen::Isometry3d& getSimulationRfoot(){return rfoot_simulation_;}
+  const Eigen::Isometry3d& getSimulationLfoot(){return lfoot_simulation_;}
+  const Eigen::Isometry3d& getSimulationBase(){return base_simulation_;}
+
   const Eigen::Vector6d& getRightFootForce() {return r_ft_wrench_;}
   const Eigen::Vector6d& getLeftFootForce() {return l_ft_wrench_;}
+  const Eigen::Vector3d& getImuAccel() {return accel_;}
+  const Eigen::Vector3d& getImuAngvel() {return angvel_;}
+  const Eigen::Vector3d& getImuGravityDirection() {return grav_rpy_;}
+
+
   const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
   const Eigen::Matrix<double, 34, 34>& getFullInertia() { return full_inertia_mat_; }
 
@@ -90,7 +107,6 @@ private:
   Eigen::Matrix<double, 34, 1> q_virtual_;
   Eigen::Vector12d q_ext_;
 
-  Eigen::Vector12d extencoder_offset_;
   bool extencoder_init_flag_;
 
   Eigen::Vector3d base_position_;
@@ -107,8 +123,19 @@ private:
   Eigen::Vector3d com_;
   Eigen::Vector3d com_simulation_;
 
+  Eigen::Vector3d accel_;
+  Eigen::Vector3d angvel_;
+  Eigen::Vector3d grav_rpy_;
+
   Eigen::Vector6d r_ft_wrench_;
   Eigen::Vector6d l_ft_wrench_;
+
+  Eigen::Vector3d gyro_simulation_;
+  Eigen::Vector3d accel_simulation_;
+
+  Eigen::Isometry3d rfoot_simulation_;
+  Eigen::Isometry3d lfoot_simulation_;
+  Eigen::Isometry3d base_simulation_;
 
 };
 

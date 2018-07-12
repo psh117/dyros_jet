@@ -29,8 +29,15 @@ private:  // CALLBACK
   void jointCallback(const sensor_msgs::JointStateConstPtr& msg);
   void leftFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
   void rightFTCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
-  void imuCallback(const sensor_msgs::ImuConstPtr& msg);
-  void comCallback(const geometry_msgs::PointConstPtr &msg);
+  void gyroCallback(const geometry_msgs::PointConstPtr& msg);
+  void accelCallback(const geometry_msgs::PointConstPtr& msg);
+  void comCallback(const geometry_msgs::PointConstPtr& msg);
+  void rfootPosCallback(const geometry_msgs::PointConstPtr& msg);
+  void lfootPosCallback(const geometry_msgs::PointConstPtr& msg);
+  void basePosCallback(const geometry_msgs::PointConstPtr& msg);
+  void rfootOriCallback(const geometry_msgs::PointConstPtr& msg);
+  void lfootOriCallback(const geometry_msgs::PointConstPtr& msg);
+  void baseOriCallback(const geometry_msgs::PointConstPtr& msg);
 
 
 private:
@@ -65,6 +72,14 @@ private:
   ros::Subscriber left_ft_sub_;
   ros::Subscriber right_ft_sub_;
   ros::Subscriber com_sub_;
+  ros::Subscriber gyro_sub_;
+  ros::Subscriber accel_sub_;
+  ros::Subscriber rfoot_pos_;
+  ros::Subscriber lfoot_pos_;
+  ros::Subscriber base_pos_;
+  ros::Subscriber rfoot_ori_;
+  ros::Subscriber lfoot_ori_;
+  ros::Subscriber base_ori_;
 
 };
 

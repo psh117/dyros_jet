@@ -18,6 +18,7 @@ add_message_files(
   JointCommand.msg
   TaskCommand.msg
   WalkingCommand.msg
+  WalkingState.msg
 )
 
 add_action_files(DIRECTORY action FILES 

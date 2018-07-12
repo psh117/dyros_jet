@@ -16,11 +16,19 @@ SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz):
 
   vrep_sim_step_done_sub_ = nh.subscribe("/simulationStepDone", 100, &SimulationInterface::simulationStepDoneCallback, this);
 
-  imu_sub_ = nh.subscribe("/vrep_ros_interface/imu", 100, &SimulationInterface::imuCallback, this);
+  //imu_sub_ = nh.subscribe("/vrep_ros_interface/imu", 100, &SimulationInterface::imuCallback, this);
   joint_sub_ = nh.subscribe("/vrep_ros_interface/joint_state", 100, &SimulationInterface::jointCallback, this);
   left_ft_sub_ = nh.subscribe("/vrep_ros_interface/left_foot_ft", 100, &SimulationInterface::leftFTCallback, this);
   right_ft_sub_ = nh.subscribe("/vrep_ros_interface/right_foot_ft", 100, &SimulationInterface::rightFTCallback, this);
   com_sub_ = nh.subscribe("/vrep_ros_interface/com", 100, &SimulationInterface::comCallback, this);
+  gyro_sub_ = nh.subscribe("/vrep_ros_interface/gyro", 100, &SimulationInterface::gyroCallback, this);
+  accel_sub_ = nh.subscribe("/vrep_ros_interface/accel", 100, &SimulationInterface::accelCallback, this);
+  rfoot_pos_ = nh.subscribe("/vrep_ros_interface/rfoot_pos", 100, &SimulationInterface::rfootPosCallback, this);
+  lfoot_pos_ = nh.subscribe("/vrep_ros_interface/lfoot_pos", 100, &SimulationInterface::lfootPosCallback, this);
+  base_pos_ = nh.subscribe("/vrep_ros_interface/base_pos", 100, &SimulationInterface::basePosCallback, this);
+  rfoot_ori_ = nh.subscribe("/vrep_ros_interface/rfoot_ori_rpy", 100, &SimulationInterface::rfootOriCallback, this);
+  lfoot_ori_ = nh.subscribe("/vrep_ros_interface/lfoot_ori_rpy", 100, &SimulationInterface::lfootOriCallback, this);
+  base_ori_ = nh.subscribe("/vrep_ros_interface/base_ori_rpy", 100, &SimulationInterface::baseOriCallback, this);
 
   vrep_joint_set_pub_ = nh.advertise<sensor_msgs::JointState>("/vrep_ros_interface/joint_set", 1);
 
@@ -78,6 +86,13 @@ void SimulationInterface::update()
 {
   ControlBase::update();
   ControlBase::model_.updateSimCom(com_sim_);
+  ControlBase::model_.updateSimGyro(gyro_);
+  ControlBase::model_.updateSimAccel(accelometer_);
+  ControlBase::model_.updateSimLfoot(lfoot_global_);
+  ControlBase::model_.updateSimRfoot(rfoot_global_);
+  ControlBase::model_.updateSimBase(base_global_);
+
+
 }
 void SimulationInterface::compute()
 {
@@ -167,9 +182,18 @@ void SimulationInterface::rightFTCallback(const geometry_msgs::WrenchStampedCons
   right_foot_ft_(5) = msg->wrench.torque.z;
 }
 
-void SimulationInterface::imuCallback(const sensor_msgs::ImuConstPtr &msg)
+void SimulationInterface::gyroCallback(const geometry_msgs::PointConstPtr& msg)
 {
+  gyro_(0) = msg->x;
+  gyro_(1) = msg->y;
+  gyro_(2) = msg->z;
+}
 
+void SimulationInterface::accelCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  accelometer_(0) = msg->x;
+  accelometer_(1) = msg->y;
+  accelometer_(2) = msg->z;
 }
 
 void SimulationInterface::comCallback(const geometry_msgs::PointConstPtr& msg)
@@ -177,6 +201,44 @@ void SimulationInterface::comCallback(const geometry_msgs::PointConstPtr& msg)
   com_sim_(0) = msg->x;
   com_sim_(1) = msg->y;
   com_sim_(2) = msg->z;
+}
+
+void SimulationInterface::rfootPosCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  rfoot_global_.translation()(0) = msg->x;
+  rfoot_global_.translation()(1) = msg->y;
+  rfoot_global_.translation()(2) = msg->z;
+}
+
+void SimulationInterface::lfootPosCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  lfoot_global_.translation()(0) = msg->x;
+  lfoot_global_.translation()(1) = msg->y;
+  lfoot_global_.translation()(2) = msg->z;
+}
+
+void SimulationInterface::basePosCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  base_global_.translation()(0) = msg->x;
+  base_global_.translation()(1) = msg->y;
+  base_global_.translation()(2) = msg->z;
+}
+
+void SimulationInterface::rfootOriCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  rfoot_global_.linear() = DyrosMath::rotateWithX(msg->x)*DyrosMath::rotateWithY(msg->y)*DyrosMath::rotateWithZ(msg->z);
+
+}
+
+void SimulationInterface::lfootOriCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  lfoot_global_.linear() = DyrosMath::rotateWithX(msg->x)*DyrosMath::rotateWithY(msg->y)*DyrosMath::rotateWithZ(msg->z);
+
+}
+
+void SimulationInterface::baseOriCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  base_global_.linear() = DyrosMath::rotateWithX(msg->x)*DyrosMath::rotateWithY(msg->y)*DyrosMath::rotateWithZ(msg->z);
 }
 
 }

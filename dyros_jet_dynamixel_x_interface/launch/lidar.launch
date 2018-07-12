@@ -6,4 +6,5 @@
   </node>
   <node name="x_interface" pkg="dyros_jet_dynamixel_x_interface" type="x_interface" output="screen"/>
   <node name="continous_point_generator" pkg="thormang_head_lidar" type="continous_point_generator" output="screen"/>
+  <node name="filter_points" pkg="thormang_head_lidar" type="filter_points" output="screen"/>
 </launch>
