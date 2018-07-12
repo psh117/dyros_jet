@@ -644,6 +644,7 @@ void WalkingController::kalmanStateSpace1()
 
   double omega_square = GRAVITY/model_.getCurrentCom()(2);
 
+
   Q_1_.setIdentity();
   R_1_.setIdentity();
 
@@ -662,7 +663,6 @@ void WalkingController::kalmanStateSpace1()
 
   R_1_(2, 2) = R_3_(2, 2);
   R_1_(3, 3) = R_3_(3, 3);
-
 
 
   Ad_1_.setIdentity();
@@ -685,7 +685,6 @@ void WalkingController::kalmanStateSpace1()
   Cd_1_(1, 1) = 1;
   Cd_1_(2, 4) = 1;
   Cd_1_(3, 5) = 1;
-
 
 }
 
@@ -797,6 +796,7 @@ void WalkingController::kalmanFilter1()
   Eigen::Matrix<double, 4, 4 > temp_K;
 
 
+
   temp_K = (Cd_1_*P_prio_1_*Cd_1_.transpose() + R_1_).inverse();
   K_1_ = P_prio_1_ * Cd_1_.transpose() * temp_K;
   X_hat_post_1_ = X_hat_prio_1_ + K_1_ * (Y_1_ - Cd_1_ * X_hat_prio_1_);
@@ -839,6 +839,7 @@ void WalkingController::kalmanStateSpace2()
 
   double omega_square = GRAVITY/model_.getCurrentCom()(2);
 
+
   Q_2_.setIdentity();
   R_2_.setIdentity();
 
@@ -853,6 +854,7 @@ void WalkingController::kalmanStateSpace2()
 
   Q_2_(6, 6) = Q_3_(6, 6);	 //com position error
   Q_2_(7, 7) = Q_3_(7, 7);
+
 
   R_2_(0, 0) = R_3_(0, 0);
   R_2_(1, 1) = R_3_(1, 1);
@@ -884,7 +886,6 @@ void WalkingController::kalmanStateSpace2()
   Cd_2_(1, 7) = -1;
   Cd_2_(2, 4) = 1;
   Cd_2_(3, 5) = 1;
-
 
 
   cout<<"Ad_2_"<<Ad_2_<<endl;
@@ -1012,6 +1013,7 @@ void WalkingController::kalmanFilter2()
   Eigen::Matrix<double, 4, 4 > temp_K;
 
 
+
   temp_K = (Cd_2_*P_prio_2_*Cd_2_.transpose() + R_2_).inverse();
   K_2_ = P_prio_2_ * Cd_2_.transpose() * temp_K;
   X_hat_post_2_ = X_hat_prio_2_ + K_2_ * (Y_2_ - Cd_2_ * X_hat_prio_2_);
@@ -1031,6 +1033,7 @@ void WalkingController::kalmanStateSpace3()
           [ 0       1         0         dT        0       0         0          0          0         0]
           [ w^2dT   0         1         0         -w^2dT  0         0          0          dT        0]
           [ 0       w^2dT     0         1         0       -w^2dT    0          0          0         dT]
+
           [ 0       0         0         0         0       0         0          0          0         0]
           [ 0       0         0         0         0       0         0          0          0         0]
           [ 0       0         0         0         0       0         1          0          0         0]
@@ -1059,6 +1062,7 @@ void WalkingController::kalmanStateSpace3()
   */
 
   double omega_square = GRAVITY/model_.getCurrentCom()(2);
+
   double mass_total = 51.315;
 
   Q_3_.setIdentity();
@@ -1066,6 +1070,7 @@ void WalkingController::kalmanStateSpace3()
 
   Q_3_(0, 0) = 1e-3;	//com position
   Q_3_(1, 1) = 1e-3;
+
 
   Q_3_(2, 2) = 1e-5;	//com velocity
   Q_3_(3, 3) = 1e-5;
@@ -1082,11 +1087,13 @@ void WalkingController::kalmanStateSpace3()
   R_3_(0, 0) = 1e-4;   //com
   R_3_(1, 1) = 1e-4;
 
+
   R_3_(2, 2) = 1e-9;    //zmp
   R_3_(3, 3) = 1e-9;
 
   R_3_(4, 4) = 1e-6;    //imu
   R_3_(5, 5) = 1e-6;
+
 
 
   //Q_(0, 0) = 1e-0;	//com position
@@ -1118,6 +1125,7 @@ void WalkingController::kalmanStateSpace3()
   Ad_3_(3, 5) = -omega_square / (hz_);
   Ad_3_(2, 8) = 1 / hz_;
   Ad_3_(3, 9) = 1 / hz_;
+
   Ad_3_(4, 4) = 0.0;
   Ad_3_(5, 5) = 0.0;
 
@@ -1131,6 +1139,7 @@ void WalkingController::kalmanStateSpace3()
   Cd_3_(1, 1) = 1;
   Cd_3_(0, 7) = -1;
   Cd_3_(1, 8) = -1;
+
   Cd_3_(2, 4) = 1;
   Cd_3_(3, 5) = 1;
   Cd_3_(4, 0) = omega_square / (hz_);
@@ -1265,6 +1274,7 @@ void WalkingController::kalmanFilter3()
   Y_3_(5) = imu_acc_(1);
 
 
+
   u_old_3_(0) = zmp_measured_(0);
   u_old_3_(1) = zmp_measured_(1);
 
@@ -1274,6 +1284,7 @@ void WalkingController::kalmanFilter3()
 
   ///corection procedure///
   Eigen::Matrix<double, 6, 6 > temp_K;
+
 
 
   temp_K = (Cd_3_*P_prio_3_*Cd_3_.transpose() + R_3_).inverse();

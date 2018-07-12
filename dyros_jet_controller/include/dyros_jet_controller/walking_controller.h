@@ -19,6 +19,7 @@ const int FILE_CNT = 14;
 const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
+<<<<<<< HEAD
   "/home/pen/data/walking/0_desired_zmp_.txt",
   "/home/pen/data/walking/1_desired_com_.txt",
   "/home/pen/data/walking/2_desired_q_.txt",
@@ -33,6 +34,22 @@ const std::string FILE_NAMES[FILE_CNT] =
   "/home/pen/data/walking/11_kalman_estimator2_.txt",
   "/home/pen/data/walking/12_kalman_estimator1_.txt",
   "/home/pen/data/walking/13_kalman_estimator3_.txt"
+=======
+  "/home/dg/data/walking/0_desired_zmp_.txt",
+  "/home/dg/data/walking/1_desired_com_.txt",
+  "/home/dg/data/walking/2_desired_q_.txt",
+  "/home/dg/data/walking/3_real_q_.txt",
+  "/home/dg/data/walking/4_desired_swingfoot_.txt",
+  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/7_current_foot_trajectory_.txt",
+  "/home/dg/data/walking/8_QPestimation_variables_.txt",
+  "/home/dg/data/walking/9_ft_sensor_.txt",
+  "/home/dg/data/walking/10_ext_encoder_.txt",
+  "/home/dg/data/walking/11_kalman_estimator2_.txt",
+  "/home/dg/data/walking/12_kalman_estimator1_.txt",
+  "/home/dg/data/walking/13_kalman_estimator3_.txt"
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 };
 
 using namespace std;
@@ -49,7 +66,11 @@ public:
 
 
   WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
+<<<<<<< HEAD
     total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_update_flag_(false), calc_start_flag_(false), ready_for_thread_flag_(false), ready_for_compute_flag_(false), foot_step_planner_mode_(false), walking_end_foot_side_ (false), foot_plan_walking_last_(false), foot_last_walking_end_(false)
+=======
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_update_flag_(false), calc_start_flag_(false), ready_for_thread_flag_(false), ready_for_compute_flag_(false), foot_step_planner_mode_(false), walking_end_foot_side_ (false), foot_plan_walking_last_(false)
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
   {
     walking_state_send = false;
@@ -156,8 +177,11 @@ public:
   bool walking_end_foot_side_;
   bool walking_end_;
   bool foot_plan_walking_last_;
+<<<<<<< HEAD
   bool foot_last_walking_end_;
   bool walking_state_send;
+=======
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
 private:
 
@@ -469,16 +493,26 @@ private:
   /////////////////////////Kalman Filter1///////////////////////
   Eigen::Matrix<double, 6, 6> Ad_1_;
   Eigen::Matrix<double, 6, 2> Bd_1_;
+<<<<<<< HEAD
   Eigen::Matrix<double, 4, 6> Cd_1_;
   Eigen::Matrix<double, 6, 6> Q_1_;
   Eigen::Matrix<double, 4, 4> R_1_;
+=======
+  Eigen::Matrix<double, 6, 6> Cd_1_;
+  Eigen::Matrix<double, 6, 6> Q_1_;
+  Eigen::Matrix<double, 6, 6> R_1_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
   Eigen::Matrix<double, 6, 1> X_hat_prio_1_;
   Eigen::Matrix<double, 6, 1> X_hat_post_1_;
   Eigen::Matrix<double, 6, 1> X_hat_prio_old_1_;
   Eigen::Matrix<double, 6, 1> X_hat_post_old_1_;
 
+<<<<<<< HEAD
   Eigen::Matrix<double, 4, 1> Y_1_;
+=======
+  Eigen::Matrix<double, 6, 1> Y_1_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
 
   Eigen::Matrix<double, 6, 6> P_prio_1_;
@@ -486,8 +520,13 @@ private:
   Eigen::Matrix<double, 6, 6> P_prio_old_1_;
   Eigen::Matrix<double, 6, 6> P_post_old_1_;
 
+<<<<<<< HEAD
   Eigen::Matrix<double, 6, 4> K_1_;
   Eigen::Matrix<double, 6, 4> K_old_1_;
+=======
+  Eigen::Matrix<double, 6, 6> K_1_;
+  Eigen::Matrix<double, 6, 6> K_old_1_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
   Eigen::Matrix<double, 2, 1> u_old_1_;
 
@@ -500,16 +539,26 @@ private:
 
   Eigen::Matrix<double, 8, 8> Ad_2_;
   Eigen::Matrix<double, 8, 2> Bd_2_;
+<<<<<<< HEAD
   Eigen::Matrix<double, 4, 8> Cd_2_;
   Eigen::Matrix<double, 8, 8> Q_2_;
   Eigen::Matrix<double, 4, 4> R_2_;
+=======
+  Eigen::Matrix<double, 6, 8> Cd_2_;
+  Eigen::Matrix<double, 8, 8> Q_2_;
+  Eigen::Matrix<double, 6, 6> R_2_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
   Eigen::Matrix<double, 8, 1> X_hat_prio_2_;
   Eigen::Matrix<double, 8, 1> X_hat_post_2_;
   Eigen::Matrix<double, 8, 1> X_hat_prio_old_2_;
   Eigen::Matrix<double, 8, 1> X_hat_post_old_2_;
 
+<<<<<<< HEAD
   Eigen::Matrix<double, 4, 1> Y_2_;
+=======
+  Eigen::Matrix<double, 6, 1> Y_2_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
 
   Eigen::Matrix<double, 8, 8> P_prio_2_;
@@ -517,8 +566,13 @@ private:
   Eigen::Matrix<double, 8, 8> P_prio_old_2_;
   Eigen::Matrix<double, 8, 8> P_post_old_2_;
 
+<<<<<<< HEAD
   Eigen::Matrix<double, 8, 4> K_2_;
   Eigen::Matrix<double, 8, 4> K_old_2_;
+=======
+  Eigen::Matrix<double, 8, 6> K_2_;
+  Eigen::Matrix<double, 8, 6> K_old_2_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
   Eigen::Matrix<double, 2, 1> u_old_2_;
 
@@ -532,16 +586,26 @@ private:
 
   Eigen::Matrix<double, 10, 10> Ad_3_;
   Eigen::Matrix<double, 10, 2> Bd_3_;
+<<<<<<< HEAD
   Eigen::Matrix<double, 6, 10> Cd_3_;
   Eigen::Matrix<double, 10, 10> Q_3_;
   Eigen::Matrix<double, 6, 6> R_3_;
+=======
+  Eigen::Matrix<double, 8, 10> Cd_3_;
+  Eigen::Matrix<double, 10, 10> Q_3_;
+  Eigen::Matrix<double, 8, 8> R_3_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
   Eigen::Matrix<double, 10, 1> X_hat_prio_3_;
   Eigen::Matrix<double, 10, 1> X_hat_post_3_;
   Eigen::Matrix<double, 10, 1> X_hat_prio_old_3_;
   Eigen::Matrix<double, 10, 1> X_hat_post_old_3_;
 
+<<<<<<< HEAD
   Eigen::Matrix<double, 6, 1> Y_3_;
+=======
+  Eigen::Matrix<double, 8, 1> Y_3_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
 
   Eigen::Matrix<double, 10, 10> P_prio_3_;
@@ -549,8 +613,13 @@ private:
   Eigen::Matrix<double, 10, 10> P_prio_old_3_;
   Eigen::Matrix<double, 10, 10> P_post_old_3_;
 
+<<<<<<< HEAD
   Eigen::Matrix<double, 10, 6> K_3_;
   Eigen::Matrix<double, 10, 6> K_old_3_;
+=======
+  Eigen::Matrix<double, 10, 8> K_3_;
+  Eigen::Matrix<double, 10, 8> K_old_3_;
+>>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
   Eigen::Matrix<double, 2, 1> u_old_3_;
 
