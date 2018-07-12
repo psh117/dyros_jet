@@ -55,6 +55,7 @@ file(GLOB BRIDGE_SRC
     )
 file(GLOB WALKING_SRC
     "src/walking_controller.cpp"
+    "src/state_estimator.cpp"
     )
 file(GLOB CONTROLLER_SRC
     "src/dyros_jet_model.cpp"

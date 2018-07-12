@@ -146,6 +146,31 @@ void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)
   com_simulation_ = sim_com;
 }
 
+void DyrosJetModel::updateSimGyro(const Eigen::Vector3d &sim_gyro)
+{
+  gyro_simulation_ = sim_gyro;
+}
+
+void DyrosJetModel::updateSimAccel(const Eigen::Vector3d &sim_accel)
+{
+  accel_simulation_ = sim_accel;
+}
+
+void DyrosJetModel::updateSimRfoot(const Eigen::Isometry3d &sim_rfoot)
+{
+  rfoot_simulation_ = sim_rfoot;
+}
+
+void DyrosJetModel::updateSimLfoot(const Eigen::Isometry3d &sim_lfoot)
+{
+  lfoot_simulation_ = sim_lfoot;
+}
+
+void DyrosJetModel::updateSimBase(const Eigen::Isometry3d &sim_base)
+{
+  base_simulation_ = sim_base;
+}
+
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
 (EndEffector ee, Eigen::Isometry3d* transform_matrix)
 {

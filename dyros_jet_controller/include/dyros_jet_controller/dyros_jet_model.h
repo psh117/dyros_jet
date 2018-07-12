@@ -51,6 +51,11 @@ public:
   void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext);
 
   void updateSimCom(const Eigen::Vector3d &sim_com);
+  void updateSimGyro(const Eigen::Vector3d &sim_gyro);
+  void updateSimAccel(const Eigen::Vector3d &sim_accel);
+  void updateSimRfoot(const Eigen::Isometry3d &sim_rfoot);
+  void updateSimLfoot(const Eigen::Isometry3d &sim_lfoot);
+  void updateSimBase(const Eigen::Isometry3d &sim_base);
 
 
   void getTransformEndEffector(EndEffector ee, Eigen::Isometry3d* transform_matrix);
@@ -78,6 +83,13 @@ public:
   const Eigen::Vector3d& getCurrentCom(){ return com_;}
 
   const Eigen::Vector3d& getSimulationCom(){return com_simulation_;}
+  const Eigen::Vector3d& getSimulationGyro(){return gyro_simulation_;}
+  const Eigen::Vector3d& getSimulationAccel(){return accel_simulation_;}
+
+  const Eigen::Isometry3d& getSimulationRfoot(){return rfoot_simulation_;}
+  const Eigen::Isometry3d& getSimulationLfoot(){return lfoot_simulation_;}
+  const Eigen::Isometry3d& getSimulationBase(){return base_simulation_;}
+
   const Eigen::Vector6d& getRightFootForce() {return r_ft_wrench_;}
   const Eigen::Vector6d& getLeftFootForce() {return l_ft_wrench_;}
   const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
@@ -108,6 +120,13 @@ private:
 
   Eigen::Vector6d r_ft_wrench_;
   Eigen::Vector6d l_ft_wrench_;
+
+  Eigen::Vector3d gyro_simulation_;
+  Eigen::Vector3d accel_simulation_;
+
+  Eigen::Isometry3d rfoot_simulation_;
+  Eigen::Isometry3d lfoot_simulation_;
+  Eigen::Isometry3d base_simulation_;
 
 };
 

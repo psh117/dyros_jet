@@ -105,6 +105,9 @@ protected:
   Matrix3d pelvis_orientation_;
 
   Vector3d com_sim_; //com position from simulation COMvisualziefunction
+  Eigen::Isometry3d lfoot_global_;
+  Eigen::Isometry3d rfoot_global_;
+  Eigen::Isometry3d base_global_;
 
   VectorQd desired_q_; // current desired joint values
   Eigen::Vector12d extencoder_offset_;

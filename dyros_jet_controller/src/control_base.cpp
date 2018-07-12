@@ -69,7 +69,6 @@ void ControlBase::update()
     for (int i=0; i<12; i++)
       extencoder_offset_(i) = q_(i)-q_ext_(i);
       //extencoder_offset_(i) = 0;
-    cout<<"one time "<<endl;
     //cout<<"extencoder_offset_"<<extencoder_offset_<<endl;
     //cout<<"q_ext_"<<q_ext_<<endl;
     //cout<<"q_"<<q_<<endl;
@@ -80,9 +79,8 @@ void ControlBase::update()
   if(extencoder_init_flag_ == true)
   {
     q_ext_offset_ = q_ext_ + extencoder_offset_;
-
-    model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_);
   }
+  model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_);
   Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_vjoint;
   q_vjoint.setZero();
   q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
