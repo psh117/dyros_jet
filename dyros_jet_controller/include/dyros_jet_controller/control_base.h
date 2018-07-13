@@ -150,11 +150,8 @@ private:
   ros::Subscriber walking_command_sub_;
   ros::Subscriber shutdown_command_sub_;
   ros::Publisher walkingstate_command_pub_;
-<<<<<<< HEAD
 
   std_msgs::Bool walkingState_msg;
-=======
->>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
 
   // TODO: realtime_tools
   dyros_jet_msgs::JointControlFeedback joint_control_feedback_;

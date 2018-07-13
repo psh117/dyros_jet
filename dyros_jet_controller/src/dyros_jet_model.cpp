@@ -139,12 +139,10 @@ void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::V
 
   q_ext_ = q_ext;
 
-<<<<<<< HEAD
   accel_ = acc;
   angvel_ = angvel;
   grav_rpy_ = grav_rpy;
-=======
->>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
+
 }
 
 void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)
@@ -200,12 +198,9 @@ void DyrosJetModel::getTransformEndEffector
 (EndEffector ee, const Eigen::VectorXd& q, bool update_kinematics,
  Eigen::Vector3d* position, Eigen::Matrix3d* rotation)
 {
-<<<<<<< HEAD
   Eigen::Matrix<double, 34, 1> q_new;
 
-=======
-  Eigen::Matrix<double, 34,1> q_new;
->>>>>>> a2818c8402051bd8cd2885ff93b4a0576cbc771c
+
   q_new = q_virtual_;
   switch (ee)
   {
