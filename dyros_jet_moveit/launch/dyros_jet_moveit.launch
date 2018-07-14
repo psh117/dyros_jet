@@ -31,7 +31,8 @@
   
 
   <node name="root_static_tf_publisher" pkg="tf" type="static_transform_publisher" args="0 0 1 0 0 0 world base_link 100"/>
-  <node name="root_static_tf_publisher2" pkg="tf" type="static_transform_publisher" args="0.1475 0 0.569 -1.5708 0 -1.5708 base_link odom 100"/>
+  <node name="root_static_tf_publisher2" pkg="tf" type="static_transform_publisher" args="0.1475 0.02 0.569 -1.5708 0 -1.5708 base_link odom2 100"/>
+  <node name="root_static_tf_publisher3" pkg="tf" type="static_transform_publisher" args="0.15 -0.02 0.52 0 0 0 base_link odom 100"/>
   <!-- Given the published joint states, publish tf for the robot links -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
 		<!--remap from="joint_states" to="/dyros_jet/joint_robot_state"/-->

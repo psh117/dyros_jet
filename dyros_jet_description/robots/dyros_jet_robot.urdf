@@ -925,7 +925,7 @@
       xyz="1 0 0" />
     <limit
       effort="30"
-      velocity="1" lower="-3.14" upper="3.14" />
+      velocity="1" lower="-2.1" upper="-0.2" />
   </joint>
   <link
     name="L_ShoulderYaw_Link">
@@ -1037,7 +1037,7 @@
       xyz="1 0 0" />
     <limit
       effort="30"
-      velocity="1" lower="-3.14" upper="3.14" />
+      velocity="1" lower="-2.8" upper="0.3" />
   </joint>
   <link
     name="L_WristYaw_Link">
@@ -1318,7 +1318,7 @@
       xyz="1 0 0" />
     <limit
       effort="30"
-      velocity="1" lower="-3.14" upper="3.14" />
+      velocity="1" lower="0.2" upper="2.1" />
   </joint>
   <link
     name="R_ShoulderYaw_Link">
@@ -1430,7 +1430,7 @@
       xyz="1 0 0" />
     <limit
       effort="30"
-      velocity="1" lower="-3.14" upper="3.14" />
+      velocity="1" lower="-0.3" upper="2.8" />
   </joint>
   <link
     name="R_WristYaw_Link">
@@ -1542,7 +1542,7 @@
       xyz="1 0 0" />
     <limit
       effort="30"
-      velocity="1" lower="-3.14" upper="3.14" />
+      velocity="1" lower="-1.9" upper="1.9" />
   </joint>
   <link
     name="R_HandYaw_Link">
@@ -1566,7 +1566,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_HandYaw_Link.stl" />
+          filename="package://dyros_jet_description/meshes/R_HandYaw_new.stl" />
       </geometry>
       <material
         name="">
@@ -1580,7 +1580,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_jet_description/meshes/R_HandYaw_Link.stl" />
+          filename="package://dyros_jet_description/meshes/R_HandYaw_new.stl" />
       </geometry>
     </collision>
   </link>
