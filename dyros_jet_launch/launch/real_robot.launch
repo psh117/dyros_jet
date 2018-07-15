@@ -1,6 +1,6 @@
 <launch>
   <include file="$(find imu_3dm_gx4)/launch/imu.launch" />
-  <include file="$(find thormang_head_lidar)/launch/lidar.launch" />
+  <include file="$(find dyros_jet_dynamixel_x_interface)/launch/lidar.launch" />
   <include file="$(find dyros_jet_launch)/launch/common.launch">
     <arg name="run_mode" value="real_robot" />
   </include>
