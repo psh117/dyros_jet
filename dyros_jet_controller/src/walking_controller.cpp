@@ -35,17 +35,17 @@ void WalkingController::compute()
     {
 
 
-      /////QP state estimation///////////
-      getQpEstimationInputMatrix();
 
-      solve();
       ////////Kalman state estimation/////////
       kalmanFilter2();
       kalmanFilter1();
       kalmanFilter3();
 
-      /////////////////////////////////////////
+      /////QP state estimation///////////
+      getQpEstimationInputMatrix();
 
+      solve();
+      /////////////////////////////////////////
 
 
       if(current_step_num_< total_step_num_)
@@ -1658,8 +1658,8 @@ void WalkingController::getPelvTrajectory()
     }
     else
     {
-      pelv_trajectory_support_.translation()(0) = pelv_support_current_.translation()(0) + kp*(com_desired_(0) - vars.x[2]);
-      pelv_trajectory_support_.translation()(1) = pelv_support_current_.translation()(1) + kp*(com_desired_(1) - vars.x[3]);
+      pelv_trajectory_support_.translation()(0) = pelv_support_current_.translation()(0) + kp*(com_desired_(0) - X_hat_post_2_(0));
+      pelv_trajectory_support_.translation()(1) = pelv_support_current_.translation()(1) + kp*(com_desired_(1) - X_hat_post_2_(1));
     }
 
     // kp = Cubic(abs(_COM_desired(0)-_COM_real_support(0)),0.0,0.05,1.0,0.0,3.0,0.0);
@@ -2511,7 +2511,7 @@ void WalkingController::compensator()
 
 void WalkingController::hipCompensator()
 {
-  double left_hip_angle = 5.5*DEG2RAD, right_hip_angle = 7.0*DEG2RAD, left_hip_angle_first_step = 5.5*DEG2RAD, right_hip_angle_first_step = 7.0*DEG2RAD,
+  double left_hip_angle = 4.0*DEG2RAD, right_hip_angle = 8.5*DEG2RAD, left_hip_angle_first_step = 4.0*DEG2RAD, right_hip_angle_first_step = 8.5*DEG2RAD,
 
 
 
@@ -2613,8 +2613,8 @@ void WalkingController::hipCompensation()
   {
     Eigen::Vector3d com_float_estimated;
     Eigen::Vector3d com_support_estimated;
-    com_support_estimated(0) = vars.x[2];
-    com_support_estimated(1) = vars.x[3];
+    com_support_estimated(0) = X_hat_post_1_(0);
+    com_support_estimated(1) = X_hat_post_1_(1);
     com_support_estimated(2) = com_support_current_(2);
     com_float_estimated = DyrosMath::multiplyIsometry3dVector3d(supportfoot_float_current_, com_support_estimated);
     fromright = -com_float_estimated(1)+rfoot_float_current_.translation()(1);
