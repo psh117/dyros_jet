@@ -861,8 +861,8 @@ void WalkingController::kalmanStateSpace2()
   Q_2_(4, 4) = Q_3_(4, 4);	//zmp
   Q_2_(5, 5) = Q_3_(5, 5);
 
-  Q_2_(6, 6) = Q_3_(8, 8);	 //com position error
-  Q_2_(7, 7) = Q_3_(9, 9);
+  Q_2_(6, 6) = Q_3_(6, 6);	 //com position error
+  Q_2_(7, 7) = Q_3_(7, 7);
 
   R_2_(0, 0) = R_3_(0, 0);
   R_2_(1, 1) = R_3_(1, 1);
@@ -1079,11 +1079,11 @@ void WalkingController::kalmanStateSpace3()
   Q_3_.setIdentity();
   R_3_.setIdentity();
 
-  Q_3_(0, 0) = 1e-6;	//com position
-  Q_3_(1, 1) = 1e-6;
+  Q_3_(0, 0) = 1e-3;	//com position
+  Q_3_(1, 1) = 1e-3;
 
-  Q_3_(2, 2) = 1e-5;	//com velocity
-  Q_3_(3, 3) = 1e-5;
+  Q_3_(2, 2) = 1e-6;	//com velocity
+  Q_3_(3, 3) = 1e-6;
 
   Q_3_(4, 4) = 1e-6;	//zmp
   Q_3_(5, 5) = 1e-6;
@@ -1094,8 +1094,8 @@ void WalkingController::kalmanStateSpace3()
   Q_3_(8, 8) = 1e-4;	 //com position error
   Q_3_(9, 9) = 1e-4;
 
-  R_3_(0, 0) = 1e-6;   //com
-  R_3_(1, 1) = 1e-6;
+  R_3_(0, 0) = 1e-4;   //com
+  R_3_(1, 1) = 1e-4;
 
   R_3_(2, 2) = 1e-9;    //zmp
   R_3_(3, 3) = 1e-9;
