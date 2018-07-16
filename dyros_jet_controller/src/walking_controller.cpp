@@ -14,13 +14,10 @@ namespace dyros_jet_controller
 
 void WalkingController::compute()
 {
-
   if((walking_enable_ == true))
   {
-    std::cout<<"walking_tick_:"<<walking_tick_<<endl;
-    //     std::cout<<"current_step_num_:"<<current_step_num_<<endl;
-    //     std::cout<<"total_step_num:"<<total_step_num_<<endl;
-    //     std::cout<<"t_last_:"<<t_last_<<endl;
+
+
 
 
     updateInitialState();
@@ -33,7 +30,6 @@ void WalkingController::compute()
     {
       ready_for_thread_flag_ = true;
     }
-
 
     if(ready_for_compute_flag_ == true || lqr_compensator_mode_ == false)
     {
@@ -78,6 +74,7 @@ void WalkingController::compute()
 
 
           //std::cout<<"work.converged:"<<work.converged<<endl;
+
 
           computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_);
           for(int i=0; i<12; i++)
@@ -299,6 +296,9 @@ void WalkingController::getRobotState()
 
   r_ft_ = model_.getRightFootForce();
   l_ft_ = model_.getLeftFootForce();
+  imu_acc_ = model_.getImuAccel();
+  imu_ang_ = model_.getImuAngvel();
+  imu_grav_rpy_ = model_.getImuGravityDirection();
 
 
   pelv_float_current_.setIdentity();
@@ -330,7 +330,7 @@ void WalkingController::getRobotState()
 
   //com_sim_current_ = (base_sim_global_current_.linear()).transpose()*com_sim_current_; //change frame from glrobal to pelv
   //com_sim_current_ = DyrosMath::multiplyIsometry3dVector3d(pelv_support_current_, com_sim_current_); //change frame from pelv to support foot
-  cout<<"com_sim_current_"<<com_sim_current_<<endl;
+
 
 
 
@@ -954,52 +954,75 @@ void WalkingController::calculateFootStepSeparate()
 
 void WalkingController::usingFootStepPlanner()
 {
-  foot_step_.resize(foot_step_plan_num_, 7);
-  foot_step_.setZero();
-  foot_step_support_frame_.resize(foot_step_plan_num_, 7);
-  foot_step_support_frame_.setZero();
-  foot_step_support_frame_offset_.resize(foot_step_plan_num_, 7);
-  foot_step_support_frame_offset_.setZero();
+  if( foot_plan_walking_last_ == true)
+    {
+      int temp1 = foot_step_(foot_step_plan_num_-1, 6);
+      double foot_stepx, foot_stepy,foot_step_angle, foot_stepx_prev, foot_stepy_prev;
 
-  int temp = foot_step_start_foot_ ;
-  int index = 0;
-  for (int i =0 ; i<foot_step_plan_num_; i++)
-  {
-    foot_step_(index,0) = foot_pose_(index,0);
-    foot_step_(index,1) = foot_pose_(index,1);
-    foot_step_(index,5) = foot_pose_(index,5);
-    foot_step_(index,6) = 0.5+0.5*temp;
-    temp *= -1;
-    index++;
-  }
+      foot_stepy_prev = foot_step_(foot_step_plan_num_ -2, 1);
+      foot_stepx_prev = foot_step_(foot_step_plan_num_ -2, 0);
+      foot_stepx = foot_step_(foot_step_plan_num_ -1, 0);
+      foot_stepy = foot_step_(foot_step_plan_num_ -1, 1);
+      foot_step_angle =  foot_step_(foot_step_plan_num_ -1,5);
+      foot_step_.resize(1,7);
+      foot_step_.setZero();
+      foot_step_support_frame_.resize(1, 7);
+      foot_step_support_frame_.setZero();
+      foot_step_support_frame_offset_.resize(1, 7);
+      foot_step_support_frame_offset_.setZero();
+      foot_last_walking_end_ = true;
 
-  std::cout << "foot_step_plan_num_" <<foot_step_plan_num_ <<std::endl;
+      if(temp1 == 0)
+        {
+      //    std::cout << "asdfaswwwww" << std::endl;
+          foot_step_(0,0) = (foot_stepx - foot_stepx_prev)/2.0 + 2*(0.127794)*sin(foot_step_angle);
+          foot_step_(0,1) = (foot_stepy - foot_stepy_prev)/2.0 -2*(0.127794)*cos(foot_step_angle);
+          foot_step_(0,5) = foot_step_angle;
+          foot_step_(0,6) = 1;
+        }
+      if(temp1 == 1)
+        {
+          std::cout << "asdfaswwwww11111" << std::endl;
+          foot_step_(0,0) = (foot_stepx - foot_stepx_prev)/2.0 - 2*(0.127794)*sin(foot_step_angle);
+          foot_step_(0,1) = (foot_stepy - foot_stepy_prev)/2.0 + 2*(0.127794)*cos(foot_step_angle);
+          foot_step_(0,5) = foot_step_angle;
+          foot_step_(0,6) = 0;
+        }
+    }
+  else
+    {
+      foot_step_.resize(foot_step_plan_num_, 7);
+      foot_step_.setZero();
+      foot_step_support_frame_.resize(foot_step_plan_num_, 7);
+      foot_step_support_frame_.setZero();
+      foot_step_support_frame_offset_.resize(foot_step_plan_num_, 7);
+      foot_step_support_frame_offset_.setZero();
 
-  std::cout << "foot_step_start_foot_" <<foot_step_start_foot_ <<std::endl;
+      int temp = foot_step_start_foot_ ;
+      int index = 0;
+      for (int i =0 ; i<foot_step_plan_num_; i++)
+      {
+        foot_step_(index,0) = foot_pose_(index,0);
+        foot_step_(index,1) = foot_pose_(index,1);
+        foot_step_(index,5) = foot_pose_(index,5);
+        foot_step_(index,6) = 0.5+0.5*temp;
+        temp *= -1;
+        index++;
+      }
 
-  std::cout << "foot_pose_" <<foot_pose_ <<std::endl;
+      for (int i =0 ; i<foot_step_plan_num_; i++)
+      {
+          if(i==0)
+            {
+              foot_step_(i,0) = foot_pose_(0,0);
+            }
+          else
+            {
+              foot_step_(i,0) = foot_pose_(i,0) + foot_pose_(i-1,0);
+            }
+         }
 
-  std::cout <<"foot_plan_walking_last_" << foot_plan_walking_last_ <<std::endl;
-
-  std::cout <<"foot_step_planner_mode_" << foot_step_planner_mode_ <<std::endl;
-
-
-  /*
-  foot_step_(0,0) = 0.149186;
-  foot_step_(0,1) = -0.0236172;
-  foot_step_(0,5) = -0.839161*DEG2RAD;
-  foot_step_(0,6) = 1;
-
-  foot_step_(1,0) = -0.152838;
-  foot_step_(1,1) = -0.0609813;
-  foot_step_(1,5) = -0.977014*DEG2RAD;
-  foot_step_(1,6) = 0;
-
-
-  foot_step_(2,0) = 0.14458;
-  foot_step_(2,1) = -0.125629;
-  foot_step_(2,5) = -0.699381*DEG2RAD;
-  foot_step_(2,6) = 1;*/
+    }
 
   walking_end_foot_side_ =foot_step_(foot_step_plan_num_ - 1,6);
 }
@@ -1267,12 +1290,29 @@ void WalkingController::updateNextStepTime()
     }
   }
 
+
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +4.0*hz_)
+
+
+  {
+    walking_state_send = true;
+    walking_end_ = !walking_end_;
+  }
+
+
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +4.0*hz_+1)
+  {
+    walking_state_send = false;
+  }
+
   if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +5.0*hz_)
   {
+
     walking_enable_ = false;
   }
 
   walking_tick_ ++;
+
 
 }
 
@@ -2471,7 +2511,8 @@ void WalkingController::compensator()
 
 void WalkingController::hipCompensator()
 {
-  double left_hip_angle = 5.0*DEG2RAD, right_hip_angle = 5.6*DEG2RAD, left_hip_angle_first_step = 5.0*DEG2RAD, right_hip_angle_first_step = 5.2*DEG2RAD,
+  double left_hip_angle = 5.5*DEG2RAD, right_hip_angle = 7.0*DEG2RAD, left_hip_angle_first_step = 5.5*DEG2RAD, right_hip_angle_first_step = 7.0*DEG2RAD,
+
 
 
       left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
@@ -2697,7 +2738,7 @@ void WalkingController::hipCompensation()
     grav_ground_torque_(i) = lTau[i];
     grav_ground_torque_(i+6) = rTau[i];
   }
-
+ // cout<<joint_offset_angle_<<endl;
 }
 
 

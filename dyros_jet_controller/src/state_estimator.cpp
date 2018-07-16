@@ -101,10 +101,10 @@ void WalkingController::getQpEstimationInputMatrix()
     com_se_support_old.setZero();
     com_dot_se_support_old.setZero();
     zmp_se_support_old.setZero();
-    com_dot_se_support_old(0) = vars.x[0];
-    com_dot_se_support_old(1) = vars.x[1];
-    com_se_support_old(0) = vars.x[2];
-    com_se_support_old(1) = vars.x[3];
+    com_dot_se_support_old(0) = vars.x[2];
+    com_dot_se_support_old(1) = vars.x[3];
+    com_se_support_old(0) = vars.x[0];
+    com_se_support_old(1) = vars.x[1];
     zmp_se_support_old(0) = vars.x[4];
     zmp_se_support_old(1) = vars.x[5];
 
@@ -172,6 +172,10 @@ void WalkingController::getQpEstimationInputMatrix()
     com_support_dot_current_ =(com_support_current_-com_support_old_)*hz_;
   }
 
+  Eigen::Vector6d x_estimation_old;
+  x_estimation_old.segment<2>(0) = com_support_old_estimation_;
+  x_estimation_old.segment<2>(2) = com_support_dot_old_estimation_;
+  x_estimation_old.segment<2>(4) = zmp_old_estimation_;
 
   /*std::cout<<"r_ft: "<<r_ft_<<endl;
   std::cout<<"l_ft: "<<l_ft_<<endl;
@@ -409,24 +413,48 @@ void WalkingController::getQpEstimationInputMatrix()
   for (int j = 0; j < 12; j++)
       params.b[j] = b_total(j);
   */
-  Eigen::Matrix<double, 6, 6> q;
+//  Eigen::Matrix<double, 6, 6> q;
 
-  q = a_total_.transpose()*a_total_;
+//  q = a_total_.transpose()*a_total_;
 
+//  for (int i = 0; i < 6; i++)
+//    for (int j = 0; j < 6; j++)
+//    {
+//      params.Q[j + i * 6] = q(j, i);
+//    }
+
+//  for (int i = 0; i < 6; i++)
+//    params.c[i] = -2*(b_total_.transpose()*a_total_)(i);
+
+//  for (int i = 0; i < 6; i++)
+//    for (int j = 0; j < 8; j++)
+//    {
+//      params.Ai[j + i * 8] = 0;
+//    }
+
+  Eigen::Matrix<double, 6, 6> temp_Q;
+  Eigen::Matrix<double, 6, 1> temp_x;
+  Eigen::Matrix<double, 6, 1> temp_c;
+
+
+  temp_Q = Q_1_.inverse() + Cd_1_.transpose()*R_1_.inverse()*Cd_1_;
+  temp_x = Ad_1_*x_estimation_old+Bd_1_*u_old_1_;
+  temp_c = -2*(temp_x.transpose()*Q_1_.inverse() + Y_1_.transpose()*R_1_.inverse()*Cd_1_);
   for (int i = 0; i < 6; i++)
     for (int j = 0; j < 6; j++)
     {
-      params.Q[j + i * 6] = q(j, i);
+      params.Q[j + i * 6] = temp_Q(j, i);
     }
 
   for (int i = 0; i < 6; i++)
-    params.c[i] = -2*(b_total_.transpose()*a_total_)(i);
+    params.c[i] = temp_c(i);
 
   for (int i = 0; i < 6; i++)
     for (int j = 0; j < 8; j++)
     {
       params.Ai[j + i * 8] = 0;
     }
+
 
 
 
@@ -452,7 +480,6 @@ void WalkingController::getQpEstimationInputMatrix()
   }
   else // double support
   {
-    cout<<"dsp"<<endl;
     params.bi[6] = 0;
     params.bi[7] = 0;
     if(foot_step_(current_step_num_, 6)==1) //left foot support
@@ -639,13 +666,11 @@ void WalkingController::kalmanStateSpace1()
           [ 0         1         0         0         0         0         ]
           [ 0         0         0         0         1         0         ]
           [ 0         0         0         0         0         1         ]
-          [ M*w^2dT0  0         0         0         -M*w^2dT  0         ]
-          [ 0         M*w^2dT   0         0         0         -M*w^2dT  ]
 
   */
 
-  double omega_square = com_support_current_(2)/GRAVITY;
-  double mass_total = 51.315;
+  double omega_square = GRAVITY/model_.getCurrentCom()(2);
+
 
   Q_1_.setIdentity();
   R_1_.setIdentity();
@@ -666,8 +691,6 @@ void WalkingController::kalmanStateSpace1()
   R_1_(2, 2) = R_3_(2, 2);
   R_1_(3, 3) = R_3_(3, 3);
 
-  R_1_(4, 4) = R_3_(4, 4);
-  R_1_(5, 5) = R_3_(5, 5);
 
   Ad_1_.setIdentity();
   Ad_1_(0, 2) = 1 / hz_;
@@ -689,10 +712,7 @@ void WalkingController::kalmanStateSpace1()
   Cd_1_(1, 1) = 1;
   Cd_1_(2, 4) = 1;
   Cd_1_(3, 5) = 1;
-  Cd_1_(4, 0) = mass_total*omega_square / (hz_);
-  Cd_1_(5, 1) = mass_total*omega_square / (hz_);
-  Cd_1_(4, 4) = -mass_total*omega_square / (hz_);
-  Cd_1_(5, 5) = -mass_total*omega_square / (hz_);
+
 }
 
 
@@ -790,8 +810,6 @@ void WalkingController::kalmanFilter1()
   Y_1_(1) = com_support_current_(1);
   Y_1_(2) = zmp_measured_(0);
   Y_1_(3) = zmp_measured_(1);
-  Y_1_(4) = accel_sim_current_(0);
-  Y_1_(5) = accel_sim_current_(1);
 
 
   u_old_1_(0) = zmp_measured_(0);
@@ -802,7 +820,8 @@ void WalkingController::kalmanFilter1()
   P_prio_1_ = Ad_1_ * P_post_old_1_*Ad_1_.transpose() + Q_1_;
 
   ///crrection procedure///
-  Eigen::Matrix<double, 6, 6 > temp_K;
+  Eigen::Matrix<double, 4, 4 > temp_K;
+
 
 
   temp_K = (Cd_1_*P_prio_1_*Cd_1_.transpose() + R_1_).inverse();
@@ -842,12 +861,11 @@ void WalkingController::kalmanStateSpace2()
           [ 0         1         0         0         0         0         0         -1]
           [ 0         0         0         0         1         0         0         0 ]
           [ 0         0         0         0         0         1         0         0 ]
-          [ w^2dT0    0         0         0         -w^2dT    0         0         0 ]
-          [ 0         w^2dT     0         0         0         -w^2dT    0         0 ]
+
   */
 
-  double omega_square = com_support_current_(2)/GRAVITY;
-  double mass_total = 51.315;
+  double omega_square = GRAVITY/model_.getCurrentCom()(2);
+
 
   Q_2_.setIdentity();
   R_2_.setIdentity();
@@ -870,8 +888,7 @@ void WalkingController::kalmanStateSpace2()
   R_2_(2, 2) = R_3_(2, 2);
   R_2_(3, 3) = R_3_(3, 3);
 
-  R_2_(4, 4) = R_3_(4, 4);
-  R_2_(5, 5) = R_3_(5, 5);
+
 
   Ad_2_.setIdentity();
   Ad_2_(0, 2) = 1 / hz_;
@@ -895,10 +912,7 @@ void WalkingController::kalmanStateSpace2()
   Cd_2_(1, 7) = -1;
   Cd_2_(2, 4) = 1;
   Cd_2_(3, 5) = 1;
-  Cd_2_(4, 0) = omega_square / (hz_);
-  Cd_2_(5, 1) = omega_square / (hz_);
-  Cd_2_(4, 4) = -omega_square / (hz_);
-  Cd_2_(5, 5) = -omega_square / (hz_);
+
 
   cout<<"Ad_2_"<<Ad_2_<<endl;
   cout<<"Bd_2_"<<Bd_2_<<endl;
@@ -1012,8 +1026,7 @@ void WalkingController::kalmanFilter2()
   Y_2_(1) = com_support_current_(1);
   Y_2_(2) = zmp_measured_(0);
   Y_2_(3) = zmp_measured_(1);
-  Y_2_(4) = accel_sim_current_(0);
-  Y_2_(5) = accel_sim_current_(1);
+
 
   u_old_2_(0) = zmp_measured_(0);
   u_old_2_(1) = zmp_measured_(1);
@@ -1023,7 +1036,8 @@ void WalkingController::kalmanFilter2()
   P_prio_2_ = Ad_2_ * P_post_old_2_*Ad_2_.transpose() + Q_2_;
 
   ///crrection procedure///
-  Eigen::Matrix<double, 6, 6 > temp_K;
+  Eigen::Matrix<double, 4, 4 > temp_K;
+
 
 
   temp_K = (Cd_2_*P_prio_2_*Cd_2_.transpose() + R_2_).inverse();
@@ -1043,8 +1057,8 @@ void WalkingController::kalmanStateSpace3()
   /*
   Ad_3_ = [ 1       0         dT        0         0       0         0          0          0         0]
           [ 0       1         0         dT        0       0         0          0          0         0]
-          [ w^2dT   0         1         0         -w^2dT  0         dT         0          0         0]
-          [ 0       w^2dT     0         1         0       -w^2dT    0          dT         0         0]
+          [ w^2dT   0         1         0         -w^2dT  0         0          0          dT        0]
+          [ 0       w^2dT     0         1         0       -w^2dT    0          0          0         dT]
           [ 0       0         0         0         0       0         0          0          0         0]
           [ 0       0         0         0         0       0         0          0          0         0]
           [ 0       0         0         0         0       0         1          0          0         0]
@@ -1063,36 +1077,36 @@ void WalkingController::kalmanStateSpace3()
           [ 0 ]
           [ 0 ]
 
-  cD_3_ = [ 1         0         0         0         0         0         0         0         -1        0 ]
-          [ 0         1         0         0         0         0         0         0         0         -1]
+  cD_3_ = [ 1         0         0         0         0         0         -1        0         0         0 ]
+          [ 0         1         0         0         0         0         0         -1        0         -1]
           [ 0         0         0         0         1         0         0         0         0         0 ]
           [ 0         0         0         0         0         1         0         0         0         0 ]
           [ w^2dT0  0         0         0         -w^2dT  0         0         0         0         0 ]
           [ 0         w^2dT   0         0         0         -w^2dT  0         0         0         0 ]
-          [ 0         0         1         0         0         0         0         0         0         0 ]
-          [ 0         0         0         1         0         0         0         0         0         0 ]
+
   */
 
-  double omega_square = com_support_current_(2)/GRAVITY;
+  double omega_square = GRAVITY/model_.getCurrentCom()(2);
+
   double mass_total = 51.315;
 
   Q_3_.setIdentity();
   R_3_.setIdentity();
 
-  Q_3_(0, 0) = 1e-3;	//com position
-  Q_3_(1, 1) = 1e-3;
+  Q_3_(0, 0) = 1e-5;	//com position
+  Q_3_(1, 1) = 1e-5;
 
-  Q_3_(2, 2) = 1e-6;	//com velocity
-  Q_3_(3, 3) = 1e-6;
+  Q_3_(2, 2) = 1e-5;	//com velocity
+  Q_3_(3, 3) = 1e-5;
 
   Q_3_(4, 4) = 1e-6;	//zmp
   Q_3_(5, 5) = 1e-6;
 
-  Q_3_(6, 6) = 1e-4;	 //model error
-  Q_3_(7, 7) = 1e-4;
+  Q_3_(6, 6) = 1e-7;	 //com position error
+  Q_3_(7, 7) = 1e-7;
 
-  Q_3_(8, 8) = 1e-4;	 //com position error
-  Q_3_(9, 9) = 1e-4;
+  Q_3_(8, 8) = 1e-7;	 //model error
+  Q_3_(9, 9) = 1e-7;
 
   R_3_(0, 0) = 1e-4;   //com
   R_3_(1, 1) = 1e-4;
@@ -1100,11 +1114,9 @@ void WalkingController::kalmanStateSpace3()
   R_3_(2, 2) = 1e-9;    //zmp
   R_3_(3, 3) = 1e-9;
 
-  R_3_(4, 4) = 1e-3;    //imu
-  R_3_(5, 5) = 1e-3;
+  R_3_(4, 4) = 1e-7;    //imu
+  R_3_(5, 5) = 1e-7;
 
-  R_3_(6, 6) = 1e-6;    //com dot
-  R_3_(7, 7) = 1e-6;
 
 
   //Q_(0, 0) = 1e-0;	//com position
@@ -1134,8 +1146,8 @@ void WalkingController::kalmanStateSpace3()
   Ad_3_(3, 1) = omega_square / (hz_);
   Ad_3_(2, 4) = -omega_square / (hz_);
   Ad_3_(3, 5) = -omega_square / (hz_);
-  Ad_3_(2, 6) = 1 / hz_;
-  Ad_3_(3, 7) = 1 / hz_;
+  Ad_3_(2, 8) = 1 / hz_;
+  Ad_3_(3, 9) = 1 / hz_;
   Ad_3_(4, 4) = 0.0;
   Ad_3_(5, 5) = 0.0;
 
@@ -1147,16 +1159,15 @@ void WalkingController::kalmanStateSpace3()
   Cd_3_.setZero();
   Cd_3_(0, 0) = 1;
   Cd_3_(1, 1) = 1;
-  Cd_3_(0, 8) = -1;
-  Cd_3_(1, 9) = -1;
+  Cd_3_(0, 6) = -1;
+  Cd_3_(1, 7) = -1;
   Cd_3_(2, 4) = 1;
   Cd_3_(3, 5) = 1;
   Cd_3_(4, 0) = omega_square / (hz_);
   Cd_3_(5, 1) = omega_square / (hz_);
   Cd_3_(4, 4) = -omega_square / (hz_);
   Cd_3_(5, 5) = -omega_square / (hz_);
-  Cd_3_(6, 2) = 1;
-  Cd_3_(7, 3) = 1;
+
 
 }
 
@@ -1280,10 +1291,10 @@ void WalkingController::kalmanFilter3()
   Y_3_(1) = com_support_current_(1);
   Y_3_(2) = zmp_measured_(0);
   Y_3_(3) = zmp_measured_(1);
-  Y_3_(4) = accel_sim_current_(0);
-  Y_3_(5) = accel_sim_current_(1);
-  Y_3_(6) = com_support_dot_current_(0);
-  Y_3_(7) = com_support_dot_current_(1);
+  Y_3_(4) = imu_acc_(0);
+  Y_3_(5) = imu_acc_(1);
+
+
 
   u_old_3_(0) = zmp_measured_(0);
   u_old_3_(1) = zmp_measured_(1);
@@ -1293,7 +1304,8 @@ void WalkingController::kalmanFilter3()
   P_prio_3_ = Ad_3_ * P_post_old_3_*Ad_3_.transpose() + Q_3_;
 
   ///corection procedure///
-  Eigen::Matrix<double, 8, 8 > temp_K;
+  Eigen::Matrix<double, 6, 6 > temp_K;
+
 
 
   temp_K = (Cd_3_*P_prio_3_*Cd_3_.transpose() + R_3_).inverse();

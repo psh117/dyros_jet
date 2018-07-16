@@ -33,7 +33,8 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
 
 
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
-  walkingstate_command_pub_ = nh.advertise<dyros_jet_msgs::WalkingState>("dyros_jet/walking_state",1);
+  walkingstate_command_pub_ = nh.advertise<std_msgs::Bool>("/dyros_jet/walking_state",1);
+
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   haptic_command_sub_ = nh.subscribe("/dyros_jet/haptic_command", 3, &ControlBase::hapticCommandCallback, this);
@@ -80,7 +81,10 @@ void ControlBase::update()
   {
     q_ext_offset_ = q_ext_ + extencoder_offset_;
   }
-  model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_);
+  DyrosMath::toEulerAngle(imu_data_.x(), imu_data_.y(), imu_data_.z(), imu_data_.w(), imu_grav_rpy_(0), imu_grav_rpy_(1), imu_grav_rpy_(2));
+  model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_, accelometer_, gyro_, imu_grav_rpy_);
+
+
   Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_vjoint;
   q_vjoint.setZero();
   q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
@@ -172,9 +176,11 @@ void ControlBase::reflect()
       joint_control_as_.setSucceeded(joint_control_result_);
     }
   }
-  msg.walking_end = walking_controller_.walking_end_;
-  msg.walking_end_foot_side = walking_controller_.walking_end_foot_side_;
-  walkingstate_command_pub_.publish(msg);
+  if (walking_controller_.walking_state_send == true)
+    {
+      walkingState_msg.data = walking_controller_.walking_end_;
+      walkingstate_command_pub_.publish(walkingState_msg);
+    }
 }
 
 void ControlBase::parameterInitialize()
@@ -294,4 +300,5 @@ void ControlBase::jointControlActionCallback(const dyros_jet_msgs::JointControlG
   }
   joint_control_feedback_.percent_complete = 0.0;
 }
+
 }

@@ -132,13 +132,15 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
   }
 }
 
-void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext)
+void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy)
 {
   r_ft_wrench_ = r_ft;
   l_ft_wrench_ = l_ft;
 
   q_ext_ = q_ext;
-
+  accel_ = acc;
+  angvel_ = angvel;
+  grav_rpy_ = grav_rpy;
 }
 
 void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)
@@ -194,7 +196,7 @@ void DyrosJetModel::getTransformEndEffector
 (EndEffector ee, const Eigen::VectorXd& q, bool update_kinematics,
  Eigen::Vector3d* position, Eigen::Matrix3d* rotation)
 {
-  Eigen::Matrix<double, 34,1> q_new;
+  Eigen::Matrix<double, 34, 1> q_new;
   q_new = q_virtual_;
   switch (ee)
   {

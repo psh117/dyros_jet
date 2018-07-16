@@ -48,7 +48,7 @@ public:
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
 
-  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext);
+  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy);
 
   void updateSimCom(const Eigen::Vector3d &sim_com);
   void updateSimGyro(const Eigen::Vector3d &sim_gyro);
@@ -92,6 +92,11 @@ public:
 
   const Eigen::Vector6d& getRightFootForce() {return r_ft_wrench_;}
   const Eigen::Vector6d& getLeftFootForce() {return l_ft_wrench_;}
+  const Eigen::Vector3d& getImuAccel() {return accel_;}
+  const Eigen::Vector3d& getImuAngvel() {return angvel_;}
+  const Eigen::Vector3d& getImuGravityDirection() {return grav_rpy_;}
+
+
   const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
   const Eigen::Matrix<double, 34, 34>& getFullInertia() { return full_inertia_mat_; }
 
@@ -117,6 +122,10 @@ private:
 
   Eigen::Vector3d com_;
   Eigen::Vector3d com_simulation_;
+
+  Eigen::Vector3d accel_;
+  Eigen::Vector3d angvel_;
+  Eigen::Vector3d grav_rpy_;
 
   Eigen::Vector6d r_ft_wrench_;
   Eigen::Vector6d l_ft_wrench_;

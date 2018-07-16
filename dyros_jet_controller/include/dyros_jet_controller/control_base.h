@@ -101,7 +101,7 @@ protected:
   tf::Quaternion imu_data_; ///< IMU data with filter
   Vector3d gyro_; // current gyro sensor values
   Vector3d accelometer_; // current accelometer values
-
+  Vector3d imu_grav_rpy_;
   Matrix3d pelvis_orientation_;
 
   Vector3d com_sim_; //com position from simulation COMvisualziefunction
@@ -130,6 +130,13 @@ private:
   unsigned long tick_;
   double control_time_;
 
+  double r_prev;
+  double p_prev;
+  double y_prev;
+  double r_prev1;
+  double p_prev1;
+  double y_prev1;
+
   string previous_state_;
 
   bool shutdown_flag_;
@@ -143,6 +150,8 @@ private:
   ros::Subscriber walking_command_sub_;
   ros::Subscriber shutdown_command_sub_;
   ros::Publisher walkingstate_command_pub_;
+  std_msgs::Bool walkingState_msg;
+
 
   // TODO: realtime_tools
   dyros_jet_msgs::JointControlFeedback joint_control_feedback_;
