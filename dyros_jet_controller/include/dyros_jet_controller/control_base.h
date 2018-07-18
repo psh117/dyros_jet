@@ -37,6 +37,7 @@
 
 // User Library
 #include "math_type_define.h"
+#include "dyros_jet_controller/controller.h"
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "dyros_jet_controller/task_controller.h"
 #include "dyros_jet_controller/joint_controller.h"
