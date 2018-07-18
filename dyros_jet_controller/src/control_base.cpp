@@ -221,19 +221,27 @@ void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr&
 
 void ControlBase::hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg)
 {
-  for(unsigned int i=0; i<4; i++)
+  for(unsigned int i=2; i<4; i++)
   {
     if(msg->end_effector[i])
     {
       Eigen::Isometry3d target;
       tf::poseMsgToEigen(msg->pose[i], target);
 
-      if(msg->mode[i] == dyros_jet_msgs::TaskCommand::RELATIVE)
+      if(msg->mode[i] == dyros_jet_msgs::TaskCommand::ABSOLUTE)
       {
         const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
         target.translation() = target.translation() + current.translation();
         target.linear() = current.linear() * target.linear();
       }
+
+      if(msg->mode[i] == dyros_jet_msgs::TaskCommand::RELATIVE)
+      {
+        const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
+        target.translation() = current.linear()*target.translation() + current.translation();
+        target.linear() = current.linear() * target.linear();
+      }
+
       haptic_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
       haptic_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
     }
