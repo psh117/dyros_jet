@@ -283,7 +283,7 @@ void WalkingController::getRobotState()
 
   Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_temp;
   q_temp.setZero();
-  q_temp.segment<28>(6) = current_q_;
+  q_temp.segment<28>(6) = current_q_.segment<28>(0);
   if(walking_tick_ > 0)
   {
     q_temp.segment<12>(6) =   desired_q_not_compensated_.segment<12>(0);
