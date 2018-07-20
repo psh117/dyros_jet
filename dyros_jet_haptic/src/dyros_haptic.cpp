@@ -1,3 +1,4 @@
+
 #include "dyros_jet_haptic/dyros_jet_haptic.h"
 
 DyrosHaptic::DyrosHaptic()
@@ -139,6 +140,7 @@ void DyrosHaptic::hapticLoop() {
             task_cmd_msg_.pose[2].orientation.y = 0;
             task_cmd_msg_.pose[2].orientation.z = 0;
             task_cmd_msg_.pose[2].orientation.w = 0;
+
             task_cmd_msg_.duration[2] = 0.005;
 
             if(!command_frame_)

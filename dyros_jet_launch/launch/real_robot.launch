@@ -7,5 +7,6 @@
 
   <node name="rt_dynamixel" pkg="rt_dynamixel" type="rt_dynamixel_node" respawn="false" output="screen" />
   <node name="ft_sensor" pkg="sensoray826" type="ati_ft_sensor_node" respawn="false" output="log" />
+
 </launch>
 

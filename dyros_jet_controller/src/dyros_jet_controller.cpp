@@ -6,10 +6,12 @@
 #include <ros/ros.h>
 #include "dyros_jet_controller/simulation_interface.h"
 #include "dyros_jet_controller/real_robot_interface.h"
-
+#include "cvxgen_6_8_0/cvxgen/solver.h"
 using namespace dyros_jet_controller;
 
 #include <math.h>
+
+
 
 int main(int argc, char **argv)
 {

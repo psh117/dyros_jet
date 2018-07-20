@@ -17,7 +17,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
 {
   //walking_cmd_sub_ = nh.subscribe
   makeIDInverseList();
-  //joint_control_as_.
+  //joint_control_as_
   joint_control_as_.start();
   joint_state_pub_.init(nh, "/dyros_jet/joint_state", 3);
   joint_state_pub_.msg_.name.resize(DyrosJetModel::HW_TOTAL_DOF);
@@ -42,6 +42,8 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   }
 
   smach_pub_.init(nh, "/dyros_jet/smach/transition", 1);
+  walkingstate_command_pub_ = nh.advertise<std_msgs::Bool>("/dyros_jet/walking_state",1);
+
   smach_sub_ = nh.subscribe("/dyros_jet/smach/container_status", 3, &ControlBase::smachCallback, this);
   task_comamnd_sub_ = nh.subscribe("/dyros_jet/task_command", 3, &ControlBase::taskCommandCallback, this);
   haptic_command_sub_ = nh.subscribe("/dyros_jet/haptic_command", 3, &ControlBase::hapticCommandCallback, this);
@@ -49,7 +51,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   walking_command_sub_ = nh.subscribe("/dyros_jet/walking_command",3, &ControlBase::walkingCommandCallback,this);
   shutdown_command_sub_ = nh.subscribe("/dyros_jet/shutdown_command", 1, &ControlBase::shutdownCommandCallback,this);
   parameterInitialize();
-  // model_.test();
+  model_.test();
 }
 
 bool ControlBase::checkStateChanged()
@@ -72,8 +74,34 @@ void ControlBase::makeIDInverseList()
 
 void ControlBase::update()
 {
-  model_.updateKinematics(q_.head<DyrosJetModel::MODEL_DOF>());  // Update end effector positions and Jacobians
-  model_.updateSensorData(right_foot_ft_, left_foot_ft_);
+  if(extencoder_init_flag_ == false && q_ext_.transpose()*q_ext_ !=0 && q_.transpose()*q_ !=0)
+  {
+    for (int i=0; i<12; i++)
+      extencoder_offset_(i) = q_(i)-q_ext_(i);
+      //extencoder_offset_(i) = 0;
+    //cout<<"extencoder_offset_"<<extencoder_offset_<<endl;
+    //cout<<"q_ext_"<<q_ext_<<endl;
+    //cout<<"q_"<<q_<<endl;
+
+    extencoder_init_flag_ = true;
+  }
+
+  if(extencoder_init_flag_ == true)
+  {
+    q_ext_offset_ = q_ext_ + extencoder_offset_;
+  }
+  DyrosMath::toEulerAngle(imu_data_.x(), imu_data_.y(), imu_data_.z(), imu_data_.w(), imu_grav_rpy_(0), imu_grav_rpy_(1), imu_grav_rpy_(2));
+  model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_, accelometer_, gyro_, imu_grav_rpy_);
+
+
+  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint;
+  q_vjoint.setZero();
+  q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
+  //q_vjoint.segment<12>(6) = q_ext_offset_;
+  //q_vjoint.segment<12>(6) = WalkingController::desired_q_not_compensated_;
+
+  model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
+
   stateChangeEvent();
 }
 
@@ -121,6 +149,7 @@ void ControlBase::compute()
   tick_ ++;
   control_time_ = tick_ / Hz_;
 
+  //cout << "current_q_ext" << q_ext_ <<endl;
   /*
   if ((tick_ % 200) == 0 )
   {
@@ -131,7 +160,9 @@ void ControlBase::compute()
 
 void ControlBase::reflect()
 {
+  dyros_jet_msgs::WalkingState msg;
   joint_robot_state_pub_.msg_.header.stamp = ros::Time::now();
+
   for (int i=0; i<DyrosJetModel::HW_TOTAL_DOF; i++)
   {
     joint_state_pub_.msg_.angle[i] = q_(i);
@@ -171,6 +202,11 @@ void ControlBase::reflect()
       joint_control_as_.setSucceeded(joint_control_result_);
     }
   }
+  if (walking_controller_.walking_state_send == true)
+    {
+      walkingState_msg.data = walking_controller_.walking_end_;
+      walkingstate_command_pub_.publish(walkingState_msg);
+    }
 }
 
 void ControlBase::parameterInitialize()
@@ -181,6 +217,7 @@ void ControlBase::parameterInitialize()
   left_foot_ft_.setZero();
   left_foot_ft_.setZero();
   desired_q_.setZero();
+  extencoder_init_flag_ = false;
 }
 void ControlBase::readDevice()
 {
@@ -234,7 +271,6 @@ void ControlBase::hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPt
         target.translation() = target.translation() + current.translation();
         target.linear() = current.linear() * target.linear();
       }
-
       if(msg->mode[i] == dyros_jet_msgs::TaskCommand::RELATIVE)
       {
         const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
@@ -310,6 +346,5 @@ void ControlBase::jointControlActionCallback(const dyros_jet_msgs::JointControlG
   }
   joint_control_feedback_.percent_complete = 0.0;
 }
-
 
 }
