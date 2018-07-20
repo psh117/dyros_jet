@@ -1,0 +1,34 @@
+# Produced by CVXGEN, 2018-03-22 04:11:37 -0400.
+# CVXGEN is Copyright (C) 2006-2017 Jacob Mattingley, jem@cvxgen.com.
+# The code in this file is Copyright (C) 2006-2017 Jacob Mattingley.
+# CVXGEN, or solvers produced by CVXGEN, cannot be used for commercial
+# applications without prior written permission from Jacob Mattingley.
+
+# Filename: description.cvxgen.
+# Description: A description of the CVXGEN problem.
+
+dimensions
+  n = 6 #the number of states
+  i = 8 # the number of inequallity constraints
+  m = 12
+end
+
+
+parameters
+  Q (n,n) psd
+  c (n)
+  Ai (i, n)
+  bi (i)
+  A (m, n)
+  b (m)
+end
+
+variables
+  x (n)
+end
+
+minimize
+  quad(x,Q) + c'*x
+subject to
+  Ai*x <= bi
+end

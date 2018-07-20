@@ -1,5 +1,11 @@
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "dyros_jet_controller/walking_controller.h"
+#include "cvxgen_6_8_0/cvxgen/solver.h"
+
+Vars vars;
+Params params;
+Workspace work;
+Settings settings;
 
 namespace dyros_jet_controller
 {
@@ -8,98 +14,144 @@ namespace dyros_jet_controller
 
 void WalkingController::compute()
 {
-  if(walking_enable_)
+  if((walking_enable_ == true))
   {
-     std::cout<<"walking_tick:"<<walking_tick_<<endl;
-     std::cout<<"current_step_num:"<<current_step_num_<<endl;
-     std::cout<<"total_step_num:"<<total_step_num_<<endl;
-     std::cout<<"t_last_:"<<t_last_<<endl;
+
+
+
 
     updateInitialState();
 
     getRobotState();
 
-    if(current_step_num_< total_step_num_)
+    floatToSupportFootstep();
+
+    if(ready_for_thread_flag_ == false)
     {
-      getZmpTrajectory();
+      ready_for_thread_flag_ = true;
+    }
 
-      getComTrajectory();
-
-      getPelvTrajectory();
-
-      getFootTrajectory();
-
-      supportToFloatPattern();
+    if(ready_for_compute_flag_ == true || lqr_compensator_mode_ == false)
+    {
 
 
-      /////////////////////compute/////////////////////////
-      if (ik_mode_ == 0)
+
+      ////////Kalman state estimation/////////
+      kalmanFilter2();
+      kalmanFilter1();
+      kalmanFilter3();
+
+      /////QP state estimation///////////
+      getQpEstimationInputMatrix();
+
+      solve();
+      /////////////////////////////////////////
+
+
+      if(current_step_num_< total_step_num_)
       {
-  /*      pelv_trajectory_float_ = pelv_float_init_;
-        lfoot_trajectory_float_ = lfoot_float_init_;
-        rfoot_trajectory_float_ = rfoot_float_init_;*/
-        computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_);
-        std::cout<<"pelv_float_init_"<<pelv_float_init_.linear()<<endl;
-        std::cout<<"pelv_float_init_"<<pelv_float_init_.translation()<<endl;
-        std::cout<<"lfoot_float_init_"<<lfoot_float_init_.linear()<<endl;
-        std::cout<<"lfoot_float_init_"<<lfoot_float_init_.translation()<<endl;
-        std::cout<<"rfoot_float_init_"<<rfoot_float_init_.linear()<<endl;
-        std::cout<<"rfoot_float_init_"<<rfoot_float_init_.translation()<<endl;
-        for(int i=0; i<12; i++)
-        {
-          desired_q_(i) = desired_leg_q_(i);
-        }
+        getZmpTrajectory();
 
-        std::cout<<"q"<<desired_leg_q_;
-      }
-      else if (ik_mode_ == 1)
-      {
-        computeJacobianControl(lfoot_trajectory_float_, rfoot_trajectory_float_, lfoot_trajectory_euler_float_, rfoot_trajectory_euler_float_, desired_leg_q_dot_);
-        for(int i=0; i<6; i++)
+        getComTrajectory();
+
+        getPelvTrajectory();
+
+        getFootTrajectory();
+
+        supportToFloatPattern();
+
+
+        /////////////////////compute/////////////////////////
+        if (ik_mode_ == 0)
         {
-          if(walking_tick_ == 0)
+          //pelv_trajectory_float_ = pelv_float_init_;
+          //pelv_trajectory_float_.translation()(2) = pelv_float_init_.translation()(2);
+          //pelv_trajectory_float_.translation()(0) = DyrosMath::cubic(walking_tick_, 0, 200, pelv_float_init_.translation()(0), 0, 0, 0);
+          //pelv_trajectory_float_.translation()(1) = 0.10*sin(2*M_PI*walking_tick_/(hz_*30.0));
+          //pelv_trajectory_float_.translation()(1) = DyrosMath::cubic(walking_tick_, 0, 200, pelv_float_init_.translation()(0), 0.10, 0, 0);
+          //lfoot_trajectory_float_ = lfoot_float_init_;
+          //rfoot_trajectory_float_ = rfoot_float_init_;
+
+
+          //std::cout<<"work.converged:"<<work.converged<<endl;
+
+
+
+          computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_);
+          for(int i=0; i<12; i++)
           {
-            desired_q_(i) = q_init_(i);
-            desired_q_(i+6) = q_init_(i+6);
+            desired_q_(i) = desired_leg_q_(i);
           }
-          desired_q_(i) = desired_leg_q_dot_(i)/hz_+current_q_(i);
-          desired_q_(i+6) = desired_leg_q_dot_(i+6)/hz_+current_q_(i+6);
         }
+        else if (ik_mode_ == 1)
+        {
+          computeJacobianControl(lfoot_trajectory_float_, rfoot_trajectory_float_, lfoot_trajectory_euler_float_, rfoot_trajectory_euler_float_, desired_leg_q_dot_);
+          for(int i=0; i<12; i++)
+          {
+            if(walking_tick_ == 0)
+            {
+              desired_q_(i) = q_init_(i);
+            }
+            desired_q_(i) = desired_leg_q_dot_(i)/hz_+current_q_(i);
+          }
+        }
+        //////////////////////////////////////////////////////
+
+        desired_q_not_compensated_ = desired_q_;
+
+        compensator();
+
+        //std::cout<<"com_support_current_:"<<com_support_current_<<endl;
+        //std::cout<<"zmp_measured_:"<<zmp_measured_<<endl;
+
+
+        //////////////data saving in text files///////////
+        file[0]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<zmp_desired_(0)<<"\t"<<zmp_desired_(1)<<"\t"<<foot_step_(current_step_num_, 0)<<"\t"<<foot_step_(current_step_num_, 1)<<"\t"<<
+                 foot_step_support_frame_(current_step_num_, 0)<<"\t"<<foot_step_support_frame_(current_step_num_, 1)<<"\t"<<foot_step_support_frame_(current_step_num_, 2)<<endl;
+        file[1]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<com_desired_(0)<<"\t"<<com_desired_(1)<<"\t"<<com_desired_(2)<<"\t"<<com_dot_desired_(0)<<"\t"<<com_dot_desired_(1)<<"\t"<<
+                 com_dot_desired_(2)<<"\t"<<com_support_init_(0)<<"\t"<<com_support_init_(0)<<"\t"<<com_support_init_(0)<<endl;
+        file[2]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<desired_leg_q_(0)<<"\t"<<desired_leg_q_(1)<<"\t"<<desired_leg_q_(2)<<"\t"<<desired_leg_q_(3)<<"\t"<<desired_leg_q_(4)<<"\t"<<
+                 desired_leg_q_(5)<<"\t"<<desired_leg_q_(6)<<"\t"<<desired_leg_q_(7)<<"\t"<<desired_leg_q_(8)<<"\t"<<desired_leg_q_(9)<<"\t"<<desired_leg_q_(10)<<"\t"<<desired_leg_q_(11)<<endl;
+        //     file[3]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<current_q_(0)<<"\t"<<current_q_(1)<<"\t"<<current_q_(2)<<"\t"<<current_q_(3)<<"\t"<<current_q_(4)<<"\t"<<current_q_(5)<<"\t"<<
+        //             current_q_(6)<<"\t"<<current_q_(7)<<"\t"<<current_q_(8)<<"\t"<<current_q_(9)<<"\t"<<current_q_(10)<<"\t"<<current_q_(11)<<endl;
+        file[4]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_trajectory_support_.translation()(0)<<"\t"<<rfoot_trajectory_support_.translation()(1)<<"\t"<<
+                 rfoot_trajectory_support_.translation()(2)<<"\t"<<lfoot_trajectory_support_.translation()(0)<<"\t"<<lfoot_trajectory_support_.translation()(1)<<"\t"<<lfoot_trajectory_support_.translation()(2)<<"\t"<<
+                 rfoot_support_init_.translation()(0)<<"\t"<<rfoot_support_init_.translation()(1)<<"\t"<<rfoot_support_init_.translation()(2)<<endl;
+        file[5]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<pelv_trajectory_support_.translation()(0)<<"\t"<<pelv_trajectory_support_.translation()(1)<<"\t"<<pelv_trajectory_support_.translation()(2)
+              <<endl;
+        file[6]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<com_support_current_(0)<<"\t"<<com_support_current_(1)<<"\t"<<com_support_current_(2)
+              <<"\t"<<pelv_support_current_.translation()(0)<<"\t"<<pelv_support_current_.translation()(1)<<"\t"<<pelv_support_current_.translation()(2)<<"\t"<<com_support_dot_current_(0)<<"\t"<<com_support_dot_current_(1)<<"\t"<<com_support_dot_current_(2)<<
+                "\t"<<com_sim_current_(0)<<"\t"<<com_sim_current_(1)<<"\t"<<com_sim_current_(2)<<"\t"<<com_sim_dot_current_(0)<<"\t"<<com_sim_dot_current_(1)<<"\t"<<com_sim_dot_current_(2)<<endl;
+        file[7]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_support_current_.translation()(0)<<"\t"<<rfoot_support_current_.translation()(1)<<"\t"<<rfoot_support_current_.translation()(2)
+              <<"\t"<<lfoot_support_current_.translation()(0)<<"\t"<<lfoot_support_current_.translation()(1)<<"\t"<<lfoot_support_current_.translation()(2)<<endl;
+        file[8]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<vars.x[0]<<"\t"<<vars.x[1]<<"\t"<<vars.x[2]<<"\t"<<vars.x[3]<<"\t"<<vars.x[4]<<"\t"<<vars.x[5]<<"\t"<<zmp_measured_(0)<<"\t"<<zmp_measured_(1)<<"\t"<<zmp_r_(0)<<"\t"<<zmp_r_(1)<<"\t"<<zmp_l_(0)<<"\t"<<zmp_l_(1)<<endl;
+        file[9]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<r_ft_(0)<<"\t"<<r_ft_(1)<<"\t"<<r_ft_(2)<<"\t"<<r_ft_(3)<<"\t"<<r_ft_(4)<<"\t"<<r_ft_(5)<<"\t"<<l_ft_(0)<<"\t"<<l_ft_(1)<<"\t"<<l_ft_(2)<<"\t"<<l_ft_(3)<<"\t"<<l_ft_(4)<<"\t"<<l_ft_(5)<<endl;
+        file[10]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<current_link_q_leg_(0)<<"\t"<<current_link_q_leg_(1)<<"\t"<<current_link_q_leg_(2)<<"\t"<<current_link_q_leg_(3)<<"\t"<<current_link_q_leg_(4)<<"\t"<<current_link_q_leg_(5)<<"\t"<<
+                  current_link_q_leg_(6)<<"\t"<<current_link_q_leg_(7)<<"\t"<<current_link_q_leg_(8)<<"\t"<<current_link_q_leg_(9)<<"\t"<<current_link_q_leg_(10)<<"\t"<<current_link_q_leg_(11)<<endl;
+        file[11]<<walking_tick_<<"\t"<<X_hat_post_2_(0)<<"\t"<<X_hat_post_2_(1)<<"\t"<<X_hat_post_2_(2)<<"\t"<<X_hat_post_2_(3)<<"\t"<<X_hat_post_2_(4)<<"\t"<<X_hat_post_2_(5)<<"\t"<<X_hat_post_2_(6)<<"\t"<<X_hat_post_2_(7)<<endl;
+        file[12]<<walking_tick_<<"\t"<<X_hat_post_1_(0)<<"\t"<<X_hat_post_1_(1)<<"\t"<<X_hat_post_1_(2)<<"\t"<<X_hat_post_1_(3)<<"\t"<<X_hat_post_1_(4)<<"\t"<<X_hat_post_1_(5)<<endl;
+        file[13]<<walking_tick_<<"\t"<<X_hat_post_3_(0)<<"\t"<<X_hat_post_3_(1)<<"\t"<<X_hat_post_3_(2)<<"\t"<<X_hat_post_3_(3)<<"\t"<<X_hat_post_3_(4)<<"\t"<<X_hat_post_3_(5)<<"\t"<<X_hat_post_3_(6)<<"\t"<<X_hat_post_3_(7)<<"\t"<<X_hat_post_3_(8)<<"\t"<<X_hat_post_3_(9)<<endl;
+        file[14]<<walking_tick_<<"\t"<<grav_ground_torque_(0)<<"\t"<<grav_ground_torque_(1)<<"\t"<<grav_ground_torque_(2)<<"\t"<<grav_ground_torque_(3)<<"\t"<<grav_ground_torque_(4)<<"\t"<<grav_ground_torque_(5)<<endl;
+
+        ///////////////////////////////////////////////
+
+        updateNextStepTime();
+
       }
-      //////////////////////////////////////////////////////
-
-      compensator();
-
-
-
-
-      //////////////data saving in text files///////////
-      file[0]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<zmp_desired_(0)<<"\t"<<zmp_desired_(1)<<"\t"<<foot_step_(current_step_num_, 0)<<"\t"<<foot_step_(current_step_num_, 1)<<"\t"<<
-               foot_step_support_frame_(current_step_num_, 0)<<"\t"<<foot_step_support_frame_(current_step_num_, 1)<<"\t"<<foot_step_support_frame_(current_step_num_, 2)<<endl;
-      file[1]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<com_desired_(0)<<"\t"<<com_desired_(1)<<"\t"<<com_desired_(2)<<"\t"<<com_dot_desired_(0)<<"\t"<<com_dot_desired_(1)<<"\t"<<
-               com_dot_desired_(2)<<"\t"<<com_support_init_(0)<<"\t"<<com_support_init_(0)<<"\t"<<com_support_init_(0)<<endl;
-      file[2]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<desired_leg_q_(0)<<"\t"<<desired_leg_q_(1)<<"\t"<<desired_leg_q_(2)<<"\t"<<desired_leg_q_(3)<<"\t"<<desired_leg_q_(4)<<"\t"<<
-               desired_leg_q_(5)<<"\t"<<desired_leg_q_(6)<<"\t"<<desired_leg_q_(7)<<"\t"<<desired_leg_q_(8)<<"\t"<<desired_leg_q_(9)<<"\t"<<desired_leg_q_(10)<<"\t"<<desired_leg_q_(11)<<endl;
-      file[3]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<current_q_(0)<<"\t"<<current_q_(1)<<"\t"<<current_q_(2)<<"\t"<<current_q_(3)<<"\t"<<current_q_(4)<<"\t"<<current_q_(5)<<"\t"<<
-               current_q_(6)<<"\t"<<current_q_(7)<<"\t"<<current_q_(8)<<"\t"<<current_q_(9)<<"\t"<<current_q_(10)<<"\t"<<current_q_(11)<<endl;
-      file[4]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_trajectory_support_.translation()(0)<<"\t"<<rfoot_trajectory_support_.translation()(1)<<"\t"<<
-               rfoot_trajectory_support_.translation()(2)<<"\t"<<lfoot_trajectory_support_.translation()(0)<<"\t"<<lfoot_trajectory_support_.translation()(1)<<"\t"<<lfoot_trajectory_support_.translation()(2)<<"\t"<<
-               rfoot_support_init_.translation()(0)<<"\t"<<rfoot_support_init_.translation()(1)<<"\t"<<rfoot_support_init_.translation()(2)<<endl;
-      file[5]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<pelv_trajectory_support_.translation()(0)<<"\t"<<pelv_trajectory_support_.translation()(1)<<"\t"<<pelv_trajectory_support_.translation()(2)
-            <<endl;
-      file[6]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<com_support_current_(0)<<"\t"<<com_support_current_(1)<<"\t"<<com_support_current_(2)
-            <<"\t"<<pelv_support_current_.translation()(0)<<"\t"<<pelv_support_current_.translation()(1)<<"\t"<<pelv_support_current_.translation()(2)<<endl;
-      file[7]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_support_current_.translation()(0)<<"\t"<<rfoot_support_current_.translation()(1)<<"\t"<<rfoot_support_current_.translation()(2)
-            <<"\t"<<lfoot_support_current_.translation()(0)<<"\t"<<lfoot_support_current_.translation()(1)<<"\t"<<lfoot_support_current_.translation()(2)<<endl;
-      ///////////////////////////////////////////////
-
-      updateNextStepTime();
-
+      else
+      {
+        desired_q_ = current_q_;
+      }
     }
     else
     {
       desired_q_ = current_q_;
+
     }
+    file[3]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<current_q_(0)<<"\t"<<current_q_(1)<<"\t"<<current_q_(2)<<"\t"<<current_q_(3)<<"\t"<<current_q_(4)<<"\t"<<current_q_(5)<<"\t"<<
+             current_q_(6)<<"\t"<<current_q_(7)<<"\t"<<current_q_(8)<<"\t"<<current_q_(9)<<"\t"<<current_q_(10)<<"\t"<<current_q_(11)<<endl;
+
+
   }
 }
 
@@ -121,9 +173,10 @@ void WalkingController::setTarget(int walk_mode, bool hip_compensation, bool lqr
   heel_toe_mode_ = heel_toe;
   is_right_foot_swing_ = is_right_foot_swing;
 
+  calc_start_flag_ = lqr;
+
   parameterSetting();
 }
-
 
 void WalkingController::setEnable(bool enable)
 {
@@ -160,13 +213,13 @@ void WalkingController::writeDesired(const unsigned int *mask, VectorQd& desired
     if( mask[i] >= PRIORITY && mask[i] < PRIORITY * 2 )
     {
       desired_q(i) = desired_q_(i);
-      WalkingController::target_x_ =1;
     }
   }
 }
 
 void WalkingController::parameterSetting()
-{ /*
+{
+  /*
   t_last_ = 0.1*hz_;
   t_start_= 0.1*hz_;
   t_temp_= 0.1*hz_; /
@@ -176,12 +229,22 @@ void WalkingController::parameterSetting()
   t_double2_= 0.1*hz_; /
   t_total_= 1.3*hz_; /
   t_temp_ = 3.0*hz_; /
-*/
-  t_double1_= 0.1*hz_;
-  t_double2_= 0.1*hz_;
-  t_rest_init_ = 0.50*hz_;
-  t_rest_last_= 0.50*hz_;
-  t_total_= 2.1*hz_;
+  */
+
+
+    t_double1_ = 0.10*hz_;
+    t_double2_ = 0.10*hz_;
+    t_rest_init_ = 0.05*hz_;
+    t_rest_last_ = 0.05*hz_;
+    t_total_= 1.2*hz_;
+
+
+//  t_double1_ = 0.10*hz_;
+//  t_double2_ = 0.10*hz_;
+//  t_rest_init_ = 1.0*hz_;
+//  t_rest_last_ = 1.0*hz_;
+//  t_total_= 3.0*hz_;
+
   t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -199,42 +262,109 @@ void WalkingController::parameterSetting()
   //com_update_flag_ = true; // frome A to B1
   gyro_frame_flag_ = false;
   com_control_mode_ = true;
+  estimator_flag_ = false;
 
   //zc_ = 0.75;
-}
+
+  ///////////cvxgen setting////////////
+  set_defaults();
+  setup_indexing();
+  //////////kalman filter//////////////////
+
+  kalmanStateSpace3();
+  kalmanStateSpace2(); //kalman statespace eq with com bias term
+  kalmanStateSpace1();
 
 /**Foot step related fuctions
  */
+}
 
 void WalkingController::getRobotState()
 {
+
+  Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_temp;
+  q_temp.setZero();
+  q_temp.segment<28>(6) = current_q_.segment<28>(0);
+  if(walking_tick_ > 0)
+  {
+    q_temp.segment<12>(6) =   desired_q_not_compensated_.segment<12>(0);
+  }
+  model_.updateKinematics(q_temp);
+
+  com_sim_old_ = com_sim_current_;
+  com_float_old_ = com_float_current_;
+  com_support_old_ = com_support_current_;
+
   lfoot_float_current_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)0);
   rfoot_float_current_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)1);
   com_float_current_ = model_.getCurrentCom();
 
+  com_sim_current_ = model_.getSimulationCom();
+  gyro_sim_current_ = model_.getSimulationGyro();
+  accel_sim_current_ = model_.getSimulationAccel();
+  lfoot_sim_global_current_ = model_.getSimulationLfoot();
+  rfoot_sim_global_current_ = model_.getSimulationRfoot();
+  base_sim_global_current_ = model_.getSimulationBase();
+
+  r_ft_ = model_.getRightFootForce();
+  l_ft_ = model_.getLeftFootForce();
+  imu_acc_ = model_.getImuAccel();
+  imu_ang_ = model_.getImuAngvel();
+  imu_grav_rpy_ = model_.getImuGravityDirection();
+
+
   pelv_float_current_.setIdentity();
 
-  Eigen::Isometry3d ref_frame;
+  rfoot_sim_float_current_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(base_sim_global_current_), rfoot_sim_global_current_);
+  lfoot_sim_float_current_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(base_sim_global_current_), lfoot_sim_global_current_);
 
   if(foot_step_(current_step_num_, 6) == 0)  //right foot support
   {
-    ref_frame = rfoot_float_current_;
+    supportfoot_float_current_ = rfoot_float_current_;
+    supportfoot_float_sim_current_ = rfoot_sim_float_current_;
   }
   else if(foot_step_(current_step_num_, 6) == 1)
   {
-    ref_frame = lfoot_float_current_;
+    supportfoot_float_current_ = lfoot_float_current_;
+    supportfoot_float_sim_current_ = lfoot_sim_float_current_;
   }
 
-  lfoot_support_current_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(ref_frame),lfoot_float_current_);
-  rfoot_support_current_ = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(ref_frame),rfoot_float_current_);
-  pelv_support_current_ = DyrosMath::inverseIsometry3d(ref_frame);
-  com_support_current_ = pelv_support_current_.linear()*com_float_current_ + pelv_support_current_.translation();
+  pelv_support_current_ = DyrosMath::inverseIsometry3d(supportfoot_float_current_);
+
+  lfoot_support_current_ = DyrosMath::multiplyIsometry3d(pelv_support_current_,lfoot_float_current_);
+  rfoot_support_current_ = DyrosMath::multiplyIsometry3d(pelv_support_current_,rfoot_float_current_);
+
+  com_support_current_ = DyrosMath::multiplyIsometry3dVector3d(pelv_support_current_, com_float_current_);
+
+  com_sim_current_ = DyrosMath::multiplyIsometry3dVector3d(DyrosMath::inverseIsometry3d(supportfoot_float_sim_current_), com_sim_current_);
+
+  //com_sim_dot_current_ = (base_sim_global_current_.linear()).transpose()*com_sim_dot_current_;
+
+  //com_sim_current_ = (base_sim_global_current_.linear()).transpose()*com_sim_current_; //change frame from glrobal to pelv
+  //com_sim_current_ = DyrosMath::multiplyIsometry3dVector3d(pelv_support_current_, com_sim_current_); //change frame from pelv to support foot
+
+
+
 
   current_leg_jacobian_l_=model_.getLegJacobian((DyrosJetModel::EndEffector) 0);
   current_leg_jacobian_r_=model_.getLegJacobian((DyrosJetModel::EndEffector) 1);
 
-}
+  slowcalc_mutex_.lock();
+  thread_q_ = current_q_;
+  current_motor_q_leg_ = current_q_.segment<12>(0);
+  //current_link_q_leg_ = model_.getCurrentExtencoder();
+  current_link_q_leg_ = current_q_.segment<12>(0);
 
+  slowcalc_mutex_.unlock();
+
+}
+/*
+void WalkingController::generateStep()
+{
+
+
+}
+*/
 
 void WalkingController::calculateFootStepTotal()
 {
@@ -342,9 +472,9 @@ void WalkingController::calculateFootStepTotal()
     is_right = -1;
 
 
-    temp = -is_right; //right foot will be first swingfoot
-    temp2 = -is_right;
-    temp3 = -is_right;
+  temp = -is_right; //right foot will be first swingfoot
+  temp2 = -is_right;
+  temp3 = -is_right;
 
 
   if(initial_total_step_number!=0 || abs(initial_residual_angle)>=0.0001)
@@ -832,16 +962,85 @@ void WalkingController::calculateFootStepSeparate()
       index++;
     }
   }
+}
 
+void WalkingController::usingFootStepPlanner()
+{
+  if( foot_plan_walking_last_ == true)
+    {
+      int temp1 = foot_step_(foot_step_plan_num_-1, 6);
+      double foot_stepx, foot_stepy,foot_step_angle, foot_stepx_prev, foot_stepy_prev;
 
+      foot_stepy_prev = foot_step_(foot_step_plan_num_ -2, 1);
+      foot_stepx_prev = foot_step_(foot_step_plan_num_ -2, 0);
+      foot_stepx = foot_step_(foot_step_plan_num_ -1, 0);
+      foot_stepy = foot_step_(foot_step_plan_num_ -1, 1);
+      foot_step_angle =  foot_step_(foot_step_plan_num_ -1,5);
+      foot_step_.resize(1,7);
+      foot_step_.setZero();
+      foot_step_support_frame_.resize(1, 7);
+      foot_step_support_frame_.setZero();
+      foot_step_support_frame_offset_.resize(1, 7);
+      foot_step_support_frame_offset_.setZero();
+      foot_last_walking_end_ = true;
 
+      if(temp1 == 0)
+        {
+      //    std::cout << "asdfaswwwww" << std::endl;
+          foot_step_(0,0) = (foot_stepx - foot_stepx_prev)/2.0 + 2*(0.127794)*sin(foot_step_angle);
+          foot_step_(0,1) = (foot_stepy - foot_stepy_prev)/2.0 -2*(0.127794)*cos(foot_step_angle);
+          foot_step_(0,5) = foot_step_angle;
+          foot_step_(0,6) = 1;
+        }
+      if(temp1 == 1)
+        {
+          std::cout << "asdfaswwwww11111" << std::endl;
+          foot_step_(0,0) = (foot_stepx - foot_stepx_prev)/2.0 - 2*(0.127794)*sin(foot_step_angle);
+          foot_step_(0,1) = (foot_stepy - foot_stepy_prev)/2.0 + 2*(0.127794)*cos(foot_step_angle);
+          foot_step_(0,5) = foot_step_angle;
+          foot_step_(0,6) = 0;
+        }
+    }
+  else
+    {
+      foot_step_.resize(foot_step_plan_num_, 7);
+      foot_step_.setZero();
+      foot_step_support_frame_.resize(foot_step_plan_num_, 7);
+      foot_step_support_frame_.setZero();
+      foot_step_support_frame_offset_.resize(foot_step_plan_num_, 7);
+      foot_step_support_frame_offset_.setZero();
 
+      int temp = foot_step_start_foot_ ;
+      int index = 0;
+      for (int i =0 ; i<foot_step_plan_num_; i++)
+      {
+        foot_step_(index,0) = foot_pose_(index,0);
+        foot_step_(index,1) = foot_pose_(index,1);
+        foot_step_(index,5) = foot_pose_(index,5);
+        foot_step_(index,6) = 0.5+0.5*temp;
+        temp *= -1;
+        index++;
+      }
 
+      for (int i =0 ; i<foot_step_plan_num_; i++)
+      {
+          if(i==0)
+            {
+              foot_step_(i,0) = foot_pose_(0,0);
+            }
+          else
+            {
+              foot_step_(i,0) = foot_pose_(i,0) + foot_pose_(i-1,0);
+            }
+         }
+
+    }
+
+  walking_end_foot_side_ =foot_step_(foot_step_plan_num_ - 1,6);
 }
 
 void WalkingController::getZmpTrajectory()
 {
-  floatToSupportFootstep();
 
   unsigned int planning_step_number  = 3;
 
@@ -966,12 +1165,15 @@ void WalkingController::updateInitialState()
 {  
   if( walking_tick_ ==0)
   {
+    thread_tick_ = 0;
     calculateFootStepTotal();
+
 
     q_init_ = current_q_;
     lfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(0));
     rfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(1));
     com_float_init_ = model_.getCurrentCom();
+
 
     pelv_float_init_.setIdentity();
 
@@ -1056,6 +1258,8 @@ void WalkingController::updateInitialState()
     lfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(0));
     rfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(1));
     com_float_init_ = model_.getCurrentCom();
+
+
     pelv_float_init_.setIdentity();
 
     Eigen::Isometry3d ref_frame;
@@ -1078,39 +1282,7 @@ void WalkingController::updateInitialState()
     rfoot_support_euler_init_ = DyrosMath::rot2Euler(rfoot_support_init_.linear());
     lfoot_support_euler_init_ = DyrosMath::rot2Euler(lfoot_support_init_.linear());
 
-    //supportfoot_float_init_.setZero();
-    //swingfoot_float_init_.setZero();
 
-    //if(foot_step_(0,6) == 1)  //left suppport foot
-    //{
-    //  for(int i=0; i<2; i++)
-    //    supportfoot_float_init_(i) = lfoot_float_init_.translation()(i);
-    //  for(int i=0; i<3; i++)
-    //    supportfoot_float_init_(i+3) = DyrosMath::rot2Euler(lfoot_float_init_.linear())(i);
-    //
-    //  for(int i=0; i<2; i++)
-    //    swingfoot_float_init_(i) = rfoot_float_init_.translation()(i);
-    //  for(int i=0; i<3; i++)
-    //    swingfoot_float_init_(i+3) = DyrosMath::rot2Euler(rfoot_float_init_.linear())(i);
-    //
-    //  //supportfoot_float_init_(0) = 0.0;
-    //  //swingfoot_float_init_(0) = 0.0;
-    //}
-    //else
-    //{
-    //  for(int i=0; i<2; i++)
-    //    supportfoot_float_init_(i) = rfoot_float_init_.translation()(i);
-    //  for(int i=0; i<3; i++)
-    //    supportfoot_float_init_(i+3) = DyrosMath::rot2Euler(rfoot_float_init_.linear())(i);
-    //
-    //  for(int i=0; i<2; i++)
-    //    swingfoot_float_init_(i) = lfoot_float_init_.translation()(i);
-    //  for(int i=0; i<3; i++)
-    //    swingfoot_float_init_(i+3) = DyrosMath::rot2Euler(lfoot_float_init_.linear())(i);
-    //
-    //  //supportfoot_float_init_(0) = 0.0;
-    //  //swingfoot_float_init_(0) = 0.0;
-    //}
 
 
   }
@@ -1128,13 +1300,31 @@ void WalkingController::updateNextStepTime()
 
       current_step_num_ ++;
     }
-    else if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +10.0*hz_)
-    {
-      walking_enable_ = false;
-    }
+  }
+
+
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +4.0*hz_)
+
+
+  {
+    walking_state_send = true;
+    walking_end_ = !walking_end_;
+  }
+
+
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +4.0*hz_+1)
+  {
+    walking_state_send = false;
+  }
+
+  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +5.0*hz_)
+  {
+
+    walking_enable_ = false;
   }
 
   walking_tick_ ++;
+
 
 }
 
@@ -1147,13 +1337,13 @@ void WalkingController::addZmpOffset()
 
   if(foot_step_(0,6) == 0) //right support foot
   {
-  //  supportfoot_support_init_offset_(0) = supportfoot_support_init_(0)/2;
+    //  supportfoot_support_init_offset_(0) = supportfoot_support_init_(0)/2;
     supportfoot_support_init_offset_(1) = supportfoot_support_init_(1) + rfoot_zmp_offset_;
     swingfoot_support_init_offset_(1) = swingfoot_support_init_(1) + lfoot_zmp_offset_;
   }
   else
   {
-  //  supportfoot_support_init_offset_(0) = supportfoot_support_init_(0);
+    //  supportfoot_support_init_offset_(0) = supportfoot_support_init_(0);
     supportfoot_support_init_offset_(1) = supportfoot_support_init_(1) + lfoot_zmp_offset_;
     swingfoot_support_init_offset_(1) = swingfoot_support_init_(1) + rfoot_zmp_offset_;
   }
@@ -1260,12 +1450,14 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
   {
     Kx = supportfoot_support_init_offset_(0);
     Kx2 = (foot_step_support_frame_(current_step_number,0)- supportfoot_support_init_offset_(0))/2.0;
-//    Kx2 = (foot_step_support_frame_(current_step_number,0))/2.0;
+
+    //    Kx2 = (foot_step_support_frame_(current_step_number,0))/2.0;
 
 
     Ky = supportfoot_support_init_offset_(1) - com_support_init_(1);
     Ky2 = (foot_step_support_frame_(current_step_number,1)- supportfoot_support_init_offset_(1))/2.0;
-//    Ky2 = (foot_step_support_frame_(current_step_number,1))/2.0;
+
+    //    Ky2 = (foot_step_support_frame_(current_step_number,1))/2.0;
 
     for(int i=0; i<t_total_; i++)
     {
@@ -1307,8 +1499,8 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
     {
       if(i < t_rest_init_)
       {
-          temp_px(i) = (foot_step_support_frame_(current_step_number-1,0)+supportfoot_support_init_(0))/2.0;
-          temp_py(i) = (foot_step_support_frame_(current_step_number-1,1)+supportfoot_support_init_(1))/2.0;
+        temp_px(i) = (foot_step_support_frame_(current_step_number-1,0)+supportfoot_support_init_(0))/2.0;
+        temp_py(i) = (foot_step_support_frame_(current_step_number-1,1)+supportfoot_support_init_(1))/2.0;
 
       }
       else if(i >= t_rest_init_ && i < t_rest_init_+t_double1_)
@@ -1470,13 +1662,19 @@ void WalkingController::getPelvTrajectory()
   //Trunk Position
   if(com_control_mode_ == true)
   {
-    double kp = 1;
+    double kp = 0.15;
+    if(estimator_flag_ == false || l_ft_(2)+r_ft_(2)<0.7*51*9.81)
+    {
+      pelv_trajectory_support_.translation()(0) = pelv_support_current_.translation()(0) + kp*(com_desired_(0) - com_support_current_(0));
+      pelv_trajectory_support_.translation()(1) = pelv_support_current_.translation()(1) + kp*(com_desired_(1) - com_support_current_(1));
+    }
+    else
+    {
+      pelv_trajectory_support_.translation()(0) = pelv_support_current_.translation()(0) + kp*(com_desired_(0) - X_hat_post_2_(0));
+      pelv_trajectory_support_.translation()(1) = pelv_support_current_.translation()(1) + kp*(com_desired_(1) - X_hat_post_2_(1));
+    }
 
     // kp = Cubic(abs(_COM_desired(0)-_COM_real_support(0)),0.0,0.05,1.0,0.0,3.0,0.0);
-    pelv_trajectory_support_.translation()(0) = pelv_support_current_.translation()(0) + kp*(com_desired_(0) - com_support_current_(0));
-    // kp = Cubic(abs(_COM_desired(1)-_COM_real_support(1)),0.0,0.05,1.0,0.0,3.0,0.0);
-    pelv_trajectory_support_.translation()(1) = pelv_support_current_.translation()(1) + kp*(com_desired_(1) - com_support_current_(1));
-    // kp = Cubic(abs(_COM_desired(2)-_COM_real_support(2)),0.0,0.05,1.0,0.0,3.0,0.0);
     pelv_trajectory_support_.translation()(2) = com_desired_(2); //_T_Trunk_support.translation()(2) + kp*(_COM_desired(2) - _COM_real_support(2));
   }
   else
@@ -1602,7 +1800,7 @@ void WalkingController::getFootTrajectory()
       {
         if(walking_tick_ < t_start_)
           rfoot_trajectory_support_.translation()(2) = rfoot_support_init_.translation()(2);
-        else if(walking_tick_ >= t_start_ && walking_tick_ < t_start_real_) 
+        else if(walking_tick_ >= t_start_ && walking_tick_ < t_start_real_)
           rfoot_trajectory_support_.translation()(2) = DyrosMath::cubic(walking_tick_,t_start_,t_start_real_,rfoot_support_init_.translation()(2),0.0,0.0,0.0);
         else
           rfoot_trajectory_support_.translation()(2) = DyrosMath::cubic(walking_tick_,t_start_real_,t_start_real_+t_double1_,0.0,0.0,0.0,0.0);
@@ -1620,7 +1818,7 @@ void WalkingController::getFootTrajectory()
   }
   else if(walking_tick_ >= t_start_real_+t_double1_ && walking_tick_ < t_start_+t_total_-t_double2_-t_rest_last_)
   {
-    double t_rest_temp = 0.1*hz_;
+    double t_rest_temp = 0.05*hz_;
     double ankle_temp;
     ankle_temp = 0*DEG2RAD;
 
@@ -1817,8 +2015,10 @@ void WalkingController::supportToFloatPattern()
 
 void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q)
 {
-  Eigen::Vector3d lp, rp;
-  //Should revise by dg, Trunk_trajectory_global.translation()
+
+  Eigen::Vector3d lp, rp, d;
+  d.setZero();
+  d(2) = -0.095;
   lp = float_lleg_transform.linear().transpose()*(float_trunk_transform.translation()-float_lleg_transform.translation());
   rp = float_rleg_transform.linear().transpose()*(float_trunk_transform.translation()-float_rleg_transform.translation());
 
@@ -1986,12 +2186,13 @@ void WalkingController::computeJacobianControl(Eigen::Isometry3d float_lleg_tran
 
   Eigen::Matrix6d kp; // for setting CLIK gains
   kp.setZero();
-  kp(0,0) = 150;
-  kp(1,1) = 150;
-  kp(2,2) = 150;
-  kp(3,3) = 50;
-  kp(4,4) = 50;
-  kp(5,5) = 50;
+  kp(0,0) = 160;
+  kp(1,1) = 160;
+  kp(2,2) = 160;
+  kp(3,3) = 100;
+  kp(4,4) = 100;
+  kp(5,5) = 100;
+
 
 
   Eigen::Vector6d lp, rp, cubic_xr, cubic_xl;
@@ -2191,7 +2392,8 @@ void WalkingController::previewControlParameter(
   q_bar(0,0) = qe;
   q_bar.block<3,3>(1,1) = qx;
 
-  k=DyrosMath::discreteRiccatiEquation<4, 1>(a_bar, b_bar, r, q_bar);
+  k=discreteRiccatiEquationPrev(a_bar, b_bar, r, q_bar);
+
 
   double temp_mat;
   temp_mat = r(0)+b_bar_tran*k*b_bar;
@@ -2230,20 +2432,102 @@ void WalkingController::compensator()
 {
   if(hip_compensator_mode_ == true)
   {
-    //hipCompensation();
-    hipCompensator();
+    hipCompensation();
+    if(lqr_compensator_mode_ == false)
+    {
+      hipCompensator();
+    }
   }
 
   if(lqr_compensator_mode_ == true)
   {
+    Eigen::Vector12d d_q;
 
+    for (int i=0; i<12; i++)
+      d_q(i) = desired_q_(i);
+
+    Eigen::Vector12d lqr_joint_input;
+
+
+    slowcalc_mutex_.lock();
+
+
+    ad_copy_ = ad_right_;
+    bd_copy_ = bd_right_;
+    ad_total_copy_ = ad_total_right_;
+    bd_total_copy_ = bd_total_right_;
+    kkk_copy_ = kkk_motor_right_;
+    slowcalc_mutex_.unlock();
+
+
+    vibrationControl(d_q,lqr_joint_input);
+
+
+    //std::cout<< "d_q - lqr_joint_input"<<d_q-lqr_joint_input<<endl;
+    //std::cout<< "lqr_joint_input"<<lqr_joint_input<<endl;
+
+
+
+
+    double grav_gain_timing = 1.0;
+    if(foot_step_(current_step_num_,6) == 1) // left foot support (right foot gain)
+    {
+      if(walking_tick_ > t_start_+t_rest_init_+t_double1_ && walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_)
+        grav_gain_timing = DyrosMath::cubic(walking_tick_,t_start_+t_rest_init_+t_double1_,t_start_+t_total_-t_rest_last_-t_double2_,1.0,0.3,0.0,0.0);
+      else
+        grav_gain_timing = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_,t_start_+t_total_-t_rest_last_,0.3,1.0,0.0,0.0);
+    }
+
+
+    for (int n = 7 ; n < 12; n++) // right foot
+    {
+      if(abs(lqr_joint_input(n)-desired_q_(n)) > 20.0*DEG2RAD )
+      {
+      }
+      else
+      {
+        if(n == 7 || n == 8)
+          desired_q_(n) = desired_q_(n) - 0.0022*grav_gain_timing*grav_ground_torque_[n];
+        else if (n == 9)
+          desired_q_(n) = desired_q_(n) - 0.0010*grav_gain_timing*grav_ground_torque_[n];
+        else
+          desired_q_(n) = desired_q_(n);
+      }
+    }
+
+    grav_gain_timing = 1.0;
+    if(foot_step_(current_step_num_,6) == 0) // left foot (right foot gain)
+    {
+      if(walking_tick_ > t_start_+t_rest_init_+t_double1_ && walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_)
+        grav_gain_timing = DyrosMath::cubic(walking_tick_,t_start_+t_rest_init_+t_double1_,t_start_+t_total_-t_rest_last_-t_double2_,1.0,0.3,0.0,0.0);
+      else
+        grav_gain_timing = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_,t_start_+t_total_-t_rest_last_,0.3,1.0,0.0,0.0);
+    }
+
+    for (int n = 1 ; n < 6; n++)
+    {
+      if(abs(lqr_joint_input(n)-desired_q_(n)) > 20.0*DEG2RAD )
+      {
+      }
+      else
+      {
+        if ( n == 1 || n == 2)
+          desired_q_(n)  = desired_q_(n) - 0.0022*grav_gain_timing*grav_ground_torque_[n];
+        else if (n == 3)
+          desired_q_(n) = desired_q_(n) - 0.0010*grav_gain_timing*grav_ground_torque_[n];
+        else
+          desired_q_(n) = desired_q_(n);
+      }
+    }
   }
-
 }
 
 void WalkingController::hipCompensator()
 {
-  double left_hip_angle = 2.0*DEG2RAD, right_hip_angle = 2.0*DEG2RAD, left_hip_angle_first_step = 2.0*DEG2RAD, right_hip_angle_first_step = 2.0*DEG2RAD,
+  double left_hip_angle = 4.0*DEG2RAD, right_hip_angle = 8.5*DEG2RAD, left_hip_angle_first_step = 4.0*DEG2RAD, right_hip_angle_first_step = 8.5*DEG2RAD,
+
+
+
       left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
 
   if (current_step_num_ == 0)
@@ -2311,7 +2595,10 @@ void WalkingController::hipCompensation()
 
   a_total = -0.0012;
   b_total = 0.00087420;
-  robotweight = 46.892*9.81;
+  //robotweight = 50.3082*9.81;
+
+  robotweight =46.892*9.81;
+
 
   lq0= desired_q_(0);
   lq1= desired_q_(1);
@@ -2326,16 +2613,31 @@ void WalkingController::hipCompensation()
   rq4= desired_q_(10);
   rq5= desired_q_(11);
 
-/*  fromright = cos(rq2)*sin(rq0)*(-1.454E-1)-sin(rq0)*sin(rq2)*(3.39E2/1.0E3)-cos(rq3)*(cos(rq2)*sin(rq0)+cos(rq0)*sin(rq1)*sin(rq2))*(3.0/5.0E1)-cos(rq3)*(sin(rq0)*sin(rq2)-cos(rq0)*cos(rq2)*sin(rq1))*(4.6E1/1.25E2)-sin(rq3)*(cos(rq2)*sin(rq0)+cos(rq0)*sin(rq1)*sin(rq2))*(4.6E1/1.25E2)+sin(rq3)*(sin(rq0)*sin(rq2)-cos(rq0)*cos(rq2)*sin(rq1))*(3.0/5.0E1)+cos(rq0)*cos(rq2)*sin(rq1)*(3.39E2/1.0E3)-cos(rq0)*sin(rq1)*sin(rq2)*1.454E-1-2.1E1/2.0E2;
-  fromleft = cos(lq2)*sin(lq0)*(-1.454E-1)+sin(lq0)*sin(lq2)*(3.39E2/1.0E3)+cos(lq3)*(sin(lq0)*sin(lq2)+cos(lq0)*cos(lq2)*sin(lq1))*(4.6E1/1.25E2)-cos(lq3)*(cos(lq2)*sin(lq0)-cos(lq0)*sin(lq1)*sin(lq2))*(3.0/5.0E1)+sin(lq3)*(sin(lq0)*sin(lq2)+cos(lq0)*cos(lq2)*sin(lq1))*(3.0/5.0E1)+sin(lq3)*(cos(lq2)*sin(lq0)-cos(lq0)*sin(lq1)*sin(lq2))*(4.6E1/1.25E2)+cos(lq0)*cos(lq2)*sin(lq1)*(3.39E2/1.0E3)+cos(lq0)*sin(lq1)*sin(lq2)*1.454E-1+2.1E1/2.0E2;
-*/
-/*
-  fromright = com_float_current_(1)-rfoot_float_current_.translation()(1);
-  fromleft = com_float_current_(1)-lfoot_float_current_.translation()(1);
-*/
 
-  fromright = -rfoot_float_current_.translation()(1);
-  fromleft = -lfoot_float_current_.translation()(1);
+  fromright = cos(rq2)*sin(rq0)*(-1.454E-1)-sin(rq0)*sin(rq2)*(3.39E2/1.0E3)-cos(rq3)*(cos(rq2)*sin(rq0)+cos(rq0)*sin(rq1)*sin(rq2))*(3.0/5.0E1)-cos(rq3)*(sin(rq0)*sin(rq2)-cos(rq0)*cos(rq2)*sin(rq1))*(4.6E1/1.25E2)-sin(rq3)*(cos(rq2)*sin(rq0)+cos(rq0)*sin(rq1)*sin(rq2))*(4.6E1/1.25E2)+sin(rq3)*(sin(rq0)*sin(rq2)-cos(rq0)*cos(rq2)*sin(rq1))*(3.0/5.0E1)+cos(rq0)*cos(rq2)*sin(rq1)*(3.39E2/1.0E3)-cos(rq0)*sin(rq1)*sin(rq2)*1.454E-1-2.1E1/2.0E2;
+  fromleft = cos(lq2)*sin(lq0)*(-1.454E-1)+sin(lq0)*sin(lq2)*(3.39E2/1.0E3)+cos(lq3)*(sin(lq0)*sin(lq2)+cos(lq0)*cos(lq2)*sin(lq1))*(4.6E1/1.25E2)-cos(lq3)*(cos(lq2)*sin(lq0)-cos(lq0)*sin(lq1)*sin(lq2))*(3.0/5.0E1)+sin(lq3)*(sin(lq0)*sin(lq2)+cos(lq0)*cos(lq2)*sin(lq1))*(3.0/5.0E1)+sin(lq3)*(cos(lq2)*sin(lq0)-cos(lq0)*sin(lq1)*sin(lq2))*(4.6E1/1.25E2)+cos(lq0)*cos(lq2)*sin(lq1)*(3.39E2/1.0E3)+cos(lq0)*sin(lq1)*sin(lq2)*1.454E-1+2.1E1/2.0E2;
+
+  /*
+  if(estimator_flag_ == false)
+  {
+    fromright = -com_float_current_(1)+rfoot_float_current_.translation()(1);
+    fromleft = -com_float_current_(1)+lfoot_float_current_.translation()(1);
+  }
+  else
+  {
+    Eigen::Vector3d com_float_estimated;
+    Eigen::Vector3d com_support_estimated;
+    com_support_estimated(0) = X_hat_post_1_(0);
+    com_support_estimated(1) = X_hat_post_1_(1);
+    com_support_estimated(2) = com_support_current_(2);
+    com_float_estimated = DyrosMath::multiplyIsometry3dVector3d(supportfoot_float_current_, com_support_estimated);
+    fromright = -com_float_estimated(1)+rfoot_float_current_.translation()(1);
+    fromleft = -com_float_estimated(1)+lfoot_float_current_.translation()(1);
+  }
+   */
+
+  //fromright = rfoot_float_current_.translation()(1);
+  //fromleft = lfoot_float_current_.translation()(1);
 
 
   alpha = -fromleft/(fromright-fromleft);
@@ -2354,12 +2656,13 @@ void WalkingController::hipCompensation()
   f_r = robotweight*alpha;
   f_l = robotweight*alpha_1;
 
+
   Eigen::Vector6d lTau, rTau, Jc2, Jc8;
   lTau.setZero();
   rTau.setZero();
   Jc2.setZero();
   Jc8.setZero();
-/*
+
   Jc2(0) = 0;
   Jc2(1) = cos(rq2)*sin(rq1)*(3.39E2/1.0E3)-sin(rq1)*sin(rq2)*1.454E-1-sin(rq1)*sin(rq2)*sin(rq3)*(4.6E1/1.25E2)+cos(rq2)*cos(rq3)*sin(rq1)*(4.6E1/1.25E2)-cos(rq2)*sin(rq1)*sin(rq3)*(3.0/5.0E1)-cos(rq3)*sin(rq1)*sin(rq2)*(3.0/5.0E1);
   Jc2(2) = cos(rq1)*cos(rq2)*1.454E-1+cos(rq1)*sin(rq2)*(3.39E2/1.0E3)+cos(rq1)*cos(rq2)*cos(rq3)*(3.0/5.0E1)+cos(rq1)*cos(rq2)*sin(rq3)*(4.6E1/1.25E2)+cos(rq1)*cos(rq3)*sin(rq2)*(4.6E1/1.25E2)-cos(rq1)*sin(rq2)*sin(rq3)*(3.0/5.0E1);
@@ -2373,15 +2676,28 @@ void WalkingController::hipCompensation()
   Jc8(3) = cos(lq1)*cos(lq2)*cos(lq3)*(-3.0/5.0E1)+cos(lq1)*cos(lq2)*sin(lq3)*(4.6E1/1.25E2)+cos(lq1)*cos(lq3)*sin(lq2)*(4.6E1/1.25E2)+cos(lq1)*sin(lq2)*sin(lq3)*(3.0/5.0E1);
   Jc8(4) = 0;
   Jc8(5) = 0;
-*/
-  Jc8=current_leg_jacobian_l_.transpose().col(3);
-  Jc2=current_leg_jacobian_r_.transpose().col(3);
 
+  /*
+  Eigen::Vector3d ankle_to_sole;
+  ankle_to_sole.setZero();
+  ankle_to_sole(2) = -0.09;
+  Eigen::Matrix6d adjoint_l, adjoint_r;
+  adjoint_l.setIdentity();
+  adjoint_l.block<3,3>(0,3) = -DyrosMath::skew(lfoot_float_current_.linear()*ankle_to_sole);
+  adjoint_r.setIdentity();
+  adjoint_r.block<3,3>(0,3) = -DyrosMath::skew(lfoot_float_current_.linear()*ankle_to_sole);
+
+  Eigen::Matrix6d Jcl, Jcr;
+  Jcl = adjoint_l*current_leg_jacobian_l_.transpose();
+  Jcr = adjoint_r*current_leg_jacobian_r_.transpose();
+  Jc8 = Jcl.col(2);
+  Jc2 = Jcr.col(2);
+*/
 
   for(int i=0; i<6; i++)
   {
-     rTau(i)=Jc2(i)*f_r;
-     lTau(i)=Jc8(i)*f_l;
+    rTau(i)=Jc2(i)*f_r;
+    lTau(i)=Jc8(i)*f_l;
   }
 
   double rising = 1.0, timingtiming = 1.0, k = 0.2, k1 = 0.2;
@@ -2399,16 +2715,18 @@ void WalkingController::hipCompensation()
       rising = -(walking_tick_- (t_start_+t_total_-t_rest_last_))/(t_double2_*timingtiming);
   }*/
 
-  joint_offset_angle_.setZero();
-  grav_ground_torque_.setZero();
+  //joint_offset_angle_.setZero();
+  //grav_ground_torque_.setZero();
 
   if (lqr_compensator_mode_ == false)
   {
-     desired_q_(8)=desired_q_(8)+(a_total*rTau(2)+b_total)*rising*k1;//offwhenslow
-     desired_q_(9)=desired_q_(9)+(a_total*rTau(3)+b_total)*rising*0.3;//offwhenslow
-     desired_q_(10)=desired_q_(10)+(a_total*rTau(4)+b_total)*rising*k1;//offwhenslow
+    //desired_q_(7)=desired_q_(7)+(a_total*rTau(1)+b_total)*rising*k1;//offwhenslow
+    desired_q_(8)=desired_q_(8)+(a_total*rTau(2)+b_total)*rising*k1;//offwhenslow
+    desired_q_(9)=desired_q_(9)+(a_total*rTau(3)+b_total)*rising*0.3;//offwhenslow
+    desired_q_(10)=desired_q_(10)+(a_total*rTau(4)+b_total)*rising*k1;//offwhenslow
+    //desired_q_(11)=desired_q_(11)+(a_total*rTau(5)+b_total)*rising*k1;//offwhenslow
   }
-    // _desired_q(23-2)=_desired_q(23-2)+(a_total*rTau(5)+b_total)*rising;
+  // _desired_q(23-2)=_desired_q(23-2)+(a_total*rTau(5)+b_total)*rising;
 
   joint_offset_angle_(8) = (a_total*rTau(2)+b_total)*rising*k;
   joint_offset_angle_(9) = (a_total*rTau(3)+b_total)*rising*0.2;
@@ -2416,9 +2734,12 @@ void WalkingController::hipCompensation()
 
   if (lqr_compensator_mode_  == false)
   {
-     desired_q_(2)=desired_q_(2)+(a_total*lTau(2)+b_total)*rising*k;//offwhenslow
-     desired_q_(3)=desired_q_(3)+(a_total*lTau(3)+b_total)*rising*0.3;//offwhenslow
-     desired_q_(4)=desired_q_(4)+(a_total*lTau(4)+b_total)*rising*k;//offwhenslow
+    //desired_q_(1)=desired_q_(1)+(a_total*lTau(1)+b_total)*rising*k;//offwhenslow
+    desired_q_(2)=desired_q_(2)+(a_total*lTau(2)+b_total)*rising*k;//offwhenslow
+    desired_q_(3)=desired_q_(3)+(a_total*lTau(3)+b_total)*rising*0.3;//offwhenslow
+    desired_q_(4)=desired_q_(4)+(a_total*lTau(4)+b_total)*rising*k;//offwhenslow
+    //desired_q_(5)=desired_q_(5)+(a_total*lTau(5)+b_total)*rising*k;//offwhenslow
+
     //  _desired_q(29-2)=_desired_q(29-2)+(a_total*lTau(5)+b_total)*rising*k;
   }
 
@@ -2427,25 +2748,907 @@ void WalkingController::hipCompensation()
   joint_offset_angle_(4) = (a_total*lTau(4)+b_total)*rising*k1;
 
 
+
   for (int i=0; i<6; i++)
   {
-      grav_ground_torque_(i) = lTau[i];
-      grav_ground_torque_(i+6) = rTau[i];
+    grav_ground_torque_(i) = lTau[i];
+    grav_ground_torque_(i+6) = rTau[i];
   }
+ // cout<<joint_offset_angle_<<endl;
+}
+
+
+void WalkingController::vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output)
+{
+  if(walking_tick_ == 0)
+  {
+    pre_motor_q_leg_ = current_motor_q_leg_;
+    pre_link_q_leg_ = current_link_q_leg_;
+    lqr_output_pre_ = current_motor_q_leg_;
+  }
+  x_bar_right_.setZero();
+
+  // right foot X_bar
+  for (int i = 0; i < 12; i++)
+  {
+    x_bar_right_(i, 0) = current_link_q_leg_(i) - desired_leg_q(i); //left
+
+    x_bar_right_(i+12,0) = current_motor_q_leg_(i) - pre_motor_q_leg_(i); //left
+
+    x_bar_right_(i+24,0) = 0.0;//current_link_q_leg_(i) - pre_link_q_leg_(i); //left
+
+  }
+
+
+  Eigen::Vector12d del_u_right;
+
+  //std::cout<< "kkk_copy"<< kkk_copy_<<endl;
+  //std::cout<< "x_bar_right_"<< x_bar_right_<<endl;
+
+
+  del_u_right = -kkk_copy_*x_bar_right_;
+
+
+  // if(_cnt == 0)
+  //  std::cout << "ad_copy_" << ad_copy_ << endl;
+  //  std::cout << "bd_copy_" << bd_copy_ << endl;
+
+  x_bar_right_ = ad_total_copy_*x_bar_right_ + bd_total_copy_*del_u_right;
+
+
+  Eigen::Vector12d current_u;// left right order
+
+
+  for (int i = 0; i < 12; i++)
+  {
+    //left
+    current_u(i) = (current_motor_q_leg_(i) - ad_copy_(i, i)*pre_motor_q_leg_(i)) / bd_copy_(i, i);
+
+    //right
+    //current_u(i+6) = (current_motor_q_leg_(i+6) - ad_copy_(i, i)*pre_motor_q_leg_(i+6)) / bd_copy_(i, i);
+  }
+
+
+  Eigen::Vector12d dist;//left right order
+
+
+  dist = lqr_output_pre_ - current_u;
+
+
+  if(walking_tick_ == 0)
+    dist_prev_ = dist;
+
+  dist = 0.7*dist_prev_+0.3*dist;
+
+  //std::cout << "current_u" << current_u << endl;
+  //std::cout << "dist" << dist << endl;
+  //std::cout << "ad_copy_" << ad_copy_ << endl;
+  //std::cout << "bd_copy_" << bd_copy_ << endl;
+
+
+  // Mingon's LQR contorller gain(using external encoder)
+  double default_gain = 0.200;
+
+  double compliant_gain = 1.0;
+
+  double compliant_tick = 0.1*hz_;
+
+
+  for (int i = 0; i < 12; i++)
+  {
+    if(i < 6) //left foot
+    {
+      double gain_temp = default_gain;
+
+
+      if(walking_enable_ == true)
+      {
+        if (foot_step_(current_step_num_,6) == 0) // right support foot
+        {
+          if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-compliant_tick) // gain_temp -> 0.2
+          {
+            gain_temp = default_gain;
+          }
+          else if(walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-compliant_tick && walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_)
+          {
+            gain_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-compliant_tick,t_start_+t_total_-t_rest_last_-t_double2_,default_gain,compliant_gain,0.0,0.0);
+          }
+          else
+          {
+            gain_temp = DyrosMath::cubic(walking_tick_, t_start_+t_total_-t_rest_last_,t_start_+t_total_,compliant_gain,default_gain,0.0,0.0);
+          }
+        }
+        else //left support foot
+        {
+          gain_temp = default_gain;
+
+        }
+      }
+
+      lqr_output_(i) = lqr_output_pre_(i) + del_u_right(i, 0) - gain_temp*dist(i);
+    }
+    else // right foot
+    {
+      double gain_temp = default_gain;
+
+
+      if(walking_enable_ == true)
+      {
+        if (foot_step_(current_step_num_,6) == 1) // left suppor foot
+        {
+          if(walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_-compliant_tick) // gain_temp -> 0.2
+          {
+            gain_temp = default_gain;
+          }
+          else if(walking_tick_ >= t_start_+t_total_-t_rest_last_-t_double2_-compliant_tick && walking_tick_ < t_start_+t_total_-t_rest_last_-t_double2_)
+          {
+            gain_temp = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-compliant_tick,t_start_+t_total_-t_rest_last_-t_double2_,default_gain,compliant_gain,0.0,0.0);
+          }
+          else
+          {
+            gain_temp = DyrosMath::cubic(walking_tick_, t_start_+t_total_-t_rest_last_,t_start_+t_total_,compliant_gain,default_gain,0.0,0.0);
+          }
+        }
+        else //left foot support
+        {
+          gain_temp = default_gain;
+        }
+      }
+      lqr_output_(i) = lqr_output_pre_(i) + del_u_right(i, 0) - gain_temp*dist(i);
+    }
+  }
+
+
+  lqr_output_pre_ = lqr_output_;
+  pre_motor_q_leg_ = current_motor_q_leg_;
+  pre_link_q_leg_ = current_link_q_leg_;
+  dist_prev_ = dist;
+
+  for (int i=0; i<12; i++)
+  {
+    output(i) = lqr_output_(i);
+  }
+}
+
+void WalkingController::massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::Matrix12d & mass, Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c)
+{
+  int dof = 12;
+  Eigen::Matrix12d spring_k_mat;
+  Eigen::Matrix12d damping_d_mat;
+  Eigen::Matrix12d motor_k_mat;
+
+  spring_k_mat.setZero();
+  damping_d_mat.setZero();
+  motor_k_mat.setZero();
+
+  for (int i = 0; i < dof; i++)
+  {
+    spring_k_mat(i, i) = spring_k;
+    damping_d_mat(i, i) = damping_d;
+    motor_k_mat(i, i) = motor_k;
+  }
+
+  // knee joint
+  motor_k_mat(3,3) =  18.0; //18.0
+  motor_k_mat(9,9) =  18.0;
+
+
+  Eigen::Matrix12d inv_mass;
+  inv_mass = mass;
+
+  Eigen::Matrix12d zero_12;
+  zero_12.setZero();
+
+  Eigen::Matrix12d eye_12;
+  eye_12.setIdentity();
+
+  Eigen::Matrix12d mass_temp;
+  mass_temp = inv_mass;
+
+  Eigen::Matrix12d a1;
+  a1 = mass_temp*(spring_k_mat - damping_d_mat*motor_k_mat);
+
+  Eigen::Matrix12d a2;
+  a2 = -mass_temp*(spring_k_mat);
+
+  Eigen::Matrix12d a3;
+  a3 = -mass_temp*(damping_d_mat);
+
+  a.setZero();
+  a << -motor_k_mat, zero_12, zero_12, zero_12, zero_12, eye_12, a1, a2, a3;
+
+  Eigen::Matrix12d b1;
+  b1 = mass_temp*damping_d_mat*motor_k_mat;
+
+
+  b.setZero();
+  b << motor_k_mat, zero_12, b1;
+
+  c.setZero();
+  c << zero_12, eye_12, zero_12;
+
+
+
 
 }
 
-/*
-void WalkingController::vibrationControl(const VectorQd desired_leg_q, VectorQd &output)
+void WalkingController::discreteModel(Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c, int np, double dt,
+                                      Eigen::Matrix<double, 36, 36>& ad, Eigen::Matrix<double, 36, 12>& bd, Eigen::Matrix<double, 12, 36>& cd,
+                                      Eigen::Matrix<double, 48, 48>& ad_total, Eigen::Matrix<double, 48, 12>& bd_total)
 {
-  if(walking_tick_ ==0)
+  int n = a.rows(); //state \B0\B9\BC\F6  (36)
+  int r = b.cols(); // Input \B0\B9\BC\F6  (12)
+  int p = c.rows(); // output \B0\B9\BC\F6  (12)
+
+  // ad = A*dt;
+  // ad = ad.exp();
+
+
+  Eigen::Matrix<double, 36, 36> inv_a;
+  inv_a = a.inverse();
+
+  Eigen::Matrix<double, 36, 36> eye6;
+  eye6.setIdentity();
+
+  // bd = inv_a*(ad - eye6)*B;
+
+  ad = eye6 +a*dt;
+  bd = b*dt;
+
+  cd = c;
+
+  //std::cout << "AAA_bar" << AAA_bar << std::endl;
+  //std::cout << "BBB_bar" << BBB_bar << std::endl;
+
+  Eigen::Matrix<double, 12, 36> ca;
+  ca = cd*ad;
+
+  Eigen::Matrix<double, 12, 12> eye_p;
+  eye_p.setIdentity();
+
+  Eigen::Matrix<double, 36, 12> zero_n_p;
+  zero_n_p.setZero();
+
+  Eigen::Matrix<double, 12, 12> cb;
+  cb = cd*bd;
+
+  if (np < 1)
   {
 
+    ad_total << eye_p, ca, zero_n_p, ad;
+    bd_total << cb, bd;
+  }
+  else
+  {
+    ad_total.resize(n + p + np, n + p + np);
+    bd_total.resize(n + p + np, r);
+
+    Eigen::MatrixXd zero_temp1;
+    zero_temp1.resize(p, (np - 1)*p); zero_temp1.setZero();
+
+    Eigen::MatrixXd zero_temp2;
+    zero_temp2.resize(n, np*p); zero_temp2.setZero();
+
+    Eigen::MatrixXd zero_temp3;
+    zero_temp3.resize(np*p, p + n); zero_temp3.setZero();
+
+    Eigen::MatrixXd shift_register;
+    shift_register.resize(np*p, np*p); shift_register.setZero();
+
+
+    Eigen::MatrixXd zero_temp4;
+    zero_temp4.resize(np*p, r); zero_temp4.setZero();
+    for (int i = 0; i<p*(np - 1); i++)
+      shift_register(i, i + p) = 1;
+
+    ad_total << eye_p, ca, -eye_p, zero_temp1, zero_n_p, ad, zero_temp2, zero_temp3, shift_register;
+    bd_total << cb, bd, zero_temp4;
+  }
+
+}
+
+void WalkingController::riccatiGain(Eigen::Matrix<double, 48, 48>& ad_total, Eigen::Matrix<double, 48, 12>& bd_total, Eigen::Matrix<double, 48, 48>& q, Eigen::Matrix12d& r, Eigen::Matrix<double, 12, 48>& k)
+{
+
+  const int n = ad_total.rows(); //state \B0\B9\BC\F6 (48)
+  const int m = bd_total.cols(); // Input \B0\B9\BC\F6 (12)
+
+  //  std::cout<<"c1" <<kkk_<<endl;
+
+  static bool InitDare;
+
+  if (!InitDare)
+  {
+    std::cout << "insiadfnisdaifnadisfasd" <<std::endl;
+    discreteRiccatiEquationInitialize(ad_total, bd_total);
+    InitDare = true;
+  }
+
+
+  kkk_ = discreteRiccatiEquationLQR(ad_total, bd_total, r, q);
+
+  //std::cout<<"kkk_" <<kkk_<<endl;
+  //KKK.resize(8,8); KKK.setIdentity();
+
+  Eigen::Matrix<double, 12, 48> trans_bd;
+  trans_bd = bd_total.transpose();
+  Eigen::Matrix<double, 12, 12> temp_r_inv;
+  temp_r_inv = (r + trans_bd*kkk_*bd_total);
+  temp_r_inv = temp_r_inv.inverse();
+  k = temp_r_inv *trans_bd*kkk_*ad_total;
+
+  //k = k.inverse();
+  //k = k*trans_bd*kkk_*ad_total;
+
+}
+
+
+
+void WalkingController::slowCalc()
+{
+  while(true)
+  {
+    if(ready_for_thread_flag_)
+    {
+      slowCalcContent();
+      if (ready_for_compute_flag_ == false)
+      {
+        ready_for_compute_flag_ = true;
+      }
+    }
+
+    this_thread::sleep_for(chrono::milliseconds(100));
+
   }
 }
 
-*/
+void WalkingController::slowCalcContent()
+{
+  Eigen::Vector28d qqq;
+  slowcalc_mutex_.lock();
 
+  for(int i =0; i<28; i++)
+  {
+    qqq(i) = thread_q_(i);
+  }
+  slowcalc_mutex_.unlock();
+
+  Eigen::Matrix<double, 6, 18> contact_j;
+  Eigen::Matrix6d lamda;
+  Eigen::Matrix<double, 6, 18> j_c_bar;
+  Eigen::Matrix<double, 18, 18> pc;
+  Eigen::Matrix<double, 18, 18> eye_18;
+  Eigen::Matrix<double, 18, 18> mass_inverse;
+  Eigen::Matrix<double, 12, 12> temp22;
+  Eigen::Matrix<double, 48, 48> q_mat;
+  Eigen::Matrix12d r_mat;
+
+  Eigen::Matrix<double, 12, 48> lqr_k; //lqr_k.resize(12, 12*4);
+
+  if(thread_tick_ == 0)
+  {
+    mass_matrix_.setZero();
+    mass_matrix_pc_.setZero();
+    mass_matrix_sel_.setZero();
+  }
+
+  mass_matrix_ = model_.getLegInertia();
+
+
+  //std::cout << "MASSMATRIXxxxx" << mass_matrix_ << std::endl;
+
+  if((walking_enable_) == true)
+  {
+    if(foot_step_(current_step_num_,6) == 0) //right foot
+    {
+      contact_j = model_.getLegWithVLinkJacobian((DyrosJetModel::EndEffector)(1));
+    }
+    else if(foot_step_(current_step_num_,6) == 1)
+    {
+      contact_j = model_.getLegWithVLinkJacobian((DyrosJetModel::EndEffector)(0));
+    }
+
+    lamda = (contact_j*mass_matrix_.inverse()*contact_j.transpose());
+    lamda = lamda.inverse();
+    j_c_bar = lamda*contact_j*mass_matrix_.inverse();
+
+    //std::cout<<"contact_j"<<contact_j<<endl;
+    pc = contact_j.transpose()*j_c_bar;
+
+    eye_18.setIdentity();
+
+
+    mass_inverse = mass_matrix_.inverse();
+
+    mass_matrix_pc_ = mass_inverse*(eye_18-pc);
+
+    for (int i=0; i<12; i++)
+    {
+      for (int j=0; j<12; j++)
+        mass_matrix_sel_(i,j) = mass_matrix_pc_(i+6,j+6);
+    }
+
+  }
+  else
+  {
+    mass_inverse = mass_matrix_.inverse();
+
+    for (int i=0; i<12; i++)
+    {
+      for (int j=0; j<12; j++)
+        mass_matrix_sel_(i,j) = mass_inverse(i+6,j+6);
+    }
+  }
+
+  temp22.setZero();
+  temp22 = mass_matrix_sel_;
+
+  mass_matrix_sel_.setZero();
+  for (int i=0; i<12; i++)
+  {
+    mass_matrix_sel_(i,i) = temp22(i,i);
+  }
+
+
+  //if(thread_tick_ == 0)
+  //std::cout << "masssel" << mass_matrix_sel_ << endl;
+
+  double spring_k = 2000.0;
+  double damping_d = 100.0;
+  double motor_k = 10.0;
+  massSpringMotorModel(spring_k, damping_d, motor_k, mass_matrix_sel_, a_right_mat_, b_right_mat_, c_right_mat_);
+  //  std::cout<<"massSpringMotor pass"<<endl;
+  discreteModel(a_right_mat_, b_right_mat_, c_right_mat_, 0, 1.0/hz_, a_disc_, b_disc_, c_right_mat_, a_disc_total_, b_disc_total_);
+  //  std::cout<<"discreteModel pass"<<endl;
+
+
+
+  q_mat.setIdentity();
+  q_mat = q_mat*1.0;
+
+  for (int i=0; i<12; i++)
+  {
+    q_mat(i,i) = 10.0;
+
+  }
+
+  r_mat.setIdentity();
+  r_mat = r_mat * 1.0;
+
+
+
+
+  //std::cout << "c" << q_mat << std::endl;
+
+  //std::cout << "d" << r_mat << std::endl;
+
+  riccatiGain(a_disc_total_, b_disc_total_, q_mat, r_mat, lqr_k);
+
+  //std::cout<<"lqr_k"<<lqr_k<<endl;
+  //std::cout << "a" << a_disc_total_ << std::endl;
+  //std::cout << "b" << b_disc_total_ << std::endl;
+
+  if(ready_for_compute_flag_==false)
+  {
+
+
+  }
+
+
+  calc_update_flag_ = true;
+  thread_tick_++;
+
+  slowcalc_mutex_.lock();
+
+  ad_right_ = a_disc_;
+  bd_right_ = b_disc_;
+  ad_total_right_ = a_disc_total_;
+  bd_total_right_ = b_disc_total_;
+  kkk_motor_right_ = lqr_k;
+  slowcalc_mutex_.unlock();
+}
+
+
+void WalkingController::discreteRiccatiEquationInitialize(Eigen::MatrixXd a, Eigen::MatrixXd b)
+
+{
+  int n=a.rows(); //number of rows
+  int	m=b.cols(); //number of columns
+
+  Z11.resize(n, n);
+  Z12.resize(n, n);
+  Z21.resize(n, n);
+  Z22.resize(n, n);
+  temp1.resize(m, m);
+  temp2.resize(n, n);
+  temp3.resize(m, n);
+
+  eigVal_real.resize(2 * n); //eigen value\C0\C7 real\B0\AA
+  eigVal_img.resize(2 * n); //eigen value\C0\C7 img\B0\AA
+  eigVec_real.resize(2 * n); //eigen vector\C0\C7 real\B0\AA
+  eigVec_img.resize(2 * n); //eigen vector\C0\C7 img\B0\AA
+
+  Z.resize(2 * n, 2 * n);
+
+  deigVal_real.resize(2 * n);
+  deigVal_img.resize(2 * n);
+
+  deigVec_real.resize(2 * n, 2 * n);
+  deigVec_img.resize(2 * n, 2 * n);
+
+  tempZ_real.resize(2 * n, n);
+  tempZ_img.resize(2 * n, n);
+
+  U11_inv.resize(n, n);
+  X.resize(n, n);
+  X_sol.resize(n, n);
+
+  tempZ_comp.resize(n * 2, n);
+  U11.resize(n, n);
+  U21.resize(n, n);
+
+}
+
+Eigen::MatrixXd WalkingController::discreteRiccatiEquationLQR(Eigen::MatrixXd A, Eigen::MatrixXd B, Eigen::MatrixXd R, Eigen::MatrixXd Q)
+{
+  int n=A.rows(); //number of rows
+  int n2 = n * 2;
+  int	m=B.cols(); //number of columns
+
+  for (int i = 0; i<2 * n; i++) //\B0\AA\C0\C7 \C3ʱ\E2ȭ
+  {
+    eigVec_real[i].resize(n2);
+    eigVec_real[i].setZero();
+    eigVec_img[i].resize(n2);
+    eigVec_img[i].setZero();
+  }
+
+  deigVal_real.setZero();
+  deigVal_img.setZero();
+  deigVec_real.setZero();
+  deigVec_img.setZero();
+  tempZ_real.setZero();
+  tempZ_img.setZero();
+  U11_inv.setZero();
+  X.setZero();
+  X_sol.setZero();
+
+
+  Z11 = A.inverse();
+  temp1 = R.inverse();
+  Z21 = Q*Z11;
+
+  Eigen::MatrixXd B_T;
+  B_T = B.transpose();
+  temp2 = B * R.inverse() * B.transpose();     //B*inv(R)*B'
+  Z12 = Z11*temp2;
+  Eigen::MatrixXd A_T;
+  A_T = A.transpose();
+  Z22 = A.transpose() + Z21*temp2;
+  //construct the Z with Z11,Z12,Z21,Z22
+  Z.setZero();
+
+  //ggory15
+  Z.topLeftCorner(n, n) = Z11;
+  Z.topRightCorner(n, n) = Z12;
+  Z.bottomLeftCorner(n, n) = Z21;
+  Z.bottomRightCorner(n, n) = Z22;
+
+
+  /*
+  Z.set(0,0,n,n,Z11);
+  Z.set(0,n,n,n,Z12);
+  Z.set(n,0,n,n,Z21);
+  Z.set(n,n,n,n,Z22);
+  */
+
+
+  using namespace std;
+
+  Eigen::MatrixXd Z_evr = Z; // \C0ӽ\C3 \C0\FA\C0\E5, rmath\C0\C7 evr\C0\BB \C7ϸ\E9 \BF\F8\BA\BB Z matrix\B0\A1 \BA\AF\C7\FC\B5\CA
+
+  /////////////////////////
+  Eigen::EigenSolver<Eigen::MatrixXd> es(Z_evr);	//8ms
+
+
+  Z_eig = Z.eigenvalues();	//5ms
+  es_eig = es.eigenvectors();
+
+  deigVal_real = Z_eig.real();
+  deigVal_img = Z_eig.imag();
+
+
+  for (int i = 0; i<n2; i++)
+  {
+    for (int ii = 0; ii<n2; ii++)
+    {
+      deigVec_real(ii, i) = es_eig.col(i)(ii).real();
+      deigVec_img(ii, i) = es_eig.col(i)(ii).imag();
+    }
+  }
+
+  int c1 = 0;
+
+  for (int i = 0; i<n2; i++)
+  {
+    if ((deigVal_real(i)*deigVal_real(i) + deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
+    {
+      for (int j = 0; j<n2; j++)
+      {
+        tempZ_real(j, c1) = deigVec_real(j, i);
+        tempZ_img(j, c1) = deigVec_img(j, i);
+      }
+      c1++;
+    }
+  }
+
+  using namespace Eigen;
+
+  for (int i = 0; i<n2; i++)
+  {
+    for (int j = 0; j<n; j++)
+    {
+      tempZ_comp.real()(i, j) = tempZ_real(i, j);
+      tempZ_comp.imag()(i, j) = tempZ_img(i, j);
+    }
+  }
+
+  for (int i = 0; i<n; i++)
+  {
+    for (int j = 0; j<n; j++)
+    {
+      U11(i, j) = tempZ_comp(i, j);
+      U21(i, j) = tempZ_comp(i + n, j);
+    }
+  }
+
+  U11_inv = U11.inverse();
+  X = U21*(U11_inv);
+
+  for (int i = 0; i<n; i++)
+  {
+    for (int j = 0; j<n; j++)
+    {
+      X_sol(i, j) = X.real()(i, j);
+    }
+  }
+
+  return X_sol;
+}
+
+Eigen::MatrixXd WalkingController::discreteRiccatiEquationPrev(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd r, Eigen::MatrixXd q)
+{
+  int n=a.rows(); //number of rows
+  int	m=b.cols(); //number of columns
+
+  Eigen::MatrixXd z11(n, n), z12(n, n), z21(n, n), z22(n, n);
+
+  z11 = a.inverse();
+  z12 = a.inverse()*b*r.inverse()*b.transpose();
+  z21 = q*a.inverse();
+  z22 = a.transpose() + q*a.inverse()*b*r.inverse()*b.transpose();
+
+  Eigen::MatrixXd z; z.resize(2*n, 2*n);
+  z.setZero();
+  z.topLeftCorner(n,n) = z11;
+  z.topRightCorner(n,n) = z12;
+  z.bottomLeftCorner(n,n) = z21;
+  z.bottomRightCorner(n,n) = z22;
+
+
+  std::vector<Eigen::VectorXd> eigVec_real(2*n);
+  std::vector<Eigen::VectorXd> eigVec_img(2*n);
+
+  for(int i=0; i<8; i++)
+  {
+    eigVec_real[i].resize(2*n);
+    eigVec_real[i].setZero();
+    eigVec_img[i].resize(2*n);
+    eigVec_img[i].setZero();
+  }
+
+  Eigen::VectorXd deigVal_real(2*n);
+  Eigen::VectorXd deigVal_img(2*n);
+  deigVal_real.setZero();
+  deigVal_img.setZero();
+  Eigen::MatrixXd deigVec_real(2*n,2*n);
+  Eigen::MatrixXd deigVec_img(2*n,2*n);
+  deigVec_real.setZero();
+  deigVec_img.setZero();
+
+  deigVal_real = z.eigenvalues().real();
+  deigVal_img = z.eigenvalues().imag();
+
+  Eigen::EigenSolver<Eigen::MatrixXd> ev(z);
+  //EigenVector Solver
+  //Matrix3D ones = Matrix3D::Ones(3,3);
+  //EigenSolver<Matrix3D> ev(ones);
+  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << ev.eigenvectors().col(1) << endl;
+
+  for(int i=0;i<2*n; i++)
+  {
+    for(int j=0; j<2*n; j++)
+    {
+      deigVec_real(j,i) = ev.eigenvectors().col(i)(j).real();
+      deigVec_img(j,i) = ev.eigenvectors().col(i)(j).imag();
+    }
+  }
+
+  //Order the eigenvectors
+  //move e-vectors correspnding to e-value outside the unite circle to the left
+
+  Eigen::MatrixXd tempZ_real(2*n, n), tempZ_img(2*n, n);
+  tempZ_real.setZero();
+  tempZ_img.setZero();
+  int c=0;
+
+  for (int i=0;i<2*n;i++)
+  {
+    if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
+    {
+      for(int j=0; j<2*n; j++)
+      {
+        tempZ_real(j,c) = deigVec_real(j,i);
+        tempZ_img(j,c) = deigVec_img(j,i);
+      }
+      c++;
+    }
+  }
+
+  Eigen::MatrixXcd tempZ_comp(2*n, n);
+  for(int i=0;i<2*n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      tempZ_comp.real()(i,j) = tempZ_real(i,j);
+      tempZ_comp.imag()(i,j) = tempZ_img(i,j);
+    }
+  }
+
+  Eigen::MatrixXcd U11(n, n), U21(n, n), X(n, n);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      U11(i,j) = tempZ_comp(i,j);
+      U21(i,j) = tempZ_comp(i+n,j);
+    }
+  }
+  X = U21*(U11.inverse());
+
+  Eigen::MatrixXd X_sol(n, n);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      X_sol(i,j) = X.real()(i,j);
+    }
+  }
+  /*
+  Eigen::Matrix4d z11;
+  Eigen::Matrix4d z12;
+  Eigen::Matrix4d z21;
+  Eigen::Matrix4d z22;
+
+  Eigen::Matrix8d z;
+
+  std::vector<Eigen::Vector8d> eigVec_real;
+  std::vector<Eigen::Vector8d> eigVec_img;
+  Eigen::Vector8d deigVal_real;
+  Eigen::Vector8d deigVal_img;
+  Eigen::Matrix8x2d deigVec_real;
+  Eigen::Matrix8d deigVec_img;
+
+  Eigen::Matrix8x4d tempZ_real;
+  Eigen::Matrix8x4d tempZ_img;
+  Eigen::Matrix8x4cd tempZ_comp;
+
+  Eigen::Matrix4cd U11;
+  Eigen::Matrix4cd U21;
+  Eigen::Matrix4d X_sol;
+  Eigen::Matrix4cd X;
+
+  z11 = a.inverse();
+  z12 = a.inverse()*b*r.inverse()*b.transpose();
+  z21 = q*a.inverse();
+  z22 = a.transpose() + q*a.inverse()*b*r.inverse()*b.transpose();
+ // std::cout<<"c2" <<std::endl;
+
+  z.setZero();
+  z.topLeftCorner(n,n) = z11;
+  z.topRightCorner(n,n) = z12;
+  z.bottomLeftCorner(n,n) = z21;
+  z.bottomRightCorner(n,n) = z22;
+
+  for(int i=0; i<8; i++)
+  {
+    eigVec_real[i].resize(2*n);
+    eigVec_real[i].setZero();
+    eigVec_img[i].resize(2*n);
+    eigVec_img[i].setZero();
+  }
+ // std::cout<<"c3" <<std::endl;
+
+  deigVal_real.setZero();
+  deigVal_img.setZero();
+  deigVec_real.setZero();
+  deigVec_img.setZero();
+
+  deigVal_real = z.eigenvalues().real();
+  deigVal_img = z.eigenvalues().imag();
+
+  Eigen::EigenSolver<Eigen::MatrixXd> ev(z);
+  //EigenVector Solver
+  //Matrix3D ones = Matrix3D::Ones(3,3);
+  //EigenSolver<Matrix3D> ev(ones);
+  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << ev.eigenvectors().col(1) << endl;
+//  std::cout<<"c3-1" <<std::endl;
+
+  for(int i=0;i<2*n; i++)
+  {
+    for(int j=0; j<2*n; j++)
+    {
+      deigVec_real(j,i) = ev.eigenvectors().col(i)(j).real();
+      deigVec_img(j,i) = ev.eigenvectors().col(i)(j).imag();
+   //   std::cout<<"c3-2" <<std::endl;
+    }
+  }
+//  std::cout<<"c4" <<std::endl;
+
+  //Order the eigenvectors
+  //move e-vectors correspnding to e-value outside the unite circle to the left
+
+  tempZ_real.setZero();
+  tempZ_img.setZero();
+  int c=0;
+
+  for (int i=0;i<2*n;i++)
+  {
+    if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
+    {
+      for(int j=0; j<2*n; j++)
+      {
+        tempZ_real(j,c) = deigVec_real(j,i);
+        tempZ_img(j,c) = deigVec_img(j,i);
+      }
+      c++;
+
+    }
+
+    this_thread::sleep_for(chrono::milliseconds(100));
+
+  }
+
+  for(int i=0;i<2*n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      tempZ_comp.real()(i,j) = tempZ_real(i,j);
+      tempZ_comp.imag()(i,j) = tempZ_img(i,j);
+    }
+  }
+ // std::cout<<"c5" <<std::endl;
+
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      U11(i,j) = tempZ_comp(i,j);
+      U21(i,j) = tempZ_comp(i+n,j);
+    }
+  }
+  X = U21*(U11.inverse());
+
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      X_sol(i,j) = X.real()(i,j);
+    }
+  }
+*/
+  return X_sol;
+}
 
 }
 

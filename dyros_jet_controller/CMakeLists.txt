@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(dyros_jet_controller)
 
 add_compile_options(-std=c++11)
+#add_compile_options(-ofast)
 
 find_package(catkin REQUIRED COMPONENTS
     dyros_jet_msgs
@@ -37,6 +38,13 @@ include_directories(
 file(GLOB_RECURSE HeaderFiles "include/*.h")
 add_custom_target(dyros_jet_control_headers SOURCES ${HeaderFiles})
 
+file(GLOB CVXGEN_SRC
+    "include/cvxgen_6_8_0/cvxgen/*.h"
+    "include/cvxgen_6_8_0/cvxgen/solver.c"
+    "include/cvxgen_6_8_0/cvxgen/matrix_support.c"
+    "include/cvxgen_6_8_0/cvxgen/ldl.c"
+    "include/cvxgen_6_8_0/cvxgen/util.c"
+    )
 
 file(GLOB BRIDGE_SRC
     "src/real_robot_interface.cpp"
@@ -47,10 +55,12 @@ file(GLOB BRIDGE_SRC
     )
 file(GLOB WALKING_SRC
     "src/walking_controller.cpp"
+    "src/state_estimator.cpp"
     )
 file(GLOB CONTROLLER_SRC
     "src/dyros_jet_model.cpp"
     "src/task_controller.cpp"
+    "src/haptic_controller.cpp"
     "src/joint_controller.cpp"
     )
 
@@ -59,6 +69,7 @@ add_library(dyros_jet_controller_lib
     ${BRIDGE_SRC}
     ${CONTROLLER_SRC}
     ${WALKING_SRC}
+    ${CVXGEN_SRC}
     #  ${UPPER_SRC}
     )
 
@@ -75,6 +86,7 @@ target_link_libraries(dyros_jet_controller
     dyros_jet_controller_lib
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${CVXGEN_SRC}
     )
 
 add_dependencies(dyros_jet_controller_lib ${catkin_EXPORTED_TARGETS})

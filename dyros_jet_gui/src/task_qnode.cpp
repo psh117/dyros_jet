@@ -116,4 +116,14 @@ void TaskQNode::right_ftStateCallback(const geometry_msgs::WrenchStampedConstPtr
 {
   ft_rf_msg_ = *msg;
 }
+
+void TaskQNode::send_ft_calib(float time)
+{
+     if(isConnected)
+     {
+         std_msgs::Float32 msg;
+         msg.data = time;
+        ft_sensor_calib_publisher.publish(msg);
+     }
+}
 }  // namespace dyros_jet_gui

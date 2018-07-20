@@ -420,6 +420,10 @@ void TaskWindow::on_button_walk_init_wholebody_clicked()
   {
     qnode.joint_cmd_msg_.name[i] = "";
   }
+
+  qnode.walk_cmd_msg_.walk_mode = 0;
+  qnode.send_walk_ctrl();
+
 }
 
 void TaskWindow::on_button_walk_init_lowerbody_clicked()
@@ -450,6 +454,10 @@ void TaskWindow::on_button_walk_init_lowerbody_clicked()
   {
     qnode.joint_cmd_msg_.name[i] = "";
   }
+
+  qnode.walk_cmd_msg_.walk_mode = 0;
+  qnode.send_walk_ctrl();
+
 }
 
 void TaskWindow::on_button_walk_stop_clicked()
@@ -459,7 +467,7 @@ void TaskWindow::on_button_walk_stop_clicked()
 
 void TaskWindow::on_button_ft_calib_clicked()
 {
-  //qnode.send_ft_calib(5.0);
+  qnode.send_ft_calib(5.0);
 }
 
 void TaskWindow::taskCtrlMinusClicked()
