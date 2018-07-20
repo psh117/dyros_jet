@@ -4,6 +4,7 @@ namespace dyros_jet_controller
 {
  
 JointController::JointController(const VectorQd& current_q, const double& control_time) :
+  Controller(PRIORITY),
   current_q_(current_q), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF),
   start_time_{}, end_time_{}
 {
@@ -65,11 +66,11 @@ void JointController::updateControlMask(unsigned int *mask)
   {
     if(joint_enable_[i])
     {
-      mask[i] = (mask[i] | PRIORITY);
+      setMask(&mask[i]);
     }
     else
     {
-      mask[i] = (mask[i] & ~PRIORITY);
+      resetMask(&mask[i]);
     }
   }
 }
@@ -78,7 +79,7 @@ void JointController::writeDesired(const unsigned int *mask, VectorQd& desired_q
 {
   for(unsigned int i=0; i<total_dof_; i++)
   {
-    if( mask[i] >= PRIORITY && mask[i] < PRIORITY * 2 )
+    if(isAvailable(&mask[i]))
     {
       desired_q(i) = desired_q_(i);
     }

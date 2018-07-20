@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>dyros_jet_moveit_depend</name>
+  <name>dyros_jet_gui_2</name>
   <version>0.1.0</version>
-  <description>The dyros_jet_moveit_depend package</description>
+  <description>The dyros_jet_gui_2 package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="saga@todo.todo">saga</maintainer>
+  <maintainer email="ahn@todo.todo">jh ahn</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -19,13 +19,14 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/ui_simple</url> -->
+  <!-- <url type="website">http://wiki.ros.org/dyros_jet_gui_2</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+  <author >jh ahn</author>
 
 
   <!-- The *depend tags are used to specify dependencies -->
@@ -49,12 +50,9 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>tf roscpp</build_depend>
-  <build_depend>dyros_jet_msgs</build_depend>
-  <build_export_depend>tf roscpp </build_export_depend>
-  <exec_depend>tf roscpp </exec_depend>
-  <exec_depend>dyros_jet_msgs </exec_depend>
-
+  <build_depend>qt_build roscpp rospy sensor_msgs libqt4-dev</build_depend>
+  <build_export_depend>qt_build roscpp rospy sensor_msgs libqt4-dev</build_export_depend>
+  <exec_depend>qt_build roscpp rospy sensor_msgs libqt4-dev</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

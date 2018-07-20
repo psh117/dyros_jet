@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1254</width>
-    <height>1214</height>
+    <width>1920</width>
+    <height>1080</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,7 +20,7 @@
    <string>DYROS THORMANG User Interface</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/images.qrc">
+   <iconset resource="../../../dyros_black_ui/resources/images.qrc">
     <normaloff>:/images/icon_2.png</normaloff>:/images/icon_2.png</iconset>
   </property>
   <property name="locale">
@@ -602,6 +602,164 @@
           </layout>
          </widget>
         </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>Hand Control</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>Position Control</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_9">
+              <item>
+               <layout class="QGridLayout" name="gridLayout_12">
+                <item row="1" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_hand_finger2">
+                  <property name="minimum">
+                   <double>-90.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>90.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>3.000000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="label_40">
+                  <property name="text">
+                   <string>Thumb AA</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_28">
+                  <property name="text">
+                   <string>Finger 2</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_30">
+                  <property name="text">
+                   <string>Finger 1</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_hand_finger1">
+                  <property name="minimum">
+                   <double>-90.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>90.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>3.000000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_hand_thumb_fe">
+                  <property name="minimum">
+                   <double>-90.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>90.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>3.000000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_29">
+                  <property name="text">
+                   <string>Thumb FE</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_hand_thumb_aa">
+                  <property name="minimum">
+                   <double>-90.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>90.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>3.000000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QPushButton" name="button_hand_command">
+                <property name="text">
+                 <string>Command</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>Preset Motion</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <widget class="QPushButton" name="button_hand_preset_open">
+                <property name="text">
+                 <string>Open</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="button_hand_preset_drill_power">
+                <property name="text">
+                 <string>Drill(power)</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="button_hand_preset_box_pinch">
+                <property name="text">
+                 <string>Box(pinch)</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_4">
+                <property name="text">
+                 <string>PushButton</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
@@ -616,13 +774,106 @@
         <property name="title">
          <string>Sensor Control</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,1,0,1">
+        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,1,0,1">
          <item>
           <widget class="QPushButton" name="button_ft_calib">
            <property name="text">
             <string>FT Sensor  Calibration</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>LF Graph Source </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox_LF">
+             <item>
+              <property name="text">
+               <string>LF_Force_X</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Force_Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Force_Z</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Torque_X</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Torque_Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LF_Torque_Z</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>RF Graph Source</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox_RF">
+             <item>
+              <property name="text">
+               <string>RF_Force_X</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Force_Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Force_Z</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Torque_X</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Torque_Y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RF_Torque_Z</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0">
@@ -727,8 +978,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1254</width>
-     <height>19</height>
+     <width>1920</width>
+     <height>34</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -773,7 +1024,7 @@
   </action>
  </widget>
  <resources>
-  <include location="../resources/images.qrc"/>
+  <include location="../../../dyros_black_ui/resources/images.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -793,4 +1044,7 @@
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>combobox_test1()</slot>
+ </slots>
 </ui>

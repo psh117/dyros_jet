@@ -139,6 +139,7 @@ public:
   void previewControlParameter(double dt, int NL, Eigen::Matrix4d& k, Eigen::Vector3d com_support_init_,
                                double& gi, Eigen::VectorXd& gp_l, Eigen::Matrix1x3d& gx, Eigen::Matrix3d& a,
                                Eigen::Vector3d& b, Eigen::Matrix1x3d& c);
+  //LQR && External Encoder
   void vibrationControl(const Eigen::Vector12d desired_leg_q, Eigen::Vector12d &output);
   void massSpringMotorModel(double spring_k, double damping_d, double motor_k, Eigen::Matrix12d & mass, Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c);
   void discreteModel(Eigen::Matrix<double, 36, 36>& a, Eigen::Matrix<double, 36, 12>& b, Eigen::Matrix<double, 12, 36>& c, int np, double dt,
@@ -162,6 +163,10 @@ public:
   bool foot_last_walking_end_;
   bool walking_state_send;
 
+
+  //ImpedanceControl
+  void impedancefootUpdate();
+  void impedanceControl();
 
 private:
 
@@ -345,7 +350,6 @@ private:
   Eigen::Matrix3d a_;
   Eigen::Vector3d b_;
   Eigen::Matrix1x3d c_;
-
 
   //resolved momentum control
   Eigen::Vector3d p_ref_;
@@ -570,8 +574,6 @@ private:
   void kalmanFilter3();
   void kalmanStateSpace3();
   //////////////////////////////////////////////////////////////
-
-
 
 };
 

@@ -35,6 +35,11 @@ TaskQNode::TaskQNode(int argc, char** argv ) :
   joint_cmd_msg_.position.resize(32);
   joint_cmd_msg_.name.resize(32);
   joint_cmd_msg_.duration.resize(32);
+  hand_cmd_msg_.position.resize(4);
+  hand_cmd_msg_.name.push_back("hand_finger1");
+  hand_cmd_msg_.name.push_back("hand_finger2");
+  hand_cmd_msg_.name.push_back("hand_thumb_fe");
+  hand_cmd_msg_.name.push_back("hand_thumb_aa");
 }
 
 TaskQNode::~TaskQNode() {
@@ -66,6 +71,7 @@ void TaskQNode::init_nh()
   task_cmd_publisher = nh->advertise<dyros_jet_msgs::TaskCommand>("/dyros_jet/task_command", 5);
   walking_cmd_publisher = nh->advertise<dyros_jet_msgs::WalkingCommand>("/dyros_jet/walking_command", 5);
   controlbase_bool_publisher = nh->advertise<std_msgs::Bool>("/dyros_jet/controlbase_bool", 5);
+  hand_cmd_publisher_ = nh->advertise<sensor_msgs::JointState>("/dyros_jet/hand_command", 5);
 
   ft_sensor_calib_publisher = nh->advertise<std_msgs::Float32>("/ati_ft_sensor/calibration", 5);
   ft_sensor_lf_state_subscriber = nh->subscribe("/ati_ft_sensor/left_foot_ft", 1, &TaskQNode::left_ftStateCallback, this);
@@ -107,6 +113,10 @@ void TaskQNode::send_bool_cb()
   controlbase_bool_publisher.publish(controlbase_bool_);
 }
 
+void TaskQNode::send_hand_cmd()
+{
+  hand_cmd_publisher_.publish(hand_cmd_msg_);
+}
 void TaskQNode::left_ftStateCallback(const geometry_msgs::WrenchStampedConstPtr& msg)
 {
   ft_lf_msg_ = *msg;
@@ -119,11 +129,12 @@ void TaskQNode::right_ftStateCallback(const geometry_msgs::WrenchStampedConstPtr
 
 void TaskQNode::send_ft_calib(float time)
 {
-     if(isConnected)
-     {
-         std_msgs::Float32 msg;
-         msg.data = time;
+    if(isConnected)
+    {
+        std_msgs::Float32 msg;
+        msg.data = time;
+
         ft_sensor_calib_publisher.publish(msg);
-     }
+    }
 }
 }  // namespace dyros_jet_gui
