@@ -14,26 +14,27 @@
 #define ZERO_LIBRARY_MODE
 
 
-const int FILE_CNT = 14;
+const int FILE_CNT = 15;
 
 const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
 
-  "/home/dg/data/walking/0_desired_zmp_.txt",
-  "/home/dg/data/walking/1_desired_com_.txt",
-  "/home/dg/data/walking/2_desired_q_.txt",
-  "/home/dg/data/walking/3_real_q_.txt",
-  "/home/dg/data/walking/4_desired_swingfoot_.txt",
-  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
-  "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/dg/data/walking/7_current_foot_trajectory_.txt",
-  "/home/dg/data/walking/8_QPestimation_variables_.txt",
-  "/home/dg/data/walking/9_ft_sensor_.txt",
-  "/home/dg/data/walking/10_ext_encoder_.txt",
-  "/home/dg/data/walking/11_kalman_estimator2_.txt",
-  "/home/dg/data/walking/12_kalman_estimator1_.txt",
-  "/home/dg/data/walking/13_kalman_estimator3_.txt"
+  "/home/pen/data/walking/0_desired_zmp_.txt",
+  "/home/pen/data/walking/1_desired_com_.txt",
+  "/home/pen/data/walking/2_desired_q_.txt",
+  "/home/pen/data/walking/3_real_q_.txt",
+  "/home/pen/data/walking/4_desired_swingfoot_.txt",
+  "/home/pen/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/pen/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/pen/data/walking/7_current_foot_trajectory_.txt",
+  "/home/pen/data/walking/8_QPestimation_variables_.txt",
+  "/home/pen/data/walking/9_ft_sensor_.txt",
+  "/home/pen/data/walking/10_ext_encoder_.txt",
+  "/home/pen/data/walking/11_kalman_estimator2_.txt",
+  "/home/pen/data/walking/12_kalman_estimator1_.txt",
+  "/home/pen/data/walking/13_kalman_estimator3_.txt",
+  "/home/pen/data/walking/14_grav_torque_.txt"
 };
 
 using namespace std;
@@ -76,6 +77,7 @@ public:
     file[11]<<"walking_tick_"<<"\t"<<"X_hat_post_2_(0)"<<"\t"<<"X_hat_post_2_(1)"<<"\t"<<"X_hat_post_2_(2)"<<"\t"<<"X_hat_post_2_(3)"<<"\t"<<"X_hat_post_2_(4)"<<"\t"<<"X_hat_post_2_(5)"<<"\t"<<"X_hat_post_2_(6)"<<"\t"<<"X_hat_post_2_(7)"<<endl;
     file[12]<<"walking_tick_"<<"\t"<<"X_hat_post_1_(0)"<<"\t"<<"X_hat_post_1_(1)"<<"\t"<<"X_hat_post_1_(2)"<<"\t"<<"X_hat_post_1_(3)"<<"\t"<<"X_hat_post_1_(4)"<<"\t"<<"X_hat_post_1_(5)"<<endl;
     file[13]<<"walking_tick_"<<"\t"<<"X_hat_post_3_(0)"<<"\t"<<"X_hat_post_3_(1)"<<"\t"<<"X_hat_post_3_(2)"<<"\t"<<"X_hat_post_3_(3)"<<"\t"<<"X_hat_post_3_(4)"<<"\t"<<"X_hat_post_3_(5)"<<endl;
+    file[14]<<"walking_tick_"<<"\t"<<"grav_ground_torque_(0)"<<"\t"<<"grav_ground_torque_(1)"<<"\t"<<"grav_ground_torque_(2)"<<"\t"<<"grav_ground_torque_(3)"<<"\t"<<"grav_ground_torque_(4)"<<"\t"<<"grav_ground_torque_(5)"<<endl;
 
   }
   //WalkingController::~WalkingController()
