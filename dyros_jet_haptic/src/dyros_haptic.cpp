@@ -3,7 +3,7 @@
 DyrosHaptic::DyrosHaptic()
 {
     quit_flag_ = false;
-    end_effector_ = false;
+    end_effector_ = true;
     command_frame_ = false;
     scale_ = 10.0;
     haptic_button_ = 0;
@@ -40,10 +40,10 @@ void DyrosHaptic::hapticLoop() {
         dhdSleep (2.0);
         return;
     }
+    dhdEnableForce(DHD_ON);
 
-
-    printf("press 'l' to control left hand (default)\n");
-    printf("press 'r' to control right hand\n");
+    printf("press 'r' to control right hand (default)\n");
+    printf("press 'l' to control left hand\n");
     printf("press 'b' to control through base frame\n");
     printf("press 'e' to control through end effector frame\n");
     printf("press 's' to change scale\n\n");
@@ -56,6 +56,10 @@ void DyrosHaptic::hapticLoop() {
 
 
         haptic_button_ = dhdGetButtonMask();
+        if (dhdSetForceAndTorqueAndGripperForce (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) < DHD_NO_ERROR) {
+          printf ("error: cannot set force (%s)\n", dhdErrorGetLastStr());
+          quit_flag_ = 1;
+        }
 
         if(dhdGetPosition(&haptic_pos_x_, &haptic_pos_y_, &haptic_pos_z_) < DHD_NO_ERROR)
         {
