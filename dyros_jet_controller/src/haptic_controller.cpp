@@ -24,7 +24,7 @@ void HapticController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3
 void HapticController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double duration)
 {
   // Trick: When msg->duration is 0.0 it means that haptic buttion is positive edge triggered
-  if(duration == 0.0)
+  if(duration == 1.0)
   {
       rot_init_ = model_.getCurrentTrasmfrom(ee).linear();
   }

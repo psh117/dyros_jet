@@ -241,9 +241,15 @@ void ControlBase::hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPt
         target.translation() = current.linear()*target.translation() + current.translation();
         target.linear() = current.linear() * target.linear();
       }
-
+      if(msg->end_effector[i])
+      {
       haptic_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
       haptic_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
+      if (i==2)
+        haptic_controller_.setEnable((DyrosJetModel::EndEffector)3, false);
+      else
+          haptic_controller_.setEnable((DyrosJetModel::EndEffector)2, false);
+      }
     }
   }
 }

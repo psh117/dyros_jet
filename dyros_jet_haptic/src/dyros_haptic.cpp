@@ -87,11 +87,11 @@ void DyrosHaptic::hapticLoop() {
 
 
         // initialize position of haptic device
-        if(haptic_button_== 1 && haptic_button_pre_ == 0) {
-            haptic_pos_x_pre_ = haptic_pos_x_;
-            haptic_pos_y_pre_ = haptic_pos_y_;
-            haptic_pos_z_pre_ = haptic_pos_z_;
-        }
+//        if(haptic_button_== 1 && haptic_button_pre_ == 0) {
+//            haptic_pos_x_pre_ = haptic_pos_x_;
+//            haptic_pos_y_pre_ = haptic_pos_y_;
+//            haptic_pos_z_pre_ = haptic_pos_z_;
+//        }
 
 
         for(int i = 0; i < 4; i++)
@@ -149,9 +149,12 @@ void DyrosHaptic::hapticLoop() {
         }
 
         // trick: To let the controller know that haptic is positive edge triggered if msg.duration= 0.0
-        if(haptic_button_== 1 && haptic_button_pre_ == 0) {
-           task_cmd_msg_.duration[2] = 0.0;
-           task_cmd_msg_.duration[3] = 0.0;
+        if(haptic_button_== 1 && haptic_button_pre_ == 0 || end_effector_changed_) {
+            if(!end_effector_)
+                task_cmd_msg_.duration[2] = 1.0;
+            else
+                task_cmd_msg_.duration[3] = 1.0;
+           end_effector_changed_ = false;
         }
 
         // publish only when the button is pushed
@@ -178,12 +181,14 @@ void DyrosHaptic::hapticLoop() {
                 break;
             case 'l':
                 end_effector_ = false;
+                end_effector_changed_ = true;
                 printf("\n\nEnd Effector: Left arm\n");
                 printf("\nposX[m] | posY[m] | posZ[m] |angX[rad]|angY[rad]|angZ[rad]|  button\n");
                 printf("----------------------------------------------------------------------\n");
                 break;
             case 'r':
                 end_effector_ = true;
+                end_effector_changed_ = true;
                 printf("\n\nEnd Effector: Right arm\n");
                 printf("\nposX[m] | posY[m] | posZ[m] |angX[rad]|angY[rad]|angZ[rad]|  button\n");
                 printf("----------------------------------------------------------------------\n");
