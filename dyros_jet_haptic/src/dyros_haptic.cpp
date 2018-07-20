@@ -17,6 +17,7 @@ DyrosHaptic::DyrosHaptic()
     haptic_ang_x_ = 0.0;
     haptic_ang_y_ = 0.0;
     haptic_ang_z_ = 0.0;
+    vx_, vy_, vz_, wx_, wy_, wz_, vg_, fx_, fy_, fz_, tx_, ty_, tz_, fg_ = 0.0;
 
     haptic_publisher_.init(nh_,"/dyros_jet/haptic_command",5);
 }
@@ -54,12 +55,25 @@ void DyrosHaptic::hapticLoop() {
 
     while(!quit_flag_ && ros::ok()) {
 
+        dhdGetLinearVelocity (&vx_, &vy_, &vz_);
+        fx_ = -LINEAR_VISCOSITY * vx_;
+        fy_ = -LINEAR_VISCOSITY * vy_;
+        fz_ = -LINEAR_VISCOSITY * vz_;
 
-        haptic_button_ = dhdGetButtonMask();
-        if (dhdSetForceAndTorqueAndGripperForce (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) < DHD_NO_ERROR) {
+        dhdGetAngularVelocityRad (&wx_, &wy_, &wz_);
+        tx_ = -ANGULAR_VISCOSITY * wx_;
+        ty_ = -ANGULAR_VISCOSITY * wy_;
+        tz_ = -ANGULAR_VISCOSITY * wz_;
+
+        dhdGetGripperLinearVelocity (&vg_);
+        fg_ = -LINEAR_VISCOSITY * vg_;
+
+        if (dhdSetForceAndTorqueAndGripperForce (fx_, fy_, fz_, tx_, ty_, tz_, fg_) < DHD_NO_ERROR) {
           printf ("error: cannot set force (%s)\n", dhdErrorGetLastStr());
           quit_flag_ = 1;
         }
+
+        haptic_button_ = dhdGetButtonMask();
 
         if(dhdGetPosition(&haptic_pos_x_, &haptic_pos_y_, &haptic_pos_z_) < DHD_NO_ERROR)
         {
