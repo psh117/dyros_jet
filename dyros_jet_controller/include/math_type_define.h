@@ -29,6 +29,7 @@ EIGEN_MAKE_TYPEDEFS(rScalar, d, 6, 6)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 7, 7)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 8, 8)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 12, 12)
+EIGEN_MAKE_TYPEDEFS(rScalar, d, 18, 18)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 28, 28)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 30, 30)
 EIGEN_MAKE_TYPEDEFS(rScalar, d, 32, 32)
@@ -55,6 +56,9 @@ namespace DyrosMath
 {
   //constexpr double GRAVITY {9.80665};
 //constexpr double DEG2RAD {};
+
+
+
 
 static double cubic(double time,     ///< Current time
              double time_0,   ///< Start time
@@ -532,5 +536,69 @@ static void toEulerAngle(double qx, double qy, double qz, double qw, double& rol
   yaw = atan2(siny, cosy);
 
 }
+static Eigen::Vector3d QuinticSpline(
+                   double time,       ///< Current time
+                   double time_0,     ///< Start time
+                   double time_f,     ///< End time
+                   double x_0,        ///< Start state
+                   double x_dot_0,    ///< Start state dot
+                   double x_ddot_0,   ///< Start state ddot
+                   double x_f,        ///< End state
+                   double x_dot_f,    ///< End state
+                   double x_ddot_f )  ///< End state ddot
+{
+  double a1,a2,a3,a4,a5,a6;
+  double time_s;
+
+  Eigen::Vector3d result;
+
+  if(time < time_0)
+  {
+    result << x_0, x_dot_0, x_ddot_0;
+    return result;
+  }
+  else if (time > time_f)
+  {
+    result << x_f, x_dot_f, x_ddot_f;
+    return result;
+  }
+
+
+  time_s = time_f - time_0;
+  a1=x_0;
+  a2=x_dot_0;
+  a3=x_ddot_0/2.0;
+
+  Eigen::Matrix3d Temp;
+  Temp<<pow(time_s, 3), pow(time_s, 4), pow(time_s, 5),
+        3.0 * pow(time_s, 2), 4.0 * pow(time_s, 3), 5.0 * pow(time_s, 4),
+        6.0 * time_s, 12.0 * pow(time_s, 2), 20.0 * pow(time_s, 3);
+
+  Eigen::Vector3d R_temp;
+  R_temp<<x_f-x_0-x_dot_0*time_s-x_ddot_0*pow(time_s,2)/2.0,
+        x_dot_f-x_dot_0-x_ddot_0*time_s,
+        x_ddot_f-x_ddot_0;
+
+  Eigen::Vector3d RES;
+
+  RES = Temp.inverse()*R_temp;
+
+  a4=RES(0);
+  a5=RES(1);
+  a6=RES(2);
+
+  double time_fs = time - time_0;
+
+  double position = a1+a2*pow(time_fs,1)+a3*pow(time_fs,2)+a4*pow(time_fs,3)+a5*pow(time_fs,4)+a6*pow(time_fs,5);
+  double velocity = a2+2.0*a3*pow(time_fs,1)+3.0*a4*pow(time_fs,2)+4.0*a5*pow(time_fs,3)+5.0*a6*pow(time_fs,4);
+  double acceleration =2.0*a3+6.0*a4*pow(time_fs,1)+12.0*a5*pow(time_fs,2)+20.0*a6*pow(time_fs,3);
+
+
+  result<<position,velocity,acceleration;
+
+  return result;
+}
+
+
 }
 #endif

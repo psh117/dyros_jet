@@ -26,6 +26,8 @@ class DyrosHaptic
      dyros_jet_msgs::TaskCommand task_cmd_msg_;
 
 bool end_effector_; // 0 for left, 1 for right
+bool command_frame_; // 0 for base frame, 1 for end effector frame
+bool end_effector_changed_;
 double haptic_pos_x_;
 double haptic_pos_y_;
 double haptic_pos_z_;

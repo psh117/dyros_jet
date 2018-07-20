@@ -25,8 +25,8 @@ public:
 
   static constexpr size_t HW_TOTAL_DOF = 32;
   static constexpr size_t MODEL_DOF = 28;
-  static constexpr size_t MODEL_DOF_VJOINT = 34;
-
+  static constexpr size_t MODEL_WITH_VIRTUAL_DOF = 34;
+  static constexpr size_t HW_HAND_DOF = 4;
 
   static const std::string JOINT_NAME[HW_TOTAL_DOF];
   static const int JOINT_ID[HW_TOTAL_DOF];
@@ -41,12 +41,18 @@ public:
   void test();
 
   std::map<std::string, size_t> joint_name_map_;
-  size_t getIndex(const std::string& joint_name)
+  inline size_t getIndex(const std::string& joint_name) const
   {
-    return joint_name_map_[joint_name];
+    return joint_name_map_.at(joint_name);
+  }
+
+  inline bool isPossibleIndex(const std::string& joint_name) const
+  {
+    return (joint_name_map_.find(joint_name) != joint_name_map_.end());
   }
   // Calc Jacobian, Transformation
   void updateKinematics(const Eigen::VectorXd &q);
+  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft);
 
   void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy);
 
@@ -100,6 +106,7 @@ public:
   const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
   const Eigen::Matrix<double, 34, 34>& getFullInertia() { return full_inertia_mat_; }
 
+
 private:
   RigidBodyDynamics::Model model_;
 
@@ -136,6 +143,13 @@ private:
   Eigen::Isometry3d rfoot_simulation_;
   Eigen::Isometry3d lfoot_simulation_;
   Eigen::Isometry3d base_simulation_;
+
+  Eigen::Matrix28d A_;
+  Eigen::MatrixXd A_temp_;
+
+
+
+
 
 };
 

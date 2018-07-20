@@ -1,9 +1,11 @@
-#include "../include/dyros_jet_haptic/dyros_jet_haptic.h"
+
+#include "dyros_jet_haptic/dyros_jet_haptic.h"
 
 DyrosHaptic::DyrosHaptic()
 {
     quit_flag_ = false;
-    end_effector_ = false;
+    end_effector_ = true;
+    command_frame_ = false;
     scale_ = 10.0;
     haptic_button_ = 0;
     haptic_button_pre_ = 0;
@@ -39,10 +41,12 @@ void DyrosHaptic::hapticLoop() {
         dhdSleep (2.0);
         return;
     }
+    dhdEnableForce(DHD_ON);
 
-
-    printf("press 'l' to control left hand (default)\n");
-    printf("press 'r' to control right hand\n");
+    printf("press 'r' to control right hand (default)\n");
+    printf("press 'l' to control left hand\n");
+    printf("press 'b' to control through base frame\n");
+    printf("press 'e' to control through end effector frame\n");
     printf("press 's' to change scale\n\n");
     printf("press 'q' to quit\n\n");
     printf("Haptic Information:\n\n");
@@ -53,6 +57,10 @@ void DyrosHaptic::hapticLoop() {
 
 
         haptic_button_ = dhdGetButtonMask();
+        if (dhdSetForceAndTorqueAndGripperForce (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) < DHD_NO_ERROR) {
+          printf ("error: cannot set force (%s)\n", dhdErrorGetLastStr());
+          quit_flag_ = 1;
+        }
 
         if(dhdGetPosition(&haptic_pos_x_, &haptic_pos_y_, &haptic_pos_z_) < DHD_NO_ERROR)
         {
@@ -84,11 +92,11 @@ void DyrosHaptic::hapticLoop() {
 
 
         // initialize position of haptic device
-        if(haptic_button_== 1 && haptic_button_pre_ == 0) {
-            haptic_pos_x_pre_ = haptic_pos_x_;
-            haptic_pos_y_pre_ = haptic_pos_y_;
-            haptic_pos_z_pre_ = haptic_pos_z_;
-        }
+//        if(haptic_button_== 1 && haptic_button_pre_ == 0) {
+//            haptic_pos_x_pre_ = haptic_pos_x_;
+//            haptic_pos_y_pre_ = haptic_pos_y_;
+//            haptic_pos_z_pre_ = haptic_pos_z_;
+//        }
 
 
         for(int i = 0; i < 4; i++)
@@ -107,11 +115,10 @@ void DyrosHaptic::hapticLoop() {
             task_cmd_msg_.duration[i] = 0.0;
         }
 
+        // left end effector command
         if(end_effector_ == false)
         {
             task_cmd_msg_.end_effector[2] = true;
-            task_cmd_msg_.mode[2] = 0;
-
             task_cmd_msg_.pose[2].position.x = -scale_*(haptic_pos_x_-haptic_pos_x_pre_);
             task_cmd_msg_.pose[2].position.y = -scale_*(haptic_pos_y_-haptic_pos_y_pre_);
             task_cmd_msg_.pose[2].position.z = scale_*(haptic_pos_z_-haptic_pos_z_pre_);
@@ -120,13 +127,18 @@ void DyrosHaptic::hapticLoop() {
             task_cmd_msg_.pose[2].orientation.z = 0;
             task_cmd_msg_.pose[2].orientation.w = 0;
 
-            task_cmd_msg_.duration[2] = 1;
+            task_cmd_msg_.duration[2] = 0.005;
+
+            if(!command_frame_)
+                task_cmd_msg_.mode[2] = 1;
+            else
+                task_cmd_msg_.mode[2] = 0;
         }
+
+         // right end effector command
         if(end_effector_ == true)
         {
             task_cmd_msg_.end_effector[3] = true;
-            task_cmd_msg_.mode[3] = 0;
-
             task_cmd_msg_.pose[3].position.x = -scale_*(haptic_pos_x_-haptic_pos_x_pre_);
             task_cmd_msg_.pose[3].position.y = -scale_*(haptic_pos_y_-haptic_pos_y_pre_);
             task_cmd_msg_.pose[3].position.z = scale_*(haptic_pos_z_-haptic_pos_z_pre_);
@@ -134,8 +146,21 @@ void DyrosHaptic::hapticLoop() {
             task_cmd_msg_.pose[3].orientation.y = 0.0;
             task_cmd_msg_.pose[3].orientation.z = 0.0;
             task_cmd_msg_.pose[3].orientation.w = 0.0;
+            task_cmd_msg_.duration[3] = 0.005;
 
-            task_cmd_msg_.duration[3] = 1;
+            if(!command_frame_)
+                task_cmd_msg_.mode[3] = 1;
+            else
+                task_cmd_msg_.mode[3] = 0;
+        }
+
+        // trick: To let the controller know that haptic is positive edge triggered if msg.duration= 0.0
+        if(haptic_button_== 1 && haptic_button_pre_ == 0 || end_effector_changed_) {
+            if(!end_effector_)
+                task_cmd_msg_.duration[2] = 1.0;
+            else
+                task_cmd_msg_.duration[3] = 1.0;
+           end_effector_changed_ = false;
         }
 
         // publish only when the button is pushed
@@ -162,12 +187,14 @@ void DyrosHaptic::hapticLoop() {
                 break;
             case 'l':
                 end_effector_ = false;
+                end_effector_changed_ = true;
                 printf("\n\nEnd Effector: Left arm\n");
                 printf("\nposX[m] | posY[m] | posZ[m] |angX[rad]|angY[rad]|angZ[rad]|  button\n");
                 printf("----------------------------------------------------------------------\n");
                 break;
             case 'r':
                 end_effector_ = true;
+                end_effector_changed_ = true;
                 printf("\n\nEnd Effector: Right arm\n");
                 printf("\nposX[m] | posY[m] | posZ[m] |angX[rad]|angY[rad]|angZ[rad]|  button\n");
                 printf("----------------------------------------------------------------------\n");
@@ -175,6 +202,18 @@ void DyrosHaptic::hapticLoop() {
             case 's':
                 printf("\n\nEnter scale parameter(default 10): \n");
                 std::cin>>scale_;
+                printf("\nposX[m] | posY[m] | posZ[m] |angX[rad]|angY[rad]|angZ[rad]|  button\n");
+                printf("----------------------------------------------------------------------\n");
+                break;
+            case 'b':
+                command_frame_ = 0;
+                printf("\n\nCommand through base frame! \n");
+                printf("\nposX[m] | posY[m] | posZ[m] |angX[rad]|angY[rad]|angZ[rad]|  button\n");
+                printf("----------------------------------------------------------------------\n");
+                break;
+            case 'e':
+                command_frame_ = 1;
+                printf("\n\nCommand through end effector frame! \n");
                 printf("\nposX[m] | posY[m] | posZ[m] |angX[rad]|angY[rad]|angZ[rad]|  button\n");
                 printf("----------------------------------------------------------------------\n");
                 break;

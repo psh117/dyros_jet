@@ -9,16 +9,12 @@ MoveitController::MoveitController(DyrosJetModel& model, const VectorQd& current
   current_q_(current_q), current_time_(control_time), model_(model),
   total_dof_(DyrosJetModel::HW_TOTAL_DOF), feedback_header_stamp_(0),
   start_time_{}, end_time_{},
-  action_name_("right_arm_controller/joint_action_server"),
+  action_name_("arm_controller/joint_action_server"),
   as_(nh_, action_name_, false)
 {
   as_.registerGoalCallback(boost::bind(&MoveitController::moveitGoalCB, this));
   as_.registerPreemptCallback(boost::bind(&MoveitController::moveitPreemptCB, this));
 
-  feedback_.joint_names.resize(7);
-  feedback_.actual.positions.resize(7);
-  feedback_.actual.velocities.resize(7);
-  feedback_.actual.accelerations.resize(7);
 
   // subscribe current state of the action
 
@@ -110,7 +106,7 @@ void MoveitController::compute()
     int j=0;
     Eigen::Vector3d position_now;
     feedback_.joint_names=goal_->trajectory.joint_names;
-    for(int j=0;j<7;j++){ // j = joint number
+    for(int j=0;j<moveit_controller_joint_size;j++){ // j = joint number
 
       for(int i=0;i<point_size-1;i++){
         if((passedTime>=goal_->trajectory.points[i].time_from_start)&&(passedTime<goal_->trajectory.points[i+1].time_from_start)){
@@ -137,8 +133,10 @@ void MoveitController::compute()
   if(ros::Time::now() > goal_start_time_ +  goal_last_time_)
   {
     as_.setSucceeded();
+    setEnable(DyrosJetModel::EE_RIGHT_HAND, false);
+    setEnable(DyrosJetModel::EE_LEFT_HAND,false);
+    ROS_INFO("BothHand Disabled ");
   }
-
 
   //feedback publisher
 
@@ -154,7 +152,32 @@ void MoveitController::moveitGoalCB()
   goal_start_time_ = ros::Time::now();
   goal_last_time_ = goal_->trajectory.points.back().time_from_start;
 
-  setEnable(DyrosJetModel::EE_RIGHT_HAND, true);
+
+  setEnable(DyrosJetModel::EE_RIGHT_HAND, false);
+  setEnable(DyrosJetModel::EE_LEFT_HAND,false);
+
+  moveit_controller_joint_size = goal_->trajectory.points[0].positions.size();
+
+  for(int i=0;i<moveit_controller_joint_size;i++){
+      if(goal_->trajectory.joint_names[i]=="R_ElbowRoll"){
+          setEnable(DyrosJetModel::EE_RIGHT_HAND, true);
+          ROS_INFO("RightArm Enabled");}
+  }
+  for(int i=0;i<moveit_controller_joint_size;i++){
+      if(goal_->trajectory.joint_names[i]=="L_ElbowRoll"){
+          setEnable(DyrosJetModel::EE_LEFT_HAND, true);
+          ROS_INFO("LeftArm Enabled");}
+
+  }
+
+
+
+
+  feedback_.joint_names.resize(moveit_controller_joint_size);
+  feedback_.actual.positions.resize(moveit_controller_joint_size);
+  feedback_.actual.velocities.resize(moveit_controller_joint_size);
+  feedback_.actual.accelerations.resize(moveit_controller_joint_size);
+
   //std::cout<<"Last time of point :: \n \t sec :"<< goal_last_time_.sec << "\t nsec : " <<goal_last_time_.nsec<<std::endl;
 }
 

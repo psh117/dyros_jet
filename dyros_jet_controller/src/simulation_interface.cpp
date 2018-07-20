@@ -2,6 +2,7 @@
 
 namespace dyros_jet_controller
 {
+
 SimulationInterface::SimulationInterface(ros::NodeHandle &nh, double Hz):
   ControlBase(nh, Hz), rate_(Hz), simulation_step_done_(false)
 {

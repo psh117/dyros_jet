@@ -26,6 +26,7 @@ msg/_*.py
 
 # qcreator stuff
 CMakeLists.txt.user
+*.autosave
 
 srv/_*.py
 *.pcd
