@@ -13,7 +13,7 @@ class JointController
 public:
   static constexpr unsigned int PRIORITY = 64;  ///< Joint priority
 
-  JointController(const VectorQd& current_q, const double& control_time);
+  JointController(const VectorQd& current_q, const VectorQd& current_q_dot, const double& control_time);
   void compute();
   void setTarget(unsigned int joint_number, double target, double start_time, double end_time);
   void setTarget(unsigned int joint_number, double target, double duration);
@@ -26,9 +26,11 @@ private:
 
   const unsigned int total_dof_;
   VectorQd start_q_;
+  VectorQd start_q_dot_;
   VectorQd desired_q_;
   VectorQd target_q_;
   const VectorQd& current_q_;
+  const VectorQd& current_q_dot_;
   const double &current_time_;
   double start_time_[DyrosJetModel::HW_TOTAL_DOF];
   double end_time_[DyrosJetModel::HW_TOTAL_DOF];

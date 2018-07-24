@@ -8,7 +8,7 @@ namespace dyros_jet_controller
 ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   ui_update_count_(0), is_first_boot_(true), Hz_(Hz), control_mask_{}, total_dof_(DyrosJetModel::HW_TOTAL_DOF),
   shutdown_flag_(false),
-  joint_controller_(q_, control_time_),
+  joint_controller_(q_, q_dot_, control_time_),
   task_controller_(model_, q_, Hz, control_time_),
   haptic_controller_(model_,q_,Hz, control_time_),
   walking_controller_(model_, q_, Hz, control_time_),

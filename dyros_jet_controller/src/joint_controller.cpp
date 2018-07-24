@@ -3,8 +3,8 @@
 namespace dyros_jet_controller
 {
  
-JointController::JointController(const VectorQd& current_q, const double& control_time) :
-  current_q_(current_q), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF),
+JointController::JointController(const VectorQd& current_q, const VectorQd &current_q_dot, const double& control_time) :
+  current_q_(current_q), current_q_dot_(current_q_dot), current_time_(control_time), total_dof_(DyrosJetModel::HW_TOTAL_DOF),
   start_time_{}, end_time_{}
 {
 
@@ -23,7 +23,7 @@ void JointController::compute()
       }
       else
       {
-        desired_q_(i) = DyrosMath::cubic(current_time_, start_time_[i], end_time_[i], start_q_(i), target_q_(i), 0, 0);
+        desired_q_(i) = DyrosMath::cubic(current_time_, start_time_[i], end_time_[i], start_q_(i), target_q_(i), start_q_dot_(i), 0);
       }
     }
   }
@@ -39,6 +39,7 @@ void JointController::setTarget(unsigned int joint_number, double target, double
   start_time_[joint_number] = start_time;
   end_time_[joint_number] = end_time;
   start_q_(joint_number) = current_q_(joint_number);
+  start_q_dot_(joint_number) = current_q_dot_(joint_number);
   target_q_(joint_number) = target;
 }
 
