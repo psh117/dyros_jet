@@ -24,7 +24,7 @@ add_executable(dyros_jet_haptic src/dyros_haptic.cpp)
 
 target_link_libraries(dyros_jet_haptic 
   #${CMAKE_CURRENT_SOURCE_DIR}/lib/release/lin-x86_64-gcc/libdhd.a 
-  #${CMAKE_CURRENT_SOURCE_DIR}/lib/release/lin-x86_64-gcc/libdhd.so.3.6.0 
+  #${CMAKE_CURRENT_SOURCE_DIR}/lib/release/lin-x86_64-gcc/libdhd.so.3.6.0
   -lpthread -ldhd -lrt -ldl -lusb-1.0
   ${catkin_LIBRARIES}
 )

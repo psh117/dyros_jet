@@ -31,20 +31,24 @@
 #include <dyros_jet_msgs/TaskCommand.h>
 #include <dyros_jet_msgs/JointCommand.h>
 #include <dyros_jet_msgs/WalkingCommand.h>
+#include <dyros_jet_msgs/WalkingState.h>
 #include <dyros_jet_msgs/JointControlAction.h>
 //#include "dyros_jet_msgs/RecogCmd.h"
 //#include "dyros_jet_msgs/TaskCmdboth.h"
 
 // User Library
 #include "math_type_define.h"
+#include "dyros_jet_controller/controller.h"
 #include "dyros_jet_controller/dyros_jet_model.h"
 #include "dyros_jet_controller/task_controller.h"
+#include "dyros_jet_controller/haptic_controller.h"
 #include "dyros_jet_controller/joint_controller.h"
 #include "dyros_jet_controller/walking_controller.h"
 #include "dyros_jet_controller/moveit_controller.h"
 #include "dyros_jet_controller/haptic_controller.h"
 
 // #include "Upperbody_Controller.h"
+
 
 
 namespace dyros_jet_controller
@@ -85,10 +89,16 @@ protected:
 
   int ui_update_count_;
   bool is_first_boot_;
+  bool extencoder_init_flag_;
 
-  VectorQd q_; // current q
-  VectorQd q_dot_; // current qdot
+  VectorQd q_; ///< current q
+  VectorQd q_dot_; ///< current qdot
+  VectorQd q_dot_filtered_; ///< current qdot with filter
   VectorQd torque_; // current joint toruqe
+  Eigen::Vector12d q_ext_;
+  Eigen::Vector12d q_ext_dot_;
+  Eigen::Vector12d q_ext_offset_;
+
 
   Vector6d left_foot_ft_; // current left ft sensor values
   Vector6d right_foot_ft_; // current right ft sensor values
@@ -96,10 +106,17 @@ protected:
   tf::Quaternion imu_data_; ///< IMU data with filter
   Vector3d gyro_; // current gyro sensor values
   Vector3d accelometer_; // current accelometer values
-
+  Vector3d imu_grav_rpy_;
   Matrix3d pelvis_orientation_;
 
+  Vector3d com_sim_; //com position from simulation COMvisualziefunction
+  Eigen::Isometry3d lfoot_global_;
+  Eigen::Isometry3d rfoot_global_;
+  Eigen::Isometry3d base_global_;
+
   VectorQd desired_q_; // current desired joint values
+  Eigen::Vector12d extencoder_offset_;
+
 
   int total_dof_;
 
@@ -120,6 +137,13 @@ private:
   unsigned long tick_;
   double control_time_;
 
+  double r_prev;
+  double p_prev;
+  double y_prev;
+  double r_prev1;
+  double p_prev1;
+  double y_prev1;
+
   string previous_state_;
 
   bool shutdown_flag_;
@@ -132,6 +156,9 @@ private:
   ros::Subscriber joint_command_sub_;
   ros::Subscriber walking_command_sub_;
   ros::Subscriber shutdown_command_sub_;
+  ros::Publisher walkingstate_command_pub_;
+  std_msgs::Bool walkingState_msg;
+
 
   // TODO: realtime_tools
   dyros_jet_msgs::JointControlFeedback joint_control_feedback_;
@@ -151,7 +178,6 @@ private:
   void jointCommandCallback(const dyros_jet_msgs::JointCommandConstPtr& msg);
   void walkingCommandCallback(const dyros_jet_msgs::WalkingCommandConstPtr& msg);
   void shutdownCommandCallback(const std_msgs::StringConstPtr& msg);
-
   void jointControlActionCallback(const dyros_jet_msgs::JointControlGoalConstPtr &goal);
 private:
 

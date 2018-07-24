@@ -1,0 +1,75 @@
+controller_list:
+  - name: fake_right_arm_controller
+    joints:
+      - R_ShoulderPitch
+      - R_ShoulderRoll
+      - R_ShoulderYaw
+      - R_ElbowRoll
+      - R_WristYaw
+      - R_WristRoll
+      - R_HandYaw
+  - name: fake_left_arm_controller
+    joints:
+      - L_ShoulderPitch
+      - L_ShoulderRoll
+      - L_ShoulderYaw
+      - L_ElbowRoll
+      - L_WristYaw
+      - L_WristRoll
+      - L_HandYaw
+  - name: fake_both_arm_controller
+    joints:
+      - L_ShoulderPitch
+      - L_ShoulderRoll
+      - L_ShoulderYaw
+      - L_ElbowRoll
+      - L_WristYaw
+      - L_WristRoll
+      - L_HandYaw
+      - R_ShoulderPitch
+      - R_ShoulderRoll
+      - R_ShoulderYaw
+      - R_ElbowRoll
+      - R_WristYaw
+      - R_WristRoll
+      - R_HandYaw
+  - name: fake_right_leg_controller
+    joints:
+      - R_HipYaw
+      - R_HipRoll
+      - R_HipPitch
+      - R_KneePitch
+      - R_AnklePitch
+      - R_AnkleRoll
+  - name: fake_left_leg_controller
+    joints:
+      - L_HipYaw
+      - L_HipRoll
+      - L_HipPitch
+      - L_KneePitch
+      - L_AnklePitch
+      - L_AnkleRoll
+  - name: fake_both_leg_controller
+    joints:
+      - L_HipYaw
+      - L_HipRoll
+      - L_HipPitch
+      - L_KneePitch
+      - L_AnklePitch
+      - L_AnkleRoll
+      - R_HipYaw
+      - R_HipRoll
+      - R_HipPitch
+      - R_KneePitch
+      - R_AnklePitch
+      - R_AnkleRoll
+  - name: fake_waist_controller
+    joints:
+      - WaistPitch
+      - WaistYaw
+
+initial:
+  - group: both_arm
+    pose:  work_init
+  - group: both_leg
+    pose:  leg_init
