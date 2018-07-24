@@ -52,6 +52,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   shutdown_command_sub_ = nh.subscribe("/dyros_jet/shutdown_command", 1, &ControlBase::shutdownCommandCallback,this);
   parameterInitialize();
   model_.test();
+  debug_file1_.open("suhan_exp.txt");
 }
 
 bool ControlBase::checkStateChanged()
@@ -78,7 +79,7 @@ void ControlBase::update()
   {
     for (int i=0; i<12; i++)
       extencoder_offset_(i) = q_(i)-q_ext_(i);
-      //extencoder_offset_(i) = 0;
+    //extencoder_offset_(i) = 0;
     //cout<<"extencoder_offset_"<<extencoder_offset_<<endl;
     //cout<<"q_ext_"<<q_ext_<<endl;
     //cout<<"q_"<<q_<<endl;
@@ -205,10 +206,15 @@ void ControlBase::reflect()
     }
   }
   if (walking_controller_.walking_state_send == true)
-    {
-      walkingState_msg.data = walking_controller_.walking_end_;
-      walkingstate_command_pub_.publish(walkingState_msg);
-    }
+  {
+    walkingState_msg.data = walking_controller_.walking_end_;
+    walkingstate_command_pub_.publish(walkingState_msg);
+  }
+  debug_file1_ << control_time_ << ' '
+               << q_.segment<7>(model_.joint_start_index_[DyrosJetModel::EE_LEFT_HAND]).transpose()  << ' '
+               << q_dot_filtered_.segment<7>(model_.joint_start_index_[DyrosJetModel::EE_LEFT_HAND]).transpose() << ' '
+               << control_mask_[16] << ' '
+               << endl;
 }
 
 void ControlBase::parameterInitialize()
@@ -282,11 +288,11 @@ void ControlBase::hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPt
       }
       if(msg->end_effector[i])
       {
-      haptic_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
-      haptic_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
-      if (i==2)
-        haptic_controller_.setEnable((DyrosJetModel::EndEffector)3, false);
-      else
+        haptic_controller_.setTarget((DyrosJetModel::EndEffector)i, target, msg->duration[i]);
+        haptic_controller_.setEnable((DyrosJetModel::EndEffector)i, true);
+        if (i==2)
+          haptic_controller_.setEnable((DyrosJetModel::EndEffector)3, false);
+        else
           haptic_controller_.setEnable((DyrosJetModel::EndEffector)2, false);
       }
     }

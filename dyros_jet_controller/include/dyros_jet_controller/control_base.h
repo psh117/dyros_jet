@@ -171,6 +171,9 @@ private:
 
 
 
+  ofstream debug_file1_;
+
+
 
   void smachCallback(const smach_msgs::SmachContainerStatusConstPtr& msg);
   void taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr& msg);
