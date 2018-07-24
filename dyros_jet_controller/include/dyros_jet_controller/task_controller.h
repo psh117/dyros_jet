@@ -16,9 +16,10 @@ public:
 
   static constexpr unsigned int PRIORITY = 16;  ///< Joint priority
 
-  TaskController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
+  TaskController(DyrosJetModel& model, const VectorQd& current_q, const VectorQd& current_q_dot,
+                 const double hz, const double& control_time) :
     total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model),
-    current_q_(current_q), hz_(hz), control_time_(control_time),
+    current_q_(current_q), current_q_dot_(current_q_dot), hz_(hz), control_time_(control_time),
     start_time_{}, end_time_{}, target_arrived_{true,true,true,true} {
     //debug_.open("/home/suhan/jet_test.txt");
   }
@@ -53,12 +54,14 @@ private:
   Eigen::Isometry3d target_transform_[4];
 
   Eigen::Vector3d start_x_dot_[4];
+  Eigen::Vector3d start_w_[4];
   Eigen::Vector3d x_prev_[4];  //< Previous x
 
   DyrosJetModel &model_;
 
   VectorQd desired_q_;
   const VectorQd &current_q_;  // updated by control_base
+  const VectorQd &current_q_dot_;  // updated by control_base
 
 
   //std::ofstream debug_;

@@ -145,7 +145,7 @@ static double cubicDot(double time,     ///< Current time
   return x_t;
 }
 
-static Eigen::Matrix3d skew(Eigen::Vector3d src)
+static const Eigen::Matrix3d skew(const Eigen::Vector3d &src)
 {
     Eigen::Matrix3d skew;
     skew.setZero();
@@ -182,6 +182,26 @@ static Eigen::Matrix<double, N, 1> cubicVector(double time,     ///< Current tim
 // Kang, I. G., and F. C. Park.
 // "Cubic spline algorithms for orientation interpolation."
 // International journal for numerical methods in engineering 46.1 (1999): 45-64.
+const static Eigen::Matrix3d rotationCubic(
+    double time, double time_0, double time_f,
+    const Eigen::Vector3d &w_0, const Eigen::Vector3d &a_0,
+    const Eigen::Matrix3d &rotation_0, const Eigen::Matrix3d &rotation_f)
+{
+  Eigen::Matrix3d rot;
+  Eigen::Matrix3d r_skew;
+  r_skew = (rotation_0.transpose() * rotation_f).log();
+  Eigen::Vector3d a, b, c, r;
+  double tau = (time - time_0) / (time_f - time_0);
+  r(0) = r_skew(2,1);
+  r(1) = r_skew(0,2);
+  r(2) = r_skew(1,0);
+  c = w_0;
+  b = a_0 / 2;
+  a = r - b -c;
+  rot = rotation_0 * (skew(a*pow(tau,3) + b*pow(tau,2) + c*tau)).exp();
+
+  return rot;
+}
 const static Eigen::Matrix3d rotationCubic(double time,
                                      double time_0,
                                      double time_f,

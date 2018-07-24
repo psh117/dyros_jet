@@ -20,7 +20,22 @@ void TaskController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d 
   end_time_[ee] = end_time;
   x_prev_[ee] = start_transform_[ee].translation();
   target_arrived_[ee] = false;
+  if (ee < 2)  // Legs
+  {
+    Eigen::Vector6d x = model_.getLegJacobian(ee) *
+        current_q_dot_.segment<6>(model_.joint_start_index_[ee]);
+    start_x_dot_[ee] = x.head<3>();
+    start_w_[ee] = x.tail<3>();
+  }
+  else
+  {
+    Eigen::Vector6d x = model_.getArmJacobian(ee) *
+        current_q_dot_.segment<7>(model_.joint_start_index_[ee]);
+    start_x_dot_[ee] = x.head<3>();
+    start_w_[ee] = x.tail<3>();
+  }
 }
+
 void TaskController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double duration)
 {
   setTarget(ee, target, control_time_, control_time_ + duration);
@@ -135,6 +150,8 @@ void TaskController::computeCLIK()
       rot_cubic = DyrosMath::rotationCubic(control_time_,
                                            start_time_[i],
                                            end_time_[i],
+                                           start_w_[i],
+                                           Eigen::Vector3d::Zero(),
                                            rot_0,
                                            rot_target);
       /*
