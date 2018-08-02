@@ -1,0 +1,9 @@
+<launch>
+  <node name="urg_node" pkg="urg_node" type="urg_node" output="screen">
+    <param name="ip_address" value="192.168.0.10"/>
+    <param name="frame_id" value="/camera"/>
+    <remap from="most_intense" to="/lidar_scan"/>
+  </node>
+  <node name="motion_generator" pkg="dyros_jet_dynamixel_x_interface" type="motion_generator" output="screen"/>
+  <node name="continous_point_generator" pkg="thormang_head_lidar" type="continous_point_generator" output="screen"/>
+</launch>

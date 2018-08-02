@@ -9,6 +9,7 @@ sudo apt-get install ros-kinetic-qt-build ros-kinetic-realtime-tools ros-kinetic
 cd ~/catkin_ws/src
 git clone https://github.com/KumarRobotics/imu_3dm_gx4
 git clone https://github.com/psh117/rt_dynamixel_msgs
+git clone -b 3.6.0 https://github.com/ROBOTIS-GIT/DynamixelSDK.git
 ```
 
 ### RBDL Setup ###
@@ -39,6 +40,10 @@ dyros_jet_vrep/scene/dyros_jet_new_api.ttt
 ```sh
 roslaunch dyros_jet_launch simulation.launch
 ```
+* If you get an error about the .so file when launching simulation, add the following command to ~/.bashrc
+```sh
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+```
 * GUI
 ```sh
 rosrun dyros_jet_gui dyros_jet_gui
@@ -54,16 +59,28 @@ rosrun dyros_jet_mission_commander commander.py
 ```
 
 ### About Moveit ###
+* Install moveit
+```sh
+sudo apt install ros-kinetic-moveit
+```
 
 * Launch moveit
 ```sh
-roslaunch dyros_jet_moveit_config dyros_jet_moveit.launch
+roslaunch dyros_jet_moveit dyros_jet_moveit.launch
 ```
 
-* traj action test server 
+* Get pointcloud to moveit 
 ```sh
-rosrun dyros_jet_moveit_depend taskserver
+rosrun pcl_ros pcd_to_pointcloud ~/example.pcd _frame_id:=odom
 ```
+if you want new frame of pointcloud,
+```sh
+rosrun tf static_transform_publisher 0 0 0 -1.5708 0 -1.5708 base_link odom2 100
+```
+tf static_tranform_publisher x y z α β γ parent_frame child_frame period(milliseconds)
+
+
+
 
 ### How do I contribuite to this repo? ###
 * Read this http://wiki.ros.org/CppStyleGuide

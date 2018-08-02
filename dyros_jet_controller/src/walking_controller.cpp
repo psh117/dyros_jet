@@ -46,6 +46,7 @@ void WalkingController::compute()
 
 
       if(current_step_num_< total_step_num_)
+
       {
         getZmpTrajectory();
 
@@ -71,6 +72,7 @@ void WalkingController::compute()
 
 
           //std::cout<<"work.converged:"<<work.converged<<endl;
+
 
 
           computeIkControl(pelv_trajectory_float_, lfoot_trajectory_float_, rfoot_trajectory_float_, desired_leg_q_);
@@ -134,7 +136,6 @@ void WalkingController::compute()
         ///////////////////////////////////////////////
 
         updateNextStepTime();
-
       }
       else
       {
@@ -243,6 +244,7 @@ void WalkingController::parameterSetting()
 //  t_rest_last_ = 1.0*hz_;
 //  t_total_= 3.0*hz_;
 
+
   t_temp_ = 3.0*hz_;
   t_last_ = t_total_ + t_temp_;
   t_start_ = t_temp_+1;
@@ -280,7 +282,7 @@ void WalkingController::parameterSetting()
 void WalkingController::getRobotState()
 {
 
-  Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_temp;
+  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_temp;
   q_temp.setZero();
   q_temp.segment<28>(6) = current_q_.segment<28>(0);
   if(ik_mode_==0 && walking_tick_ > 0) //IK control
@@ -341,9 +343,6 @@ void WalkingController::getRobotState()
 
   //com_sim_current_ = (base_sim_global_current_.linear()).transpose()*com_sim_current_; //change frame from glrobal to pelv
   //com_sim_current_ = DyrosMath::multiplyIsometry3dVector3d(pelv_support_current_, com_sim_current_); //change frame from pelv to support foot
-
-
-
 
   current_leg_jacobian_l_=model_.getLegJacobian((DyrosJetModel::EndEffector) 0);
   current_leg_jacobian_r_=model_.getLegJacobian((DyrosJetModel::EndEffector) 1);
@@ -1297,32 +1296,15 @@ void WalkingController::updateNextStepTime()
       t_last_ = t_start_ + t_total_ -1;
 
       current_step_num_ ++;
-    }
+
+    }    
   }
-
-
-  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +4.0*hz_)
-
-
-  {
-    walking_state_send = true;
-    walking_end_ = !walking_end_;
-  }
-
-
-  if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +4.0*hz_+1)
-  {
-    walking_state_send = false;
-  }
-
   if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ +5.0*hz_)
   {
-
-    walking_enable_ = false;
+      walking_enable_ = false;
   }
 
   walking_tick_ ++;
-
 
 }
 
@@ -1829,6 +1811,7 @@ void WalkingController::getFootTrajectory()
   else if(walking_tick_ >= t_start_real_+t_double1_ && walking_tick_ < t_start_+t_total_-t_double2_-t_rest_last_)
   {
     double t_rest_temp = 0.05*hz_;
+
     double ankle_temp;
     ankle_temp = 0*DEG2RAD;
 
@@ -2447,6 +2430,7 @@ void WalkingController::compensator()
     {
       hipCompensator();
     }
+
   }
 
   if(lqr_compensator_mode_ == true)
@@ -2535,8 +2519,6 @@ void WalkingController::compensator()
 void WalkingController::hipCompensator()
 {
   double left_hip_angle = 4.0*DEG2RAD, right_hip_angle = 8.5*DEG2RAD, left_hip_angle_first_step = 4.0*DEG2RAD, right_hip_angle_first_step = 8.5*DEG2RAD,
-
-
 
       left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
 
@@ -2765,6 +2747,7 @@ void WalkingController::hipCompensation()
     grav_ground_torque_(i+6) = rTau[i];
   }
  // cout<<joint_offset_angle_<<endl;
+
 }
 
 
@@ -3659,7 +3642,6 @@ Eigen::MatrixXd WalkingController::discreteRiccatiEquationPrev(Eigen::MatrixXd a
 */
   return X_sol;
 }
-
 
 }
 

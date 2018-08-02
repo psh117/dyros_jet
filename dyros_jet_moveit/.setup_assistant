@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: dyros_jet_description
+    relative_path: robots/dyros_jet_robot.urdf
+  SRDF:
+    relative_path: config/dyros_jet_robot.srdf
+  CONFIG:
+    author_name: jh_ahn
+    author_email: june992@snu.ac.kr
+    generated_timestamp: 1532061659

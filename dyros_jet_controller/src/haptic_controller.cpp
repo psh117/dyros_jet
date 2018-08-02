@@ -23,6 +23,12 @@ void HapticController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3
 }
 void HapticController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double duration)
 {
+  // Trick: When msg->duration is 0.0 it means that haptic buttion is positive edge triggered
+  if(duration == 1.0)
+  {
+      rot_init_ = model_.getCurrentTransform(ee).linear();
+  }
+
   setTarget(ee, target, control_time_, control_time_ + duration);
 }
 void HapticController::setEnable(DyrosJetModel::EndEffector ee, bool enable)
@@ -99,117 +105,60 @@ void HapticController::writeDesired(const unsigned int *mask, VectorQd& desired_
 // Jacobian OK. Translation OK.
 void HapticController::computeCLIK()
 {
-  const double inverse_damping = 1e-4;
-  const double phi_gain = 0.5;
-  const double kp = 200;
-  const double epsilon = 1e-3;
+    const double inverse_damping = 1e-4;
+    const double phi_gain = 0.5;
+    const double kp = 200;
+    const double epsilon = 1e-3;
 
-  // Arm
-  for(unsigned int i=0; i<4; i++)
-  {
-    if(ee_enabled_[i])
+    // Arm
+    for(unsigned int i=2; i<4; i++)
     {
-      // For short names
-      const auto &x_0 = start_transform_[i].translation();
-      const auto &rot_0 = start_transform_[i].linear();
 
-      const auto &x = model_.getCurrentTransform((DyrosJetModel::EndEffector)(i)).translation();
-      const auto &rot = model_.getCurrentTransform((DyrosJetModel::EndEffector)(i)).linear();
+        if(ee_enabled_[i])
+        {
+            // For short names
 
-      //debug_ << control_time_ << "\t" << x(0) << "\t" << x(1) << "\t" <<x(2) << std::endl;
+            const auto &x = model_.getCurrentTransform((DyrosJetModel::EndEffector)(i)).translation();
+            const auto &rot = model_.getCurrentTransform((DyrosJetModel::EndEffector)(i)).linear();
 
-      const auto &x_target = target_transform_[i].translation();
-      const auto &rot_target = target_transform_[i].linear();
+            //debug_ << control_time_ << "\t" << x(0) << "\t" << x(1) << "\t" <<x(2) << std::endl;
 
-      Eigen::Vector3d x_cubic;
-      Eigen::Vector6d x_dot_desired;
-      Eigen::Matrix3d rot_cubic;
-      x_cubic = DyrosMath::cubicVector<3>(control_time_,
-                                          start_time_[i],
-                                          end_time_[i],
-                                          x_0,
-                                          x_target,
-                                          Eigen::Vector3d::Zero(),//start_x_dot_[i],
-                                          Eigen::Vector3d::Zero());
+            const auto &x_target = target_transform_[i].translation();
 
-      rot_cubic = DyrosMath::rotationCubic(control_time_,
-                                           start_time_[i],
-                                           end_time_[i],
-                                           rot_0,
-                                           rot_target);
-      /*
-      std::cout << " rot 0 ----" << std::endl;
-      std::cout << rot_0 << std::endl;
-      std::cout << " rot cubic ----" << std::endl;
-      std::cout << rot_cubic << std::endl;
-      std::cout << " rot target ----" << std::endl;
-      std::cout << rot_target << std::endl;*/
+            Eigen::Vector6d x_dot_desired;
+            Eigen::Vector6d x_error;
+            x_error.head<3>() = (x_target - x);
+            //x_error.tail<3>().setZero();
+            x_error.tail<3>() =  - phi_gain * DyrosMath::getPhi(rot, rot_init_);
+            x_dot_desired.head<3>() = x_target - x_prev_[i];
+            x_dot_desired.tail<3>().setZero();
+
+            x_error = x_error; //* hz_;
+            x_dot_desired = x_dot_desired * hz_;
+            x_prev_[i] = x_target;
+
+            if (x_error.norm() < epsilon && control_time_ >= end_time_[i]) // target arrived, cubic finished
+            {
+                target_arrived_[i] = true;
+                ee_enabled_[i] = false;
+                ROS_INFO("target arrived - %d End effector", i);
+                continue;
+            }
+            const auto &J = model_.getArmJacobian((DyrosJetModel::EndEffector)(i));
+            const auto &q = current_q_.segment<7>(model_.joint_start_index_[i]);
 
 
-      Eigen::Vector6d x_error;
-      x_error.head<3>() = (x_target - x);
-      //x_error.tail<3>().setZero();
-      x_error.tail<3>() =  - phi_gain * DyrosMath::getPhi(rot, rot_cubic);
-      x_dot_desired.head<3>() = x_target - x_prev_[i];
-      x_dot_desired.tail<3>().setZero();
-
-      x_error = x_error; //* hz_;
-      x_dot_desired = x_dot_desired * hz_;
-      x_prev_[i] = x_target;
-
-      if (x_error.norm() < epsilon && control_time_ >= end_time_[i]) // target arrived, cubic finished
-      {
-        target_arrived_[i] = true;
-        ee_enabled_[i] = false;
-        ROS_INFO("target arrived - %d End effector", i);
-        continue;
-      }
-      if (i < 2)  // Legs
-      {
-        const auto &J = model_.getLegJacobian((DyrosJetModel::EndEffector)(i));
-        const auto &q = current_q_.segment<6>(model_.joint_start_index_[i]);
-
-        auto J_inverse = J.transpose() *
-            (inverse_damping * Eigen::Matrix6d::Identity() +
-             J * J.transpose()).inverse();
-
-        desired_q_.segment<6>(model_.joint_start_index_[i])
-            = (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
-      }
-      else    // Arms
-      {
-        const auto &J = model_.getArmJacobian((DyrosJetModel::EndEffector)(i));
-        const auto &q = current_q_.segment<7>(model_.joint_start_index_[i]);
+            auto J_inverse = J.transpose() *
+                    (inverse_damping * Eigen::Matrix6d::Identity() +
+                     J * J.transpose()).inverse();
 
 
-        auto J_inverse = J.transpose() *
-            (inverse_damping * Eigen::Matrix6d::Identity() +
-             J * J.transpose()).inverse();
+            desired_q_.segment<7>(model_.joint_start_index_[i]) =
+                    (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
 
 
-        desired_q_.segment<7>(model_.joint_start_index_[i]) =
-            (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
-
-        /*
-        auto tmp = (J_inverse * (x_dot_desired + x_error * kp)) / hz_;
-
-          std::cout << "Jacobian : " << std::endl;
-          std::cout << J << std::endl;
-          std::cout << "Jacobian.inv : "<< std::endl;
-          std::cout << J_inverse << std::endl;
-          std::cout << "desired_q_ : " << std::endl << desired_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
-          std::cout << "x : " << std::endl << x << std::endl;
-          std::cout << "q : " << std::endl << current_q_.segment<7>(model_.joint_start_index_[i]) << std::endl;
-          std::cout << "calc : " << std::endl << tmp << std::endl;
-          std::cout << "rot : " << std::endl << rot << std::endl;
-          std::cout << "rot : " << std::endl << rot_target << std::endl;
-          std::cout << "x_cubic : " << std::endl << x_cubic << std::endl;
-          std::cout << "x_error : " << std::endl << x_error << std::endl;
-          std::cout << "x_dot_desired : " << std::endl << x_dot_desired << std::endl;
-        */
-      }
+        }
     }
-  }
 }
 
 }

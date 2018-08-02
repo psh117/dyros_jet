@@ -60,9 +60,11 @@ file(GLOB WALKING_SRC
     )
 file(GLOB CONTROLLER_SRC
     "src/dyros_jet_model.cpp"
+    "src/walking_controller.cpp"
     "src/task_controller.cpp"
     "src/haptic_controller.cpp"
     "src/joint_controller.cpp"
+    "src/moveit_controller.cpp"
     )
 
 

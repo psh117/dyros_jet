@@ -20,6 +20,7 @@ public:
     total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model),
     current_q_(current_q), hz_(hz), control_time_(control_time),
     start_time_{}, end_time_{}, target_arrived_{true,true,true,true} {
+
     //debug_.open("/home/suhan/jet_test.txt");
   }
   void compute();
@@ -47,6 +48,8 @@ private:
   double end_time_[4];
   bool target_arrived_[4];
 
+  
+  Eigen::Matrix3d rot_init_;
   Eigen::Isometry3d start_transform_[4];
   Eigen::Isometry3d previous_transform_[4];
   Eigen::Isometry3d desired_transform_[4];
