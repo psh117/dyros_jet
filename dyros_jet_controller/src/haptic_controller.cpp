@@ -14,7 +14,7 @@ void HapticController::compute()
 }
 void HapticController::setTarget(DyrosJetModel::EndEffector ee, Eigen::Isometry3d target, double start_time, double end_time)
 {
-  start_transform_[ee] = model_.getCurrentTrasmfrom(ee);
+  start_transform_[ee] = model_.getCurrentTransform(ee);
   target_transform_[ee] = target;
   start_time_[ee] = start_time;
   end_time_[ee] = end_time;
@@ -61,7 +61,7 @@ void HapticController::updateControlMask(unsigned int *mask)
       {
         // Higher priority task detected
         ee_enabled_[index] = false;
-        target_transform_[index] = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index);
+        target_transform_[index] = model_.getCurrentTransform((DyrosJetModel::EndEffector)index);
         end_time_[index] = control_time_;
         if (index < 2)  // Legs
         {
@@ -71,7 +71,7 @@ void HapticController::updateControlMask(unsigned int *mask)
         {
           desired_q_.segment<7>(model_.joint_start_index_[index]) = current_q_.segment<7>(model_.joint_start_index_[index]);
         }
-        //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
+        //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTransform((DyrosJetModel::EndEffector)index), 0); // Stop moving
         target_arrived_[index] = true;
       }
       mask[i] = (mask[i] | PRIORITY);
@@ -79,7 +79,7 @@ void HapticController::updateControlMask(unsigned int *mask)
     else
     {
       mask[i] = (mask[i] & ~PRIORITY);
-      //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)index), 0); // Stop moving
+      //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTransform((DyrosJetModel::EndEffector)index), 0); // Stop moving
       target_arrived_[index] = true;
     }
   }
@@ -113,8 +113,8 @@ void HapticController::computeCLIK()
       const auto &x_0 = start_transform_[i].translation();
       const auto &rot_0 = start_transform_[i].linear();
 
-      const auto &x = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).translation();
-      const auto &rot = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(i)).linear();
+      const auto &x = model_.getCurrentTransform((DyrosJetModel::EndEffector)(i)).translation();
+      const auto &rot = model_.getCurrentTransform((DyrosJetModel::EndEffector)(i)).linear();
 
       //debug_ << control_time_ << "\t" << x(0) << "\t" << x(1) << "\t" <<x(2) << std::endl;
 

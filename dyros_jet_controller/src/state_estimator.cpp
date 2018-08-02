@@ -1102,14 +1102,14 @@ void WalkingController::kalmanStateSpace3()
   Q_3_(4, 4) = 1e-6;	//zmp
   Q_3_(5, 5) = 1e-6;
 
-  Q_3_(6, 6) = 1e-8;	 //com position error
-  Q_3_(7, 7) = 1e-8;
+  Q_3_(6, 6) = 1e-9;	 //com position error
+  Q_3_(7, 7) = 1e-9;
 
-  Q_3_(8, 8) = 1e-8;	 //model error
-  Q_3_(9, 9) = 1e-8;
+  Q_3_(8, 8) = 1e-7;	 //model error
+  Q_3_(9, 9) = 1e-7;
 
-  R_3_(0, 0) = 1e-5;   //com
-  R_3_(1, 1) = 1e-5;
+  R_3_(0, 0) = 1e-7;   //com
+  R_3_(1, 1) = 1e-7;
 
   R_3_(2, 2) = 1e-9;    //zmp
   R_3_(3, 3) = 1e-9;

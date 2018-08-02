@@ -14,11 +14,8 @@ namespace dyros_jet_controller
 
 void WalkingController::compute()
 {
-  if((walking_enable_ == true))
+  if(walking_enable_ == true)
   {
-
-
-
 
     updateInitialState();
 
@@ -84,16 +81,18 @@ void WalkingController::compute()
         }
         else if (ik_mode_ == 1)
         {
-          computeJacobianControl(lfoot_trajectory_float_, rfoot_trajectory_float_, lfoot_trajectory_euler_float_, rfoot_trajectory_euler_float_, desired_leg_q_dot_);
+          //computeJacobianControl(lfoot_trajectory_float_, rfoot_trajectory_float_, lfoot_trajectory_euler_float_, rfoot_trajectory_euler_float_, desired_leg_q_dot_);
+          getComJacobian();
+          computeComJacobianControl(desired_leg_q_dot_);
+
           for(int i=0; i<12; i++)
           {
-            if(walking_tick_ == 0)
-            {
-              desired_q_(i) = q_init_(i);
-            }
             desired_q_(i) = desired_leg_q_dot_(i)/hz_+current_q_(i);
           }
         }
+
+
+
         //////////////////////////////////////////////////////
 
         desired_q_not_compensated_ = desired_q_;
@@ -284,18 +283,19 @@ void WalkingController::getRobotState()
   Eigen::Matrix<double, DyrosJetModel::MODEL_DOF_VJOINT, 1> q_temp;
   q_temp.setZero();
   q_temp.segment<28>(6) = current_q_.segment<28>(0);
-  if(walking_tick_ > 0)
+  if(ik_mode_==0 && walking_tick_ > 0) //IK control
   {
-    q_temp.segment<12>(6) =   desired_q_not_compensated_.segment<12>(0);
+    q_temp.segment<12>(6) =   desired_q_not_compensated_.segment<12>(0);  //update robot state with desired q
+    model_.updateKinematics(q_temp);
   }
-  model_.updateKinematics(q_temp);
+
 
   com_sim_old_ = com_sim_current_;
   com_float_old_ = com_float_current_;
   com_support_old_ = com_support_current_;
 
-  lfoot_float_current_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)0);
-  rfoot_float_current_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)1);
+  lfoot_float_current_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)0);
+  rfoot_float_current_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)1);
   com_float_current_ = model_.getCurrentCom();
 
   com_sim_current_ = model_.getSimulationCom();
@@ -357,13 +357,12 @@ void WalkingController::getRobotState()
   slowcalc_mutex_.unlock();
 
 }
-/*
-void WalkingController::generateStep()
+
+void WalkingController::initWalkingWholeBody()
 {
 
-
 }
-*/
+
 
 void WalkingController::calculateFootStepTotal()
 {
@@ -1166,11 +1165,11 @@ void WalkingController::updateInitialState()
   {
     thread_tick_ = 0;
     calculateFootStepTotal();
-
+    linkMass();
 
     q_init_ = current_q_;
-    lfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(0));
-    rfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(1));
+    lfoot_float_init_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)(0));
+    rfoot_float_init_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)(1));
     com_float_init_ = model_.getCurrentCom();
 
 
@@ -1254,8 +1253,8 @@ void WalkingController::updateInitialState()
   {
     //model_.updateKinematics(current_q_);
     q_init_ = current_q_;
-    lfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(0));
-    rfoot_float_init_ = model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)(1));
+    lfoot_float_init_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)(0));
+    rfoot_float_init_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)(1));
     com_float_init_ = model_.getCurrentCom();
 
 
@@ -1624,11 +1623,23 @@ void WalkingController::getComTrajectory()
   {
     com_desired_(0) = xd_(0);
     com_desired_(1) = yd_(0);
-    com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), pelv_suppprt_start_.translation()(2), 0, 0);
+
+    //com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), pelv_suppprt_start_.translation()(2), 0, 0);
 
     com_dot_desired_(0) = xd_(1);
     com_dot_desired_(1) = yd_(1);
-    com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), pelv_suppprt_start_.translation()(2), 0, 0, hz_);
+
+    if(current_step_num_ == 0)
+    {
+      com_desired_(2) = DyrosMath::cubic(walking_tick_, 0, t_temp_, com_support_init_(2), com_height_, 0, 0);
+      com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, 0, t_temp_, com_support_init_(2), com_height_, 0, 0, hz_);
+    }
+    else
+    {
+      com_desired_(2) = DyrosMath::cubic(walking_tick_, t_start_, t_start_real_, com_support_init_(2), com_height_, 0, 0);
+      com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, com_support_init_(2), com_height_, 0, 0, hz_);
+    }
+
 
     double k= 100.0;
     p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_current_(0));
@@ -1674,7 +1685,7 @@ void WalkingController::getPelvTrajectory()
     }
 
     // kp = Cubic(abs(_COM_desired(0)-_COM_real_support(0)),0.0,0.05,1.0,0.0,3.0,0.0);
-    pelv_trajectory_support_.translation()(2) = com_desired_(2); //_T_Trunk_support.translation()(2) + kp*(_COM_desired(2) - _COM_real_support(2));
+    pelv_trajectory_support_.translation()(2) = pelv_support_init_.translation()(2) + kp*(com_desired_(2) - com_support_current_(2));
   }
   else
   {

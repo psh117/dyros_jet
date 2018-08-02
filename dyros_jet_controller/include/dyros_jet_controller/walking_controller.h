@@ -20,21 +20,21 @@ const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
 
-  "/home/pen/data/walking/0_desired_zmp_.txt",
-  "/home/pen/data/walking/1_desired_com_.txt",
-  "/home/pen/data/walking/2_desired_q_.txt",
-  "/home/pen/data/walking/3_real_q_.txt",
-  "/home/pen/data/walking/4_desired_swingfoot_.txt",
-  "/home/pen/data/walking/5_desired_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/7_current_foot_trajectory_.txt",
-  "/home/pen/data/walking/8_QPestimation_variables_.txt",
-  "/home/pen/data/walking/9_ft_sensor_.txt",
-  "/home/pen/data/walking/10_ext_encoder_.txt",
-  "/home/pen/data/walking/11_kalman_estimator2_.txt",
-  "/home/pen/data/walking/12_kalman_estimator1_.txt",
-  "/home/pen/data/walking/13_kalman_estimator3_.txt",
-  "/home/pen/data/walking/14_grav_torque_.txt"
+  "/home/dg/data/walking/0_desired_zmp_.txt",
+  "/home/dg/data/walking/1_desired_com_.txt",
+  "/home/dg/data/walking/2_desired_q_.txt",
+  "/home/dg/data/walking/3_real_q_.txt",
+  "/home/dg/data/walking/4_desired_swingfoot_.txt",
+  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/7_current_foot_trajectory_.txt",
+  "/home/dg/data/walking/8_QPestimation_variables_.txt",
+  "/home/dg/data/walking/9_ft_sensor_.txt",
+  "/home/dg/data/walking/10_ext_encoder_.txt",
+  "/home/dg/data/walking/11_kalman_estimator2_.txt",
+  "/home/dg/data/walking/12_kalman_estimator1_.txt",
+  "/home/dg/data/walking/13_kalman_estimator3_.txt",
+  "/home/dg/data/walking/14_grav_torque_.txt"
 
 };
 
@@ -100,6 +100,8 @@ public:
   void writeDesired(const unsigned int *mask, VectorQd& desired_q);
 
   void parameterSetting();
+  void initWalkingWholeBody();
+
   //functions in compute
   void getRobotState();
   void getComTrajectory();
@@ -109,6 +111,10 @@ public:
   void computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q);
   void computeJacobianControl(Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector3d float_lleg_transform_euler, Eigen::Vector3d float_rleg_transform_euler, Eigen::Vector12d& desired_leg_q_dot);
   void compensator();
+
+  void linkMass();
+  void getComJacobian();
+  void computeComJacobianControl(Eigen::Vector12d &desired_leg_q_dot);
 
   void supportToFloatPattern();
   void updateNextStepTime();
@@ -299,6 +305,8 @@ private:
 
   Eigen::Matrix6d current_leg_jacobian_l_;
   Eigen::Matrix6d current_leg_jacobian_r_;
+
+
   DyrosJetModel &model_;
 
 
@@ -313,7 +321,7 @@ private:
   Eigen::Isometry3d lfoot_trajectory_support_;
   Eigen::Vector3d rfoot_trajectory_euler_support_;
   Eigen::Vector3d lfoot_trajectory_euler_support_;
-  Eigen::Vector6d rfoot_trajectory_dot_support_; //x,y,z translation velocity & roll, pitch, yaw velocity
+  Eigen::Vector6d rfoot_trajectory_dot_support_; //x,y,z translation velocity & roll, pitch, yaw derivative
   Eigen::Vector6d lfoot_trajectory_dot_support_;
 
   Eigen::Isometry3d pelv_trajectory_support_; //local frame
@@ -325,6 +333,43 @@ private:
   Eigen::Vector3d lfoot_trajectory_euler_float_;
   Eigen::Vector3d rfoot_trajectory_dot_float_;
   Eigen::Vector3d lfoot_trajectory_dot_float_;
+
+  //comJacobian variables
+  Eigen::Matrix<double, 6, 1> mass_l_leg_;
+  Eigen::Matrix<double, 6, 1> mass_r_leg_;
+  Eigen::Matrix<double, 7, 1> mass_l_arm_;
+  Eigen::Matrix<double, 7, 1> mass_r_arm_;
+  Eigen::Matrix<double, 3, 1> mass_body_;
+  double mass_total_;
+
+  Eigen::Vector3d c_l_leg_[6];
+  Eigen::Vector3d c_r_leg_[6];
+  Eigen::Vector3d c_l_arm_[7];
+  Eigen::Vector3d c_r_arm_[7];
+  Eigen::Vector3d c_waist_[3];
+
+  Eigen::Matrix6d adjoint_support_;
+  Eigen::Vector3d desired_w_;
+  Eigen::Vector6d x2_d_dot_;
+  Eigen::Matrix6d adjoint_21_;
+
+  Eigen::Matrix<double, 3, 6> j_rleg_com_total_support;
+  Eigen::Matrix<double, 3, 6> j_lleg_com_total_support;
+
+  Eigen::Matrix<double, 3, 7> j_rarm_com_total_support;
+  Eigen::Matrix<double, 3, 7> j_larm_com_total_support;
+
+  Eigen::Matrix6d j1_;
+  Eigen::Matrix6d j2_;
+  Eigen::Matrix<double, 3, 6> j_v1_;
+  Eigen::Matrix<double, 3, 6> j_w1_;
+
+  Eigen::Matrix<double, 3, 6> j_com_psem_;
+  Eigen::Vector3d desired_c_dot_psem_;
+
+  Eigen::Matrix6d j_total_;
+  Eigen::Vector6d c_total_;
+
 
   //getComTrajectory() variables
   double xi_;
