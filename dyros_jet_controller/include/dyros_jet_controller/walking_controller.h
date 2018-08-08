@@ -355,6 +355,9 @@ private:
 
   Eigen::Matrix6d adjoint_support_;
   Eigen::Vector3d desired_w_;
+  Eigen::Vector3d desired_u_;
+  Eigen::Vector3d desired_u_old_;
+  Eigen::Vector3d desired_u_dot_;
   Eigen::Vector6d x2_d_dot_;
   Eigen::Matrix6d adjoint_21_;
 

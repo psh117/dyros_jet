@@ -283,6 +283,8 @@ void WalkingController::getComJacobian()
 
 
   double kc;
+  double kp;
+  double kd;
   double kf;
   double kw;
   double lambda;
@@ -293,12 +295,17 @@ void WalkingController::getComJacobian()
   Eigen::Vector4d error_foot_w;
   Eigen::Vector3d swing_foot_w;
   Eigen::Vector3d error_com;
-  Eigen::Vector3d desired_u;
+  Eigen::Vector3d error_zmp;
   Eigen::Vector4d error_w;
+  Eigen::Vector3d disturbance_accel;
+  double switch_l_ft;
+  double switch_r_ft;
 
-  kc = 100.0;
+  kc = 100.0; kp = 0; kd = 0.001;
   kf = 100.0; kw = 200.0;
   lambda = 0.000;
+  error_zmp.setZero();
+  disturbance_accel.setZero();
 
   if(estimator_flag_ == true)
   {
@@ -310,15 +317,43 @@ void WalkingController::getComJacobian()
   {
     error_com = com_desired_ - com_support_current_;
   }
+  error_zmp.segment<2>(0) = zmp_desired_ - zmp_measured_;
 
-  desired_u = com_dot_desired_ + kc*(error_com);
+  if(l_ft_(2) > 50)
+  {
+    switch_l_ft = 1;
+  }
+  else
+  {
+    switch_l_ft = 0;
+  }
 
+  if(r_ft_(2) > 50)
+  {
+    switch_r_ft = 1;
+  }
+  else
+  {
+    switch_r_ft = 0;
+  }
+
+
+  disturbance_accel(0) = switch_l_ft * l_ft_(0) + switch_r_ft * r_ft_(0);
+  disturbance_accel(1) = switch_l_ft * l_ft_(1) + switch_r_ft * r_ft_(1);
+
+  cout<<"disturbance_accel"<<disturbance_accel<<endl;
+  desired_u_old_ = desired_u_;
+  //desired_u_ = com_dot_desired_ + kc*(error_com) - kp*(error_zmp);
+  desired_u_ = com_dot_desired_ + kc*(error_com) + kd*(disturbance_accel);
+  desired_u_dot_ = (desired_u_ - desired_u_dot_)*hz_;
   error_w = DyrosMath::rot2Axis(pelv_trajectory_support_.linear()*(pelv_support_current_.linear().transpose()));
   desired_w_ =  kw*(error_w.segment<3>(0)*error_w(3));
 
 
   if (foot_step_(current_step_num_, 6) == 1) //left support foot
   {
+
+
     r_c1 = com_support_current_ - lfoot_support_current_.translation();
     skew_r_c1 = DyrosMath::skew(r_c1);
     j1_ = adjoint_support_*current_leg_jacobian_l_;
@@ -346,7 +381,7 @@ void WalkingController::getComJacobian()
 
     j_com_psem_ = -j_v1_ + skew_r_c1*j_w1_ + j_lleg_com_total_support + j_rleg_com_total_support*j2_.inverse()*adjoint_21_*j1_;
 
-    desired_c_dot_psem_ = desired_u - j_rleg_com_total_support*j2_.inverse()*x2_d_dot_;
+    desired_c_dot_psem_ = desired_u_ - j_rleg_com_total_support*j2_.inverse()*x2_d_dot_;
 
 
 
@@ -383,12 +418,15 @@ void WalkingController::getComJacobian()
 
     j_com_psem_ = -j_v1_ + skew_r_c1*j_w1_ + j_rleg_com_total_support + j_lleg_com_total_support*j2_.inverse()*adjoint_21_*j1_;
 
-    desired_c_dot_psem_ = desired_u - j_lleg_com_total_support*j2_.inverse()*x2_d_dot_;
+    desired_c_dot_psem_ = desired_u_ - j_lleg_com_total_support*j2_.inverse()*x2_d_dot_;
 
 
 
     //COM_dot_m = J_COM_PSEM*(_q_sudo_dot.segment<6>(16));
   }
+
+  cout<<"error_foot_w"<<error_foot_w<<endl;
+  cout<<"error_w"<<error_w<<endl;
 
 }
 
