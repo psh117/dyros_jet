@@ -16,10 +16,9 @@ void WalkingController::compute()
 {
   if(walking_enable_ == true)
   {
+    getRobotState();
 
     updateInitialState();
-
-    getRobotState();
 
     floatToSupportFootstep();
 
@@ -112,8 +111,8 @@ void WalkingController::compute()
                  com_dot_desired_(2)<<"\t"<<com_support_init_(0)<<"\t"<<com_support_init_(0)<<"\t"<<com_support_init_(0)<<endl;
         file[2]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<desired_leg_q_(0)<<"\t"<<desired_leg_q_(1)<<"\t"<<desired_leg_q_(2)<<"\t"<<desired_leg_q_(3)<<"\t"<<desired_leg_q_(4)<<"\t"<<
                  desired_leg_q_(5)<<"\t"<<desired_leg_q_(6)<<"\t"<<desired_leg_q_(7)<<"\t"<<desired_leg_q_(8)<<"\t"<<desired_leg_q_(9)<<"\t"<<desired_leg_q_(10)<<"\t"<<desired_leg_q_(11)<<endl;
-        //     file[3]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<current_q_(0)<<"\t"<<current_q_(1)<<"\t"<<current_q_(2)<<"\t"<<current_q_(3)<<"\t"<<current_q_(4)<<"\t"<<current_q_(5)<<"\t"<<
-        //             current_q_(6)<<"\t"<<current_q_(7)<<"\t"<<current_q_(8)<<"\t"<<current_q_(9)<<"\t"<<current_q_(10)<<"\t"<<current_q_(11)<<endl;
+        file[3]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<current_q_(0)<<"\t"<<current_q_(1)<<"\t"<<current_q_(2)<<"\t"<<current_q_(3)<<"\t"<<current_q_(4)<<"\t"<<current_q_(5)<<"\t"<<
+                     current_q_(6)<<"\t"<<current_q_(7)<<"\t"<<current_q_(8)<<"\t"<<current_q_(9)<<"\t"<<current_q_(10)<<"\t"<<current_q_(11)<<endl;
         file[4]<<walking_tick_<<"\t"<<current_step_num_<<"\t"<<rfoot_trajectory_support_.translation()(0)<<"\t"<<rfoot_trajectory_support_.translation()(1)<<"\t"<<
                  rfoot_trajectory_support_.translation()(2)<<"\t"<<lfoot_trajectory_support_.translation()(0)<<"\t"<<lfoot_trajectory_support_.translation()(1)<<"\t"<<lfoot_trajectory_support_.translation()(2)<<"\t"<<
                  rfoot_support_init_.translation()(0)<<"\t"<<rfoot_support_init_.translation()(1)<<"\t"<<rfoot_support_init_.translation()(2)<<endl;
@@ -131,7 +130,7 @@ void WalkingController::compute()
         file[11]<<walking_tick_<<"\t"<<X_hat_post_2_(0)<<"\t"<<X_hat_post_2_(1)<<"\t"<<X_hat_post_2_(2)<<"\t"<<X_hat_post_2_(3)<<"\t"<<X_hat_post_2_(4)<<"\t"<<X_hat_post_2_(5)<<"\t"<<X_hat_post_2_(6)<<"\t"<<X_hat_post_2_(7)<<endl;
         file[12]<<walking_tick_<<"\t"<<X_hat_post_1_(0)<<"\t"<<X_hat_post_1_(1)<<"\t"<<X_hat_post_1_(2)<<"\t"<<X_hat_post_1_(3)<<"\t"<<X_hat_post_1_(4)<<"\t"<<X_hat_post_1_(5)<<endl;
         file[13]<<walking_tick_<<"\t"<<X_hat_post_3_(0)<<"\t"<<X_hat_post_3_(1)<<"\t"<<X_hat_post_3_(2)<<"\t"<<X_hat_post_3_(3)<<"\t"<<X_hat_post_3_(4)<<"\t"<<X_hat_post_3_(5)<<"\t"<<X_hat_post_3_(6)<<"\t"<<X_hat_post_3_(7)<<"\t"<<X_hat_post_3_(8)<<"\t"<<X_hat_post_3_(9)<<endl;
-        file[14]<<walking_tick_<<"\t"<<grav_ground_torque_(0)<<"\t"<<grav_ground_torque_(1)<<"\t"<<grav_ground_torque_(2)<<"\t"<<grav_ground_torque_(3)<<"\t"<<grav_ground_torque_(4)<<"\t"<<grav_ground_torque_(5)<<endl;
+        file[14]<<walking_tick_<<"\t"<<grav_ground_torque_(0)<<"\t"<<grav_ground_torque_(1)<<"\t"<<grav_ground_torque_(2)<<"\t"<<grav_ground_torque_(3)<<"\t"<<grav_ground_torque_(4)<<"\t"<<grav_ground_torque_(5)<<"\t"<<grav_ground_torque_(6)<<"\t"<<grav_ground_torque_(7)<<"\t"<<grav_ground_torque_(8)<<"\t"<<grav_ground_torque_(9)<<"\t"<<grav_ground_torque_(10)<<"\t"<<grav_ground_torque_(11)<<endl;
 
         ///////////////////////////////////////////////
 
@@ -266,6 +265,9 @@ void WalkingController::parameterSetting()
 
   //zc_ = 0.75;
 
+  calculateFootStepTotal();
+  linkMass();
+
   ///////////cvxgen setting////////////
   set_defaults();
   setup_indexing();
@@ -290,6 +292,59 @@ void WalkingController::getRobotState()
     q_temp.segment<12>(6) =   desired_q_not_compensated_.segment<12>(0);  //update robot state with desired q
     model_.updateKinematics(q_temp);
   }
+  if(ik_mode_ == 0 && walking_tick_ == 0)
+  {
+      int index = 0;
+       q_temp(index++) = 0*DEG2RAD;
+        q_temp(index++) = 0*DEG2RAD;
+         q_temp(index++) = 0*DEG2RAD;
+          q_temp(index++) = 0*DEG2RAD;
+           q_temp(index++) = 0*DEG2RAD;
+            q_temp(index++) = 0*DEG2RAD;
+      // L_leg
+          q_temp(index++) = 0*DEG2RAD;
+          q_temp(index++) = 2*DEG2RAD;
+          q_temp(index++) = -2*DEG2RAD;//-6*DEG2RAD;
+          q_temp(index++) = 42*DEG2RAD;
+          q_temp(index++) = -40*DEG2RAD;//-40*DEG2RAD;
+          q_temp(index++) = -2*DEG2RAD; //ordinary position
+
+          // R_leg
+             q_temp(index++) = 0*DEG2RAD;
+             q_temp(index++) = -2*DEG2RAD;
+             q_temp(index++) = 2*DEG2RAD;//-6*DEG2RAD;//-6*DEG2RAD;
+             q_temp(index++) = -42*DEG2RAD;
+             q_temp(index++) = 40*DEG2RAD;//40*DEG2RAD;
+             q_temp(index++) = 2*DEG2RAD;
+
+      // Waist Yaw -> roll
+          q_temp(index++) = 0;
+          q_temp(index++) = 0;
+
+
+
+      // L_arm
+          q_temp(index++) =  45*DEG2RAD;
+          q_temp(index++) = -95*DEG2RAD;
+          q_temp(index++) = -80*DEG2RAD;
+          q_temp(index++) = -30*DEG2RAD;
+          q_temp(index++) =  0*DEG2RAD;
+          q_temp(index++) = -65*DEG2RAD;
+          q_temp(index++) = -10*DEG2RAD;
+
+          // R_arm
+              q_temp(index++) = -45*DEG2RAD;
+              q_temp(index++) = 95*DEG2RAD;
+              q_temp(index++) = 80*DEG2RAD;
+              q_temp(index++) = 30*DEG2RAD;
+              q_temp(index++) =  0*DEG2RAD;
+              q_temp(index++) = 65*DEG2RAD;
+              q_temp(index++) = 10*DEG2RAD;
+
+        model_.updateKinematics(q_temp);
+
+
+  }
 
 
   com_sim_old_ = com_sim_current_;
@@ -299,6 +354,7 @@ void WalkingController::getRobotState()
   lfoot_float_current_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)0);
   rfoot_float_current_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)1);
   com_float_current_ = model_.getCurrentCom();
+  com_float_current_(0) -= 0.015;
 
   com_sim_current_ = model_.getSimulationCom();
   gyro_sim_current_ = model_.getSimulationGyro();
@@ -1163,14 +1219,13 @@ void WalkingController::updateInitialState()
   if( walking_tick_ ==0)
   {
     thread_tick_ = 0;
-    calculateFootStepTotal();
-    linkMass();
+
 
     q_init_ = current_q_;
     lfoot_float_init_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)(0));
     rfoot_float_init_ = model_.getCurrentTransform((DyrosJetModel::EndEffector)(1));
     com_float_init_ = model_.getCurrentCom();
-
+    com_float_init_(0) -= 0.015;
 
     pelv_float_init_.setIdentity();
 
@@ -1247,6 +1302,8 @@ void WalkingController::updateInitialState()
       yi_ = pelv_support_init_.translation()(1)+com_offset_(1);
     }
 
+    disturbance_accel_.setZero();
+    disturbance_accel_old_.setZero();
   }
   else if(current_step_num_!=0 && walking_tick_ == t_start_)
   {
@@ -2426,7 +2483,7 @@ void WalkingController::compensator()
   if(hip_compensator_mode_ == true)
   {
     hipCompensation();
-    if(lqr_compensator_mode_ == false)
+    if(lqr_compensator_mode_ == false )
     {
       hipCompensator();
     }
@@ -2483,7 +2540,7 @@ void WalkingController::compensator()
         if(n == 7 || n == 8)
           desired_q_(n) = desired_q_(n) - 0.0022*grav_gain_timing*grav_ground_torque_[n];
         else if (n == 9)
-          desired_q_(n) = desired_q_(n) - 0.0010*grav_gain_timing*grav_ground_torque_[n];
+          desired_q_(n) = desired_q_(n) - 0.0003*grav_gain_timing*grav_ground_torque_[n];
         else
           desired_q_(n) = desired_q_(n);
       }
@@ -2508,7 +2565,7 @@ void WalkingController::compensator()
         if ( n == 1 || n == 2)
           desired_q_(n)  = desired_q_(n) - 0.0022*grav_gain_timing*grav_ground_torque_[n];
         else if (n == 3)
-          desired_q_(n) = desired_q_(n) - 0.0010*grav_gain_timing*grav_ground_torque_[n];
+          desired_q_(n) = desired_q_(n) - 0.0003*grav_gain_timing*grav_ground_torque_[n];
         else
           desired_q_(n) = desired_q_(n);
       }
@@ -2518,10 +2575,18 @@ void WalkingController::compensator()
 
 void WalkingController::hipCompensator()
 {
-  double left_hip_angle = 4.0*DEG2RAD, right_hip_angle = 8.5*DEG2RAD, left_hip_angle_first_step = 4.0*DEG2RAD, right_hip_angle_first_step = 8.5*DEG2RAD,
+  double left_hip_angle, right_hip_angle, left_hip_angle_first_step, right_hip_angle_first_step, left_hip_angle_temp, right_hip_angle_temp, temp_time, left_pitch_angle;
 
-      left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
-
+  if(ik_mode_ == 0) //ik control
+  {
+    left_hip_angle = 4.0*DEG2RAD, right_hip_angle = 4.5*DEG2RAD, left_hip_angle_first_step = 4.0*DEG2RAD, right_hip_angle_first_step = 4.5*DEG2RAD,
+        left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
+  }
+  else if(ik_mode_ ==1) //jacobian control
+  {
+    left_hip_angle = 3.7*DEG2RAD, right_hip_angle = 3.5*DEG2RAD, left_hip_angle_first_step = 3.7*DEG2RAD, right_hip_angle_first_step = 3.5*DEG2RAD,
+        left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*hz_, left_pitch_angle = 0.0*DEG2RAD;
+  }
   if (current_step_num_ == 0)
   {
     if(foot_step_(current_step_num_, 6) == 1) //left support foot
