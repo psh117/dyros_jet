@@ -14,7 +14,7 @@ git clone -b 3.6.0 https://github.com/ROBOTIS-GIT/DynamixelSDK.git
 
 ### RBDL Setup ###
 ```sh
-wget https://bitbucket.org/rbdl/rbdl/get/default.zip
+wget https://bitbucket.org/rbdl/rbdl/get/849d2aee8f4c.zip
 unzip default.zip
 cd rbdl-rbdl-849d2aee8f4c
 mkdir build
