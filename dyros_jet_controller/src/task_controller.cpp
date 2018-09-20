@@ -65,11 +65,11 @@ void TaskController::updateControlMask(unsigned int *mask)
         end_time_[index] = control_time_;
         if (index < 2)  // Legs
         {
-          desired_q_.segment<6>(model_.joint_start_index_[index]) = current_q_.segment<6>(model_.joint_start_index_[index]);
+          desired_q_.segment<6>(model_.joint_start_index_[index]-6) = current_q_.segment<6>(model_.joint_start_index_[index]-6);
         }
         else
         {
-          desired_q_.segment<7>(model_.joint_start_index_[index]) = current_q_.segment<7>(model_.joint_start_index_[index]);
+          desired_q_.segment<7>(model_.joint_start_index_[index]-6) = current_q_.segment<7>(model_.joint_start_index_[index]-6);
         }
         //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTransform((DyrosJetModel::EndEffector)index), 0); // Stop moving
         target_arrived_[index] = true;
@@ -165,13 +165,13 @@ void TaskController::computeCLIK()
       if (i < 2)  // Legs
       {
         const auto &J = model_.getLegJacobian((DyrosJetModel::EndEffector)(i));
-        const auto &q = current_q_.segment<6>(model_.joint_start_index_[i]);
+        const auto &q = current_q_.segment<6>(model_.joint_start_index_[i]-6);
 
         auto J_inverse = J.transpose() *
             (inverse_damping * Eigen::Matrix6d::Identity() +
              J * J.transpose()).inverse();
 
-        desired_q_.segment<6>(model_.joint_start_index_[i])
+        desired_q_.segment<6>(model_.joint_start_index_[i]-6)
             = (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
       }
       else    // Arms
@@ -185,7 +185,7 @@ void TaskController::computeCLIK()
              J * J.transpose()).inverse();
 
 
-        desired_q_.segment<7>(model_.joint_start_index_[i]) =
+        desired_q_.segment<7>(model_.joint_start_index_[i]-6) =
             (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
 
         /*

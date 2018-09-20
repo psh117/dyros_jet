@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <name>dyros_jet_haptic</name>
+  <version>0.0.0</version>
+  <description>The haptic_publisher package</description>
+
+  <maintainer email="alfred1224@snu.ac.kr">HyunWoong Choi</maintainer>
+
+  <license>BSD</license>
+
+  <author email="alfred1224@snu.ac.kr">HyunWoong Choi</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>dyros_jet_msgs</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>dyros_jet_msgs</run_depend>
+
+  <export>
+  </export>
+</package>

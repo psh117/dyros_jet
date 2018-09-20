@@ -72,6 +72,8 @@ void TaskQNode::init_nh()
   walking_cmd_publisher = nh->advertise<dyros_jet_msgs::WalkingCommand>("/dyros_jet/walking_command", 5);
   controlbase_bool_publisher = nh->advertise<std_msgs::Bool>("/dyros_jet/controlbase_bool", 5);
   hand_cmd_publisher_ = nh->advertise<sensor_msgs::JointState>("/dyros_jet/hand_command", 5);
+  //airjet
+  airjet_cmd_publisher = nh->advertise<std_msgs::Bool>("/dyros_jet/airjet",5);
 
   ft_sensor_calib_publisher = nh->advertise<std_msgs::Float32>("/ati_ft_sensor/calibration", 5);
   ft_sensor_lf_state_subscriber = nh->subscribe("/ati_ft_sensor/left_foot_ft", 1, &TaskQNode::left_ftStateCallback, this);
@@ -117,6 +119,16 @@ void TaskQNode::send_hand_cmd()
 {
   hand_cmd_publisher_.publish(hand_cmd_msg_);
 }
+
+//airjet
+
+void TaskQNode::send_airjet()
+{
+  bool airjet_data;
+  airjet_data = airjet.data;
+  airjet_cmd_publisher.publish(airjet);
+}
+
 void TaskQNode::left_ftStateCallback(const geometry_msgs::WrenchStampedConstPtr& msg)
 {
   ft_lf_msg_ = *msg;

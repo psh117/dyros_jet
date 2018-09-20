@@ -71,11 +71,16 @@ void HapticController::updateControlMask(unsigned int *mask)
         end_time_[index] = control_time_;
         if (index < 2)  // Legs
         {
-          desired_q_.segment<6>(model_.joint_start_index_[index]) = current_q_.segment<6>(model_.joint_start_index_[index]);
+          desired_q_.segment<6>(model_.joint_start_index_[index]-6) = current_q_.segment<6>(model_.joint_start_index_[index]-6);
         }
         else
         {
-          desired_q_.segment<7>(model_.joint_start_index_[index]) = current_q_.segment<7>(model_.joint_start_index_[index]);
+            int j_index = model_.joint_start_index_[i]-6;
+            if(current_q_.rows()==32)
+            {
+                j_index = j_index - 6;
+            }
+          desired_q_.segment<7>(model_.joint_start_index_[index]-6) = current_q_.segment<7>(model_.joint_start_index_[index]-6);
         }
         //setTarget((DyrosJetModel::EndEffector)index, model_.getCurrentTransform((DyrosJetModel::EndEffector)index), 0); // Stop moving
         target_arrived_[index] = true;
@@ -116,6 +121,7 @@ void HapticController::computeCLIK()
 
         if(ee_enabled_[i])
         {
+
             // For short names
 
             const auto &x = model_.getCurrentTransform((DyrosJetModel::EndEffector)(i)).translation();
@@ -144,8 +150,25 @@ void HapticController::computeCLIK()
                 ROS_INFO("target arrived - %d End effector", i);
                 continue;
             }
+
+
+
+
             const auto &J = model_.getArmJacobian((DyrosJetModel::EndEffector)(i));
-            const auto &q = current_q_.segment<7>(model_.joint_start_index_[i]);
+
+            std::cout <<"desired_q " <<std::endl<<desired_q_<<std::endl<<"q out"<<std::endl<<current_q_<<std::endl<<" joint_start_index " <<std::endl<<model_.joint_start_index_[i]-6<<std::endl<<"endl";
+
+            int j_index = model_.joint_start_index_[i]-6;
+            if(current_q_.rows()==32)
+            {
+                j_index = j_index - 6;
+            }
+
+
+            const auto &q = current_q_.segment<7>(j_index);
+
+
+
 
 
             auto J_inverse = J.transpose() *
@@ -153,12 +176,13 @@ void HapticController::computeCLIK()
                      J * J.transpose()).inverse();
 
 
-            desired_q_.segment<7>(model_.joint_start_index_[i]) =
+            desired_q_.segment<7>(j_index) =
                     (J_inverse * (x_dot_desired + x_error * kp)) / hz_ + q;
 
 
         }
     }
+
 }
 
 }

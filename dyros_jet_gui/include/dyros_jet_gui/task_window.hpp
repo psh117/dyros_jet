@@ -77,6 +77,8 @@ public Q_SLOTS:
     void on_button_hand_preset_drill_power_clicked();
     void on_button_hand_preset_box_pinch_clicked();
 
+    //airjet
+    void on_checkBox_send_data_airjet_clicked();
 
     void on_pushButton_ft_start_clicked();
     void on_pushButton_ft_stop_clicked();

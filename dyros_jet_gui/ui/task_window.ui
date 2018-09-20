@@ -295,6 +295,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="checkBox_send_data_airjet">
+             <property name="text">
+              <string>AirJet</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <layout class="QVBoxLayout" name="verticalLayout_30">
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -979,7 +986,7 @@
      <x>0</x>
      <y>0</y>
      <width>1920</width>
-     <height>34</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

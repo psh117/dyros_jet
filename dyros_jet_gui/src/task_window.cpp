@@ -1194,6 +1194,19 @@ void TaskWindow::ClickedGraph_RF(QMouseEvent* event)
     textLabel_RF->setText(QString("(%1, %2)").arg(x_dec2).arg(y_dec2));
   }
 }
+
+//airjet
+void TaskWindow::on_checkBox_send_data_airjet_clicked()
+{
+  if(ui.checkBox_send_data_airjet->isChecked())
+    {
+      qnode.airjet.data = true;
+    }
+  else qnode.airjet.data = false;
+
+  qnode.send_airjet();
+}
+
 /*****************************************************************************
 ** Implemenation [Slots][manually connected]
 *****************************************************************************/
