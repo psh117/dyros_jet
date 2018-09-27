@@ -97,7 +97,7 @@ void ControlBase::update()
   Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint;
   q_vjoint.setZero();
   q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
-  q_vjoint.segment<12>(6) = q_ext_offset_;
+  //q_vjoint.segment<12>(6) = q_ext_offset_;
   //q_vjoint.segment<12>(6) = WalkingController::desired_q_not_compensated_;
 
   model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
@@ -321,7 +321,6 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   }
   else
   {
-    cout<<"fffffffffff"<<endl;
     walking_controller_.setEnable(false);
   }
 }

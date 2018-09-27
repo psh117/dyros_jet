@@ -41,7 +41,6 @@ void WalkingController::linkMass()
   {
     mass_total_ += model_.getLinkMass(i);
 
-    cout<< "mass_total_:"<< mass_total_<<endl;
   }
 
   /*
@@ -315,7 +314,16 @@ void WalkingController::getComJacobian()
   {
     error_com = com_desired_ - com_support_current_;
   }
-  error_zmp.segment<2>(0) = zmp_desired_ - zmp_measured_;
+
+  if(l_ft_(2)+r_ft_(2) > 250)
+  {
+    error_zmp.segment<2>(0) = zmp_desired_ - zmp_measured_;
+  }
+  else if(walking_tick_%100 == 0)
+  {
+    cout<<"I'm flying"<<endl;
+  }
+
 
   if(l_ft_(2) > 10)
   {
@@ -335,6 +343,8 @@ void WalkingController::getComJacobian()
     switch_r_ft = 0;
   }
 
+
+
   disturbance_accel_old_ = disturbance_accel_;
 
   disturbance_accel_(0) = (switch_l_ft * (-l_ft_(0)) + switch_r_ft * (-r_ft_(0)))/mass_total_ + desired_u_dot_(0);
@@ -343,7 +353,6 @@ void WalkingController::getComJacobian()
 
   disturbance_accel_ = 0.3*disturbance_accel_ +0.7*disturbance_accel_old_;
 
-  cout<<"disturbance_accel_"<<disturbance_accel_<<endl;
   desired_u_old_ = desired_u_;
   desired_u_ = com_dot_desired_ + kc*(error_com) - kp*(error_zmp);
   //desired_u_ = com_dot_desired_ + kc*(error_com) + kd*(disturbance_accel_);
