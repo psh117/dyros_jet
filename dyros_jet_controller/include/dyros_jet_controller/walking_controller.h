@@ -354,12 +354,14 @@ private:
   Eigen::Vector3d c_waist_[3];
 
   Eigen::Matrix6d adjoint_support_;
+  Eigen::Matrix6d adjoint_21_;
+  Eigen::Vector3d disturbance_accel_;
+  Eigen::Vector3d disturbance_accel_old_;
   Eigen::Vector3d desired_w_;
   Eigen::Vector3d desired_u_;
   Eigen::Vector3d desired_u_old_;
   Eigen::Vector3d desired_u_dot_;
   Eigen::Vector6d x2_d_dot_;
-  Eigen::Matrix6d adjoint_21_;
 
   Eigen::Matrix<double, 3, 6> j_rleg_com_total_support;
   Eigen::Matrix<double, 3, 6> j_lleg_com_total_support;

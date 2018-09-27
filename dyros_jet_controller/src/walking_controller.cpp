@@ -1044,11 +1044,19 @@ void WalkingController::getZmpTrajectory()
   unsigned int norm_size = 0;
 
   if(current_step_num_ >= total_step_num_ - planning_step_number)
+  {
     norm_size = (t_last_-t_start_+1)*(total_step_num_-current_step_num_)+20*hz_;
+  }
   else
+  {
     norm_size = (t_last_-t_start_+1)*(planning_step_number);
+  }
+
   if(current_step_num_ == 0)
+  {
     norm_size = norm_size + t_temp_+1;
+  }
+
   addZmpOffset();
   zmpGenerator(norm_size, planning_step_number);
 }

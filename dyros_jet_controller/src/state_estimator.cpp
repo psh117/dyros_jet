@@ -1093,14 +1093,14 @@ void WalkingController::kalmanStateSpace3()
   Q_3_.setIdentity();
   R_3_.setIdentity();
 
-  Q_3_(0, 0) = 1e-7;	//com position
-  Q_3_(1, 1) = 1e-7;
+  Q_3_(0, 0) = 1e-5;	//com position
+  Q_3_(1, 1) = 1e-5;
 
-  Q_3_(2, 2) = 1e-5;	//com velocity
-  Q_3_(3, 3) = 1e-5;
+  Q_3_(2, 2) = 1e-6;	//com velocity
+  Q_3_(3, 3) = 1e-6;
 
-  Q_3_(4, 4) = 1e-6;	//zmp
-  Q_3_(5, 5) = 1e-6;
+  Q_3_(4, 4) = 1e-7;	//zmp
+  Q_3_(5, 5) = 1e-7;
 
   Q_3_(6, 6) = 1e-9;	 //com position error
   Q_3_(7, 7) = 1e-9;
@@ -1108,14 +1108,14 @@ void WalkingController::kalmanStateSpace3()
   Q_3_(8, 8) = 1e-8;	 //model error
   Q_3_(9, 9) = 1e-8;
 
-  R_3_(0, 0) = 1e-8;   //com
-  R_3_(1, 1) = 1e-8;
+  R_3_(0, 0) = 1e-6;   //com
+  R_3_(1, 1) = 1e-6;
 
   R_3_(2, 2) = 1e-9;    //zmp
   R_3_(3, 3) = 1e-9;
 
-  R_3_(4, 4) = 1e-7;    //imu
-  R_3_(5, 5) = 1e-7;
+  R_3_(4, 4) = 1e-4;    //imu
+  R_3_(5, 5) = 1e-4;
 
 
   /*
@@ -1319,9 +1319,10 @@ void WalkingController::kalmanFilter3()
   Y_3_(1) = com_support_current_(1);
   Y_3_(2) = zmp_measured_(0);
   Y_3_(3) = zmp_measured_(1);
-  Y_3_(4) = imu_acc_(0);
-  Y_3_(5) = imu_acc_(1);
+  Y_3_(4) = accel_sim_current_(0);
+  Y_3_(5) = accel_sim_current_(1);
 
+  cout <<"accel_sim_current_"<<accel_sim_current_<<endl;
 
 
   u_old_3_(0) = zmp_measured_(0);

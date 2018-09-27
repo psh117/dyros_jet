@@ -40,8 +40,6 @@ void WalkingController::linkMass()
   for(unsigned int i=0; i<29; i++)
   {
     mass_total_ += model_.getLinkMass(i);
-
-    cout<< "mass_total_:"<< mass_total_<<endl;
   }
 
   /*
@@ -297,15 +295,13 @@ void WalkingController::getComJacobian()
   Eigen::Vector3d error_com;
   Eigen::Vector3d error_zmp;
   Eigen::Vector4d error_w;
-  Eigen::Vector3d disturbance_accel;
   double switch_l_ft;
   double switch_r_ft;
 
-  kc = 100.0; kp = 0; kd = 0.001;
+  kc = 100.0; kp = 0.1; kd = 0.000;
   kf = 100.0; kw = 200.0;
   lambda = 0.000;
   error_zmp.setZero();
-  disturbance_accel.setZero();
 
   if(estimator_flag_ == true)
   {
@@ -337,15 +333,19 @@ void WalkingController::getComJacobian()
     switch_r_ft = 0;
   }
 
+  disturbance_accel_old_ = disturbance_accel_;
 
-  disturbance_accel(0) = switch_l_ft * l_ft_(0) + switch_r_ft * r_ft_(0);
-  disturbance_accel(1) = switch_l_ft * l_ft_(1) + switch_r_ft * r_ft_(1);
+  disturbance_accel_(0) = switch_l_ft * l_ft_(0) + switch_r_ft * r_ft_(0) - desired_u_dot_(0);
+  disturbance_accel_(1) = switch_l_ft * l_ft_(1) + switch_r_ft * r_ft_(1) - desired_u_dot_(1);
+  disturbance_accel_(2) = 0;
 
-  cout<<"disturbance_accel"<<disturbance_accel<<endl;
+  disturbance_accel_ = 0.3*disturbance_accel_ + 0.7*disturbance_accel_old_;
+
+  cout<<"disturbance_accel_"<<disturbance_accel_<<endl;
   desired_u_old_ = desired_u_;
   //desired_u_ = com_dot_desired_ + kc*(error_com) - kp*(error_zmp);
-  desired_u_ = com_dot_desired_ + kc*(error_com) + kd*(disturbance_accel);
-  desired_u_dot_ = (desired_u_ - desired_u_dot_)*hz_;
+  desired_u_ = com_dot_desired_ + kc*(error_com) + kd*(disturbance_accel_);
+  desired_u_dot_ = (desired_u_ - desired_u_old_)*hz_;
   error_w = DyrosMath::rot2Axis(pelv_trajectory_support_.linear()*(pelv_support_current_.linear().transpose()));
   desired_w_ =  kw*(error_w.segment<3>(0)*error_w(3));
 
@@ -385,7 +385,7 @@ void WalkingController::getComJacobian()
 
 
 
-    //COM_dot_m = J_COM_PSEM*(_q_sudo_dot.segment<6>(22));
+    //COM_dot_m = J_COM_PSEM*(_q_sudo_do t.segment<6>(22));
   }
   else //right support foot
   {
