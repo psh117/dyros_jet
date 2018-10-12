@@ -323,7 +323,16 @@ void WalkingController::getComJacobian()
   {
     error_com = com_desired_ - com_support_current_;
   }
-  error_zmp.segment<2>(0) = zmp_desired_ - zmp_measured_;
+
+  if(l_ft_(2)+r_ft_(2) > 250)
+  {
+    error_zmp.segment<2>(0) = zmp_desired_ - zmp_measured_;
+  }
+  else if(walking_tick_%100 == 0)
+  {
+    cout<<"I'm flying"<<endl;
+  }
+
 
   if(l_ft_(2) > 10)
   {
@@ -359,6 +368,7 @@ void WalkingController::getComJacobian()
 
   error_moment = moment_support_desried - moment_support_current;
 
+
   disturbance_accel_old_ = disturbance_accel_;
 
 
@@ -371,6 +381,7 @@ void WalkingController::getComJacobian()
   cout<<"disturbance_accel_"<<disturbance_accel_<<endl;
   cout<<"error_zmp"<<error_zmp<<endl;
   //cout<<"error_moment"<<error_moment<<endl;
+
 
   desired_u_old_ = desired_u_;
   desired_u_ = com_dot_desired_ + kc*(error_com) - kp*(error_zmp);

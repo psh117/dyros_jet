@@ -1039,7 +1039,6 @@ void WalkingController::usingFootStepPlanner()
 
       if(temp1 == 0)
         {
-      //    std::cout << "asdfaswwwww" << std::endl;
           foot_step_(0,0) = (foot_stepx - foot_stepx_prev)/2.0 + 2*(0.127794)*sin(foot_step_angle);
           foot_step_(0,1) = (foot_stepy - foot_stepy_prev)/2.0 -2*(0.127794)*cos(foot_step_angle);
           foot_step_(0,5) = foot_step_angle;
@@ -1047,7 +1046,6 @@ void WalkingController::usingFootStepPlanner()
         }
       if(temp1 == 1)
         {
-          std::cout << "asdfaswwwww11111" << std::endl;
           foot_step_(0,0) = (foot_stepx - foot_stepx_prev)/2.0 - 2*(0.127794)*sin(foot_step_angle);
           foot_step_(0,1) = (foot_stepy - foot_stepy_prev)/2.0 + 2*(0.127794)*cos(foot_step_angle);
           foot_step_(0,5) = foot_step_angle;
@@ -3125,7 +3123,6 @@ void WalkingController::riccatiGain(Eigen::Matrix<double, 48, 48>& ad_total, Eig
 
   if (!InitDare)
   {
-    std::cout << "insiadfnisdaifnadisfasd" <<std::endl;
     discreteRiccatiEquationInitialize(ad_total, bd_total);
     InitDare = true;
   }
