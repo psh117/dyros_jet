@@ -295,13 +295,23 @@ void WalkingController::getComJacobian()
   Eigen::Vector3d error_com;
   Eigen::Vector3d error_zmp;
   Eigen::Vector4d error_w;
+  Eigen::Vector3d error_moment;
+  Eigen::Vector3d moment_support_desried;
+  Eigen::Vector3d moment_support_current;
+
   double switch_l_ft;
   double switch_r_ft;
 
-  kc = 100.0; kp = 0.1; kd = 0.000;
+  kc = 100.0; kp = 0.1; kd = 0.000;  //gains for simulation
   kf = 100.0; kw = 200.0;
+
+  //kc = 300.0; kp = 45.0; kd = 0.005;  //gains for real robot
+  //kf = 300.0; kw = 200.0;
   lambda = 0.000;
   error_zmp.setZero();
+  error_moment.setZero();
+  moment_support_current.setZero();
+  moment_support_desried.setZero();
 
   if(estimator_flag_ == true)
   {
@@ -315,7 +325,7 @@ void WalkingController::getComJacobian()
   }
   error_zmp.segment<2>(0) = zmp_desired_ - zmp_measured_;
 
-  if(l_ft_(2) > 50)
+  if(l_ft_(2) > 10)
   {
     switch_l_ft = 1;
   }
@@ -324,7 +334,7 @@ void WalkingController::getComJacobian()
     switch_l_ft = 0;
   }
 
-  if(r_ft_(2) > 50)
+  if(r_ft_(2) > 10)
   {
     switch_r_ft = 1;
   }
@@ -333,18 +343,40 @@ void WalkingController::getComJacobian()
     switch_r_ft = 0;
   }
 
+  moment_support_desried(0) = zmp_desired_(0)*(l_ft_(2)+r_ft_(2));
+  moment_support_desried(1) = zmp_desired_(1)*(l_ft_(2)+r_ft_(2));
+
+  if (foot_step_(current_step_num_, 6) == 1) //left support foot
+  {
+    moment_support_current(0) = -l_ft_(4) - switch_r_ft*(r_ft_(4) + rfoot_support_current_.translation()(0)*r_ft_(2));
+    moment_support_current(1) = +l_ft_(3) + switch_r_ft*(r_ft_(3) + rfoot_support_current_.translation()(1)*r_ft_(2));
+  }
+  else
+  {
+    moment_support_current(0) = -r_ft_(4) - switch_l_ft*(l_ft_(4) + lfoot_support_current_.translation()(0)*l_ft_(2));
+    moment_support_current(1) = +r_ft_(3) + switch_l_ft*(l_ft_(3) + lfoot_support_current_.translation()(1)*l_ft_(2));
+  }
+
+  error_moment = moment_support_desried - moment_support_current;
+
   disturbance_accel_old_ = disturbance_accel_;
 
-  disturbance_accel_(0) = switch_l_ft * l_ft_(0) + switch_r_ft * r_ft_(0) - desired_u_dot_(0);
-  disturbance_accel_(1) = switch_l_ft * l_ft_(1) + switch_r_ft * r_ft_(1) - desired_u_dot_(1);
+
+  disturbance_accel_(0) = desired_u_dot_(0) - (switch_l_ft*(-l_ft_(4)) + switch_r_ft*(-r_ft_(4)))/(mass_total_*com_support_current_(2));
+  disturbance_accel_(1) = desired_u_dot_(1) - (switch_l_ft*(l_ft_(3)) + switch_r_ft*(r_ft_(3)))/(mass_total_*com_support_current_(2));
   disturbance_accel_(2) = 0;
 
-  disturbance_accel_ = 0.3*disturbance_accel_ + 0.7*disturbance_accel_old_;
+  //disturbance_accel_ = 0.3*disturbance_accel_ +0.7*disturbance_accel_old_;
 
   cout<<"disturbance_accel_"<<disturbance_accel_<<endl;
+  cout<<"error_zmp"<<error_zmp<<endl;
+  //cout<<"error_moment"<<error_moment<<endl;
+
   desired_u_old_ = desired_u_;
-  //desired_u_ = com_dot_desired_ + kc*(error_com) - kp*(error_zmp);
-  desired_u_ = com_dot_desired_ + kc*(error_com) + kd*(disturbance_accel_);
+  desired_u_ = com_dot_desired_ + kc*(error_com) - kp*(error_zmp);
+  //desired_u_ = com_dot_desired_ + kc*(error_com) - 1*(error_moment);
+  //desired_u_ = com_dot_desired_ + kc*(error_com) - kd*(disturbance_accel_);
+
   desired_u_dot_ = (desired_u_ - desired_u_old_)*hz_;
   error_w = DyrosMath::rot2Axis(pelv_trajectory_support_.linear()*(pelv_support_current_.linear().transpose()));
   desired_w_ =  kw*(error_w.segment<3>(0)*error_w(3));
@@ -424,9 +456,6 @@ void WalkingController::getComJacobian()
 
     //COM_dot_m = J_COM_PSEM*(_q_sudo_dot.segment<6>(16));
   }
-
-  cout<<"error_foot_w"<<error_foot_w<<endl;
-  cout<<"error_w"<<error_w<<endl;
 
 }
 

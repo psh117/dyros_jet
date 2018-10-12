@@ -7,9 +7,9 @@ DXLHandler::DXLHandler(const char* port_name, float protocol_version, int baud_r
   joint_name_map_["hand_thumb_fe"] = 55;
   joint_name_map_["hand_thumb_aa"] = 56;
 
-  hand_motor_offset_["hand_finger1"] = 3452;
-  hand_motor_offset_["hand_finger2"] = 3481;
-  hand_motor_offset_["hand_thumb_fe"] = 2560;
+  hand_motor_offset_["hand_finger1"] = 3252;
+  hand_motor_offset_["hand_finger2"] = 3281;
+  hand_motor_offset_["hand_thumb_fe"] = 2360;
   hand_motor_offset_["hand_thumb_aa"] = 1580;
 
   

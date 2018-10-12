@@ -62,6 +62,9 @@ public:
     void send_bool_cb();
     void send_hand_cmd();
 
+    //airjet
+    void send_airjet();
+
     void left_ftStateCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
     void right_ftStateCallback(const geometry_msgs::WrenchStampedConstPtr& msg);
 
@@ -76,6 +79,8 @@ public:
 
     std_msgs::Bool controlbase_bool_;
 
+    std_msgs::Bool airjet;
+
 Q_SIGNALS:
     void rosShutdown();
 
@@ -89,6 +94,8 @@ private:
     ros::Publisher task_cmd_publisher;
 
     ros::Publisher hand_cmd_publisher_;
+
+    ros::Publisher airjet_cmd_publisher;
 
     ros::Publisher ft_sensor_calib_publisher;
     ros::Subscriber ft_sensor_lf_state_subscriber;

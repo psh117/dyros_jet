@@ -1,0 +1,7 @@
+controller_list:
+  - name: "arm_controller"
+    action_ns: joint_action_server
+    type: FollowJointTrajectory
+    joints: [L_ShoulderPitch, L_ShoulderRoll, L_ShoulderYaw, L_ElbowRoll, L_WristYaw,
+  L_WristRoll, L_HandYaw, R_ShoulderPitch, R_ShoulderRoll, R_ShoulderYaw, R_ElbowRoll, R_WristYaw,
+  R_WristRoll, R_HandYaw]

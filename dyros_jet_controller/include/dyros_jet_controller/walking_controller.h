@@ -20,22 +20,21 @@ const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
 
-  "/home/dg/data/walking/0_desired_zmp_.txt",
-  "/home/dg/data/walking/1_desired_com_.txt",
-  "/home/dg/data/walking/2_desired_q_.txt",
-  "/home/dg/data/walking/3_real_q_.txt",
-  "/home/dg/data/walking/4_desired_swingfoot_.txt",
-  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
-  "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/dg/data/walking/7_current_foot_trajectory_.txt",
-  "/home/dg/data/walking/8_QPestimation_variables_.txt",
-  "/home/dg/data/walking/9_ft_sensor_.txt",
-  "/home/dg/data/walking/10_ext_encoder_.txt",
-  "/home/dg/data/walking/11_kalman_estimator2_.txt",
-  "/home/dg/data/walking/12_kalman_estimator1_.txt",
-  "/home/dg/data/walking/13_kalman_estimator3_.txt",
-  "/home/dg/data/walking/14_grav_torque_.txt"
-
+  "/home/pen/data/walking/0_desired_zmp_.txt",
+  "/home/pen/data/walking/1_desired_com_.txt",
+  "/home/pen/data/walking/2_desired_q_.txt",
+  "/home/pen/data/walking/3_real_q_.txt",
+  "/home/pen/data/walking/4_desired_swingfoot_.txt",
+  "/home/pen/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/pen/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/pen/data/walking/7_current_foot_trajectory_.txt",
+  "/home/pen/data/walking/8_QPestimation_variables_.txt",
+  "/home/pen/data/walking/9_ft_sensor_.txt",
+  "/home/pen/data/walking/10_ext_encoder_.txt",
+  "/home/pen/data/walking/11_kalman_estimator2_.txt",
+  "/home/pen/data/walking/12_kalman_estimator1_.txt",
+  "/home/pen/data/walking/13_kalman_estimator3_.txt",
+  "/home/pen/data/walking/14_grav_torque_.txt"
 };
 
 using namespace std;
