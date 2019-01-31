@@ -80,13 +80,6 @@ rosrun tf static_transform_publisher 0 0 0 -1.5708 0 -1.5708 base_link odom2 100
 ```
 tf static_tranform_publisher x y z α β γ parent_frame child_frame period(milliseconds)
 
-
-
-
-### How do I contribuite to this repo? ###
-* Read this http://wiki.ros.org/CppStyleGuide
-
-
 ### Mujoco Update (19/01/31) ###
 If you don't have Mujoco Interface package.
 * Install Mujoco Interface package
@@ -94,3 +87,10 @@ If you don't have Mujoco Interface package.
 cd ~catkin_ws/src
 https://github.com/Junhyung-Kim/dyros_jet_mujoco_sim.git
 ```
+
+
+
+### How do I contribuite to this repo? ###
+* Read this http://wiki.ros.org/CppStyleGuide
+
+
