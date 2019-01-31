@@ -87,7 +87,7 @@ tf static_tranform_publisher x y z α β γ parent_frame child_frame period(mill
 * Read this http://wiki.ros.org/CppStyleGuide
 
 
-### Mujoco Update () ###
+### Mujoco Update (19/01/31) ###
 If you don't install Mujoco Interface.
 * Install Mujoco Interface
 ```sh
