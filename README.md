@@ -88,8 +88,8 @@ tf static_tranform_publisher x y z α β γ parent_frame child_frame period(mill
 
 
 ### Mujoco Update (19/01/31) ###
-If you don't install Mujoco Interface.
-* Install Mujoco Interface
+If you don't have Mujoco Interface package.
+* Install Mujoco Interface package
 ```sh
 cd ~catkin_ws/src
 https://github.com/Junhyung-Kim/dyros_jet_mujoco_sim.git
