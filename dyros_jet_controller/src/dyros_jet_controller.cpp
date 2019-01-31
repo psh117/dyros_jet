@@ -5,6 +5,7 @@
 
 #include <ros/ros.h>
 #include "dyros_jet_controller/simulation_interface.h"
+#include "dyros_jet_controller/mujoco_interface.h"
 #include "dyros_jet_controller/real_robot_interface.h"
 #include "cvxgen_6_8_0/cvxgen/solver.h"
 using namespace dyros_jet_controller;
@@ -35,6 +36,11 @@ int main(int argc, char **argv)
     {
         ROS_INFO("DYROS JET MAIN CONTROLLER - !!! SIMULATION MODE !!!");
         ctr_obj = new SimulationInterface(nh, Hz);
+    }
+    if(mode == "mujoco")
+    {
+      ROS_INFO("DYROS JET MAIN CONTROLLER - !!! MUJOCO SIMULATION MODE !!!");
+      ctr_obj = new mujoco_interface(nh, Hz);
     }
     else if(mode == "real_robot")
     {

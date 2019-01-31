@@ -43,7 +43,7 @@ def main():
     joint_init_goal.command.name = ['L_HipYaw','L_HipRoll','L_HipPitch','L_KneePitch','L_AnklePitch','L_AnkleRoll','R_HipYaw','R_HipRoll','R_HipPitch','R_KneePitch','R_AnklePitch','R_AnkleRoll','WaistPitch','WaistYaw', 'L_ShoulderPitch','L_ShoulderRoll','L_ShoulderYaw','L_ElbowRoll','L_WristYaw','L_WristRoll','L_HandYaw', 'R_ShoulderPitch','R_ShoulderRoll','R_ShoulderYaw','R_ElbowRoll','R_WristYaw','R_WristRoll','R_HandYaw','HeadYaw', 'HeadPitch', 'R_Gripper', 'L_Gripper']
     #msg.enable = [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, False, False, False, False]
     joint_init_goal.command.position = [0 , 0.034906585 , -0.034906585 , 0.733038285 , -0.6981317 , -0.034906585, 0 , -0.034906585 , 0.0349065850 , -0.733038285 , 0.6981317 , 0.034906585, 0 , 0, 0.6981317008 , -1.6580627893 , -1.3962634016 , -1.9198621771 , 0 , -1.2217304764 , -0.1745329252, -0.6981317008 , 1.6580627893 , 1.3962634016 , 1.9198621771 , 0 , 1.2217304764 , 0.17453292519, 0 , 0 , 0 , 0]
-    joint_init_goal.command.duration = [5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 5 , 0 , 0 , 0 , 0]
+    joint_init_goal.command.duration = [3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 0 , 0 , 0 , 0]
 
 
     # Construct state machine
@@ -97,9 +97,16 @@ def main():
             transitions={'succeeded':'READY_TO_MOVE'})
 
         StateMachine.add('READY_TO_MOVE',
-            StringTransitionState(topic_name, outcomes=['stair', 'door']),
-            transitions={'stair':'finished', 'door':'finished'})
+            StringTransitionState(topic_name, outcomes=['Mot1']),
+            transitions={'Mot1':'Motion1'})
 
+        StateMachine.add('Motion1',
+            StringTransitionState(topic_name, outcomes=['Mot2']),
+            transitions={'Mot2':'Motion2'})
+
+        StateMachine.add('Motion2',
+            StringTransitionState(topic_name, outcomes=['stair', 'door', 'initialize_pose1']),
+            transitions={'stair':'finished', 'door':'finished', 'initialize_pose1':'SET_INIT_POSITION'})
 
     # Run state machine introspection server
     intro_server = smach_ros.IntrospectionServer('dyros_jet',mini_drc_sm,'/MINI_DRC')

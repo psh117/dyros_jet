@@ -135,7 +135,11 @@ StatusWindow::StatusWindow(int argc, char** argv, QWidget *parent)
   QObject::connect(ui.button_event_hello_introduce, SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
   QObject::connect(ui.button_event_hello_introduce_end, SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
 
-
+  QObject::connect(ui.button_mini_drc1, SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
+  QObject::connect(ui.button_mini_drc2, SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
+  QObject::connect(ui.button_mini_drc3, SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
+  QObject::connect(ui.button_mini_drc4, SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
+  QObject::connect(ui.button_mini_drc5, SIGNAL(clicked()),this,SLOT(stateButtonClicked()));
 
   //QObject::connect(ui.button_scan,SIGNAL(clicked()),this,SLOT(on_button_scan_clicked()));
 

@@ -48,7 +48,8 @@ file(GLOB CVXGEN_SRC
 
 file(GLOB BRIDGE_SRC
     "src/real_robot_interface.cpp"
-    "src/simulation_interface.cpp"
+    "src/simulation_interface.cpp" 
+    "src/mujoco_interface.cpp"
     "src/control_base.cpp"
     #"include/dyros_jet_controller/dyros_jet_model.h"
     #  "src/hardware_interface.cpp"
@@ -83,6 +84,8 @@ target_link_libraries(dyros_jet_controller_lib
     -L/usr/local/lib
     -lrbdl
     -lrbdl_urdfreader
+
+    -lqpOASES
     )
 target_link_libraries(dyros_jet_controller
     dyros_jet_controller_lib
@@ -95,5 +98,5 @@ add_dependencies(dyros_jet_controller_lib ${catkin_EXPORTED_TARGETS})
 add_dependencies(dyros_jet_controller ${catkin_EXPORTED_TARGETS})
 
 
-#SET(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_BUILD_TYPE Release)
 #SET(CMAKE_BUILD_TYPE Debug)

@@ -1,0 +1,1624 @@
+<robot name="dyros_jet_robot">
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0.08027" rpy="0 0 0" />
+      <mass value="3.90994" />
+      <inertia
+        ixx="0.02724195938"
+        ixy="0"
+        ixz="0"
+        iyy="0.00634115870"
+        iyz="0"
+        izz="0.02399190431" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://dyros_jet_description/meshes/base_link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/base_link.stl" />
+      </geometry> 
+    </collision>
+  </link>
+  <link name="L_HipYaw_Link">
+    <inertial>
+      <origin
+        xyz="-0.02955 0 0.06943"
+        rpy="0 0 0" />
+      <mass value="1.54216" />
+      <inertia
+        ixx="0.00412070145"
+        ixy="0"
+        ixz="0.00089593414"
+        iyy="0.00664372362"
+        iyz="0"
+        izz="0.00338413515" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_yaw.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_yaw.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_HipYaw"
+    type="revolute">
+    <origin
+      xyz="0 0.105 -0.11190"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="L_HipYaw_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_HipRoll_Link">
+    <inertial>
+      <origin
+        xyz="0.00513 -0.00119 0"
+        rpy="0 0 0" />
+      <mass
+        value="1.16907" />
+      <inertia
+        ixx="0.00180677428"
+        ixy="0.00000973989"
+        ixz="0"
+        iyy="0.00087972680"
+        iyz="0"
+        izz="0.00199196267" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_roll.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_roll.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_HipRoll"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="L_HipYaw_Link" />
+    <child
+      link="L_HipRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_HipPitch_Link">
+    <inertial>
+      <origin
+        xyz="0.12203 0.00306 -0.23316"
+        rpy="0 0 0" />
+      <mass
+        value="3.28269" />
+      <inertia
+        ixx="0.04026422334"
+        ixy="-0.00122469549"
+        ixz="-0.01390323874"
+        iyy="0.04329246922"
+        iyz="0.00234011199"
+        izz="0.01768138410" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_pitch.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_pitch.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_HipPitch"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="L_HipRoll_Link" />
+    <child
+      link="L_HipPitch_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_KneePitch_Link">
+    <inertial>
+      <origin
+        xyz="0.05276 -0.01856 -0.22635"
+        rpy="0 0 0" />
+      <mass
+        value="2.04524" />
+      <inertia
+        ixx="0.03535528788"
+        ixy="-0.00087858758"
+        ixz="-0.00310465960"
+        iyy="0.03128221988"
+        iyz="0.00677319603"
+        izz="0.00677705818" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/left_shin.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/left_shin.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_KneePitch"
+    type="revolute">
+    <origin
+      xyz="0.1515 0 -0.339"
+      rpy="0 0 0" />
+    <parent
+      link="L_HipPitch_Link" />
+    <child
+      link="L_KneePitch_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_AnklePitch_Link">
+    <inertial>
+      <origin
+        xyz="-0.01035 0.00568 0"
+        rpy="0 0 0" />
+      <mass
+        value="1.18450" />
+      <inertia
+        ixx="0.00091081511"
+        ixy="0.00006964019"
+        ixz="0"
+        iyy="0.00185149782"
+        iyz="0"
+        izz="0.00206162879" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/left_ankle_pitch.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/left_ankle_pitch.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_AnklePitch"
+    type="revolute">
+    <origin
+      xyz="0.06 0 -0.368"
+      rpy="0 0 0" />
+    <parent
+      link="L_KneePitch_Link" />
+    <child
+      link="L_AnklePitch_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_AnkleRoll_Link">
+    <inertial>
+      <origin
+        xyz="-0.00989 0 0.07224"
+        rpy="0 0 0" />
+      <mass
+        value="1.42541" />
+      <inertia
+        ixx="0.00349247764"
+        ixy="0"
+        ixz="-0.00086859128"
+        iyy="0.00816767704"
+        iyz="0"
+        izz="0.00895530984" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/ankle_roll.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/ankle_roll.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_AnkleRoll"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="L_AnklePitch_Link" />
+    <child
+      link="L_AnkleRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_HipYaw_Link">
+    <inertial>
+      <origin
+        xyz="-0.02955 0 0.06943"
+        rpy="0 0 0" />
+      <mass
+        value="1.54216" />
+      <inertia
+        ixx="0.00412070145"
+        ixy="0"
+        ixz="0.00089593414"
+        iyy="0.00664372362"
+        iyz="0"
+        izz="0.00338413515" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_yaw.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_yaw.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_HipYaw"
+    type="revolute">
+    <origin
+      xyz="0 -0.105 -0.11190"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="R_HipYaw_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_HipRoll_Link">
+    <inertial>
+      <origin
+        xyz="0.00513 0.00119 0"
+        rpy="0 0 0" />
+      <mass
+        value="1.16907" />
+      <inertia
+        ixx="0.00180677428"
+        ixy="-0.00000973989"
+        ixz="0"
+        iyy="0.00087972680"
+        iyz="0"
+        izz="0.00199196267" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_roll.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_roll.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_HipRoll"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="R_HipYaw_Link" />
+    <child
+      link="R_HipRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_HipPitch_Link">
+    <inertial>
+      <origin
+        xyz="0.11203 -0.00306 -0.23316"
+        rpy="0 0 0" />
+      <mass
+        value="3.28269" />
+      <inertia
+        ixx="0.04026423334"
+        ixy="0.00122469549"
+        ixz="-0.01390323874"
+        iyy="0.04329246922"
+        iyz="-0.00233982906"
+        izz="0.01768138410" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_pitch.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/hip_pitch.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_HipPitch"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="R_HipRoll_Link" />
+    <child
+      link="R_HipPitch_Link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_KneePitch_Link">
+    <inertial>
+      <origin
+        xyz="0.05276 0.01856 -0.22635"
+        rpy="0 0 0" />
+      <mass
+        value="2.04524" />
+      <inertia
+        ixx="0.03537964069"
+        ixy="0.00087727444"
+        ixz="-0.00310527519"
+        iyy="0.03129299830"
+        iyz="-0.00676289825"
+        izz="0.00679475749" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/right_shin.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/right_shin.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_KneePitch"
+    type="revolute">
+    <origin
+      xyz="0.1515 0 -0.339"
+      rpy="0 0 0" />
+    <parent
+      link="R_HipPitch_Link" />
+    <child
+      link="R_KneePitch_Link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_AnklePitch_Link">
+    <inertial>
+      <origin
+        xyz="-0.01035 0.00568 0"
+        rpy="0 0 0" />
+      <mass
+        value="1.18450" />
+      <inertia
+        ixx="0.00091077271"
+        ixy="-0.00006959439"
+        ixz="0"
+        iyy="0.00185147541"
+        iyz="0"
+        izz="0.00206164878" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/right_ankle_pitch.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/right_ankle_pitch.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_AnklePitch"
+    type="revolute">
+    <origin
+      xyz="0.06 0 -0.368"
+      rpy="0 0 0" />
+    <parent
+      link="R_KneePitch_Link" />
+    <child
+      link="R_AnklePitch_Link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_AnkleRoll_Link">
+    <inertial>
+      <origin
+        xyz="-0.00989 0 0.07224"
+        rpy="0 0 0" />
+      <mass
+        value="1.42541" />
+      <inertia
+        ixx="0.00350322410"
+        ixy="0"
+        ixz="-0.00090168812"
+        iyy="0.00816767704"
+        iyz="0"
+        izz="0.00894456337" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/ankle_roll.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/ankle_roll.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_AnkleRoll"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="R_AnklePitch_Link" />
+    <child
+      link="R_AnkleRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="WaistPitch_Link">
+    <inertial>
+      <origin
+        xyz="0 0 0.14577"
+        rpy="0 0 0" />
+      <mass
+        value="0.18235" />
+      <inertia
+        ixx="0.003844"
+        ixy="0"
+        ixz="0"
+        iyy="0.004215"
+        iyz="0"
+        izz="0.000457" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/WaistPitch_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/WaistPitch_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="WaistPitch"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="WaistPitch_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="WaistYaw_Link">
+    <inertial>
+      <origin
+        xyz="0.0038 -0.00415 0.11424"
+        rpy="0 0 0" />
+      <mass
+        value="14.09938" />
+      <inertia
+        ixx="0.262766"
+        ixy="0"
+        ixz="0"
+        iyy="0.242504"
+        iyz="0"
+        izz="0.109346" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/WaistYaw_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <visual>
+      <origin
+        xyz="-0.16 0 0.11"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.09 0.265 0.225"/>
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/WaistYaw_Link.stl" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin
+        xyz="-0.16 0 0.11"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.09 0.265 0.225"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="WaistYaw"
+    type="revolute">
+    <origin
+      xyz="0 0 0.186"
+      rpy="0 0 0" />
+    <parent
+      link="WaistPitch_Link" />
+    <child
+      link="WaistYaw_Link" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_ShoulderPitch_Link">
+    <inertial>
+      <origin
+        xyz="-0.00159 -0.00092 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.92796" />
+      <inertia
+        ixx="0.000473"
+        ixy="0"
+        ixz="0"
+        iyy="0.0015422"
+        iyz="0"
+        izz="0.00156" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_ShoulderPitch_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_ShoulderPitch_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_ShoulderPitch"
+    type="revolute">
+    <origin
+      xyz="0 0.17 0.239"
+      rpy="0.5236 0 -4.6787E-15" />
+    <parent
+      link="WaistYaw_Link" />
+    <child
+      link="L_ShoulderPitch_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_ShoulderRoll_Link">
+    <inertial>
+      <origin
+        xyz="0 0.02958 -0.03197"
+        rpy="0 0 0" />
+      <mass
+        value="0.11240" />
+      <inertia
+        ixx="0.001421"
+        ixy="0"
+        ixz="0"
+        iyy="0.001585"
+        iyz="0.000389"
+        izz="0.001839" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_ShoulderRoll_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_ShoulderRoll_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_ShoulderRoll"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 -7.8886E-31" />
+    <parent
+      link="L_ShoulderPitch_Link" />
+    <child
+      link="L_ShoulderRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-2.1" upper="-0.2" />
+  </joint>
+  <link
+    name="L_ShoulderYaw_Link">
+    <inertial>
+      <origin
+        xyz="0.00022 0.02910 -0.20695"
+        rpy="0 0 0" />
+      <mass
+        value="1.75149" />
+      <inertia
+        ixx="0.090419"
+        ixy="-0.00024"
+        ixz="0"
+        iyy="0.00126"
+        iyz="0"
+        izz="0.090836" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_ShoulderYaw_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_ShoulderYaw_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_ShoulderYaw"
+    type="revolute">
+    <origin
+      xyz="0 0 0.028856"
+      rpy="1.6653E-15 2.6672E-15 -1.1833E-29" />
+    <parent
+      link="L_ShoulderRoll_Link" />
+    <child
+      link="L_ShoulderYaw_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_ElbowRoll_Link">
+    <inertial>
+      <origin
+        xyz="0.00013 0.02766 0.06984"
+        rpy="0 0 0" />
+      <mass
+        value="0.83342" />
+      <inertia
+        ixx="0.00592"
+        ixy="-3E-06"
+        ixz="-8E-06"
+        iyy="0.004878"
+        iyz="0.001689"
+        izz="0.001797" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_ElbowRoll_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_ElbowRoll_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_ElbowRoll"
+    type="revolute">
+    <origin
+      xyz="0 0.294 0"
+      rpy="-5.2736E-15 2.2506E-15 4.0518E-15" />
+    <parent
+      link="L_ShoulderYaw_Link" />
+    <child
+      link="L_ElbowRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-2.8" upper="0.3" />
+  </joint>
+  <link
+    name="L_WristYaw_Link">
+    <inertial>
+      <origin
+        xyz="-0.00052833 0.21354 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.52391" />
+      <inertia
+        ixx="0.026688"
+        ixy="-7.8E-05"
+        ixz="0"
+        iyy="0.000269"
+        iyz="0"
+        izz="0.026765" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_WristYaw_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_WristYaw_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_WristYaw"
+    type="revolute">
+    <origin
+      xyz="0 0 0.075"
+      rpy="-5.5511E-17 0 0" />
+    <parent
+      link="L_ElbowRoll_Link" />
+    <child
+      link="L_WristYaw_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_WristRoll_Link">
+    <inertial>
+      <origin
+        xyz="0 0.029698 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.07856" />
+      <inertia
+        ixx="8.3E-05"
+        ixy="0"
+        ixz="0"
+        iyy="9.0005E-05"
+        iyz="0"
+        izz="0.000153" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_WristRoll_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_WristRoll_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_WristRoll"
+    type="revolute">
+    <origin
+      xyz="-0.00015 0.3085 0"
+      rpy="3.7192E-15 -2.0473E-15 -4.2369E-15" />
+    <parent
+      link="L_WristYaw_Link" />
+    <child
+      link="L_WristRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="L_HandYaw_Link">
+    <inertial>
+      <origin
+        xyz="0 0.20231 0.0031654"
+        rpy="0 0 0" />
+      <mass
+        value="1.20640" />
+      <inertia
+        ixx="0.05396"
+        ixy="0"
+        ixz="0"
+        iyy="0.002601"
+        iyz="0.00084"
+        izz="0.055766" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_HandYaw_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/L_HandYaw_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_HandYaw"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="5.5511E-17 0 -3.9443E-31" />
+    <parent
+      link="L_WristRoll_Link" />
+    <child
+      link="L_HandYaw_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+
+  <link
+    name="R_ShoulderPitch_Link">
+    <inertial>
+      <origin
+        xyz="-0.00159 0.00092 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.92796" />
+      <inertia
+        ixx="0.000473"
+        ixy="0"
+        ixz="0"
+        iyy="0.0015422"
+        iyz="0"
+        izz="0.00156" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_ShoulderPitch_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_ShoulderPitch_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_ShoulderPitch"
+    type="revolute">
+    <origin
+      xyz="0 -0.17 0.239"
+      rpy="-0.5236 1.6324E-15 3.0939E-15" />
+    <parent
+      link="WaistYaw_Link" />
+    <child
+      link="R_ShoulderPitch_Link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_ShoulderRoll_Link">
+    <inertial>
+      <origin
+        xyz="0 -0.02958 -0.03197"
+        rpy="0 0 0" />
+      <mass
+        value="0.11240" />
+      <inertia
+        ixx="0.001421"
+        ixy="0"
+        ixz="0"
+        iyy="0.001585"
+        iyz="-0.000389"
+        izz="0.001839" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_ShoulderRoll_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_ShoulderRoll_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_ShoulderRoll"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 -1.9722E-31" />
+    <parent
+      link="R_ShoulderPitch_Link" />
+    <child
+      link="R_ShoulderRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="0.2" upper="2.1" />
+  </joint>
+  <link
+    name="R_ShoulderYaw_Link">
+    <inertial>
+      <origin
+        xyz="0.00022 -0.2910 -0.20695"
+        rpy="0 0 0" />
+      <mass
+        value="1.75149" />
+      <inertia
+        ixx="0.090419"
+        ixy="0.00024"
+        ixz="0"
+        iyy="0.00126"
+        iyz="0"
+        izz="0.090836" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_ShoulderYaw_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_ShoulderYaw_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_ShoulderYaw"
+    type="revolute">
+    <origin
+      xyz="0 0 0.028856"
+      rpy="3.3862E-15 1.3323E-16 -6.4991E-15" />
+    <parent
+      link="R_ShoulderRoll_Link" />
+    <child
+      link="R_ShoulderYaw_Link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_ElbowRoll_Link">
+    <inertial>
+      <origin
+        xyz="0.00013 -0.02766 0.06984"
+        rpy="0 0 0" />
+      <mass
+        value="0.83342" />
+      <inertia
+        ixx="0.00592"
+        ixy="3E-06"
+        ixz="-8E-06"
+        iyy="0.004878"
+        iyz="-0.001689"
+        izz="0.001797" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_ElbowRoll_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_ElbowRoll_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_ElbowRoll"
+    type="revolute">
+    <origin
+      xyz="0 -0.294 0"
+      rpy="8.7708E-15 6.5224E-15 6.7691E-15" />
+    <parent
+      link="R_ShoulderYaw_Link" />
+    <child
+      link="R_ElbowRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-0.3" upper="2.8" />
+  </joint>
+  <link
+    name="R_WristYaw_Link">
+    <inertial>
+      <origin
+        xyz="-0.00052833 -0.21354 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.52391" />
+      <inertia
+        ixx="0.026688"
+        ixy="7.8E-05"
+        ixz="0"
+        iyy="0.000269"
+        iyz="0"
+        izz="0.026765" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_WristYaw_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_WristYaw_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_WristYaw"
+    type="revolute">
+    <origin
+      xyz="0 0 0.075"
+      rpy="5.5511E-17 7.8886E-31 -3.7657E-15" />
+    <parent
+      link="R_ElbowRoll_Link" />
+    <child
+      link="R_WristYaw_Link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+  <link
+    name="R_WristRoll_Link">
+    <inertial>
+      <origin
+        xyz="0 -0.029698 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.07856" />
+      <inertia
+        ixx="8.3E-05"
+        ixy="0"
+        ixz="0"
+        iyy="9E-05"
+        iyz="0"
+        izz="0.000153" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_WristRoll_Link.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_WristRoll_Link.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_WristRoll"
+    type="revolute">
+    <origin
+      xyz="-0.00015 -0.3085 0"
+      rpy="-3.1641E-15 -4.6105E-15 -2.8519E-15" />
+    <parent
+      link="R_WristYaw_Link" />
+    <child
+      link="R_WristRoll_Link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-1.9" upper="1.9" />
+  </joint>
+  <link
+    name="R_HandYaw_Link">
+    <inertial>
+      <origin
+        xyz="0 -0.20231 0.0031654"
+        rpy="0 0 0" />
+      <mass
+        value="1.20640" />
+      <inertia
+        ixx="0.05396"
+        ixy="0"
+        ixz="0"
+        iyy="0.002601"
+        iyz="0.00084"
+        izz="0.055766" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_HandYaw_new.stl" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.59216 0.61961 0.65098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://dyros_jet_description/meshes/R_HandYaw_new.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_HandYaw"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 -1.7256E-31 3.4513E-31" />
+    <parent
+      link="R_WristRoll_Link" />
+    <child
+      link="R_HandYaw_Link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      effort="30"
+      velocity="1" lower="-3.14" upper="3.14" />
+  </joint>
+</robot>

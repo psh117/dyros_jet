@@ -33,7 +33,7 @@
    </size>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" stretch="1,0,0,0,0">
+   <layout class="QHBoxLayout" stretch="1,0,0,0">
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_16">
       <item>
@@ -749,14 +749,14 @@
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
      </layout>
-    </item>
-    <item>
-     <widget class="Line" name="line_2">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-     </widget>
     </item>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -793,6 +793,41 @@
           </layout>
          </item>
         </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_mini_drc1">
+        <property name="text">
+         <string>button_mini_drc1</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_mini_drc2">
+        <property name="text">
+         <string>button_mini_drc2</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_mini_drc3">
+        <property name="text">
+         <string>button_mini_drc3</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_mini_drc4">
+        <property name="text">
+         <string>button_mini_drc4</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_mini_drc5">
+        <property name="text">
+         <string>button_mini_drc5</string>
+        </property>
        </widget>
       </item>
       <item>
@@ -999,7 +1034,7 @@ DOWN</string>
      <x>0</x>
      <y>0</y>
      <width>1823</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

@@ -90,6 +90,7 @@ def commander():
     walk_msg.step_length_x =0.20
     walk_msg.step_length_y =0.10
 
+
     walk_pub.publish(walk_msg);
 
 

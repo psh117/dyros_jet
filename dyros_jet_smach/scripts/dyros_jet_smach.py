@@ -105,7 +105,7 @@ class Handshake_Motion3(Simple_State):
 class Handshake_Return(Simple_State):
   def __init__(self):
     smach.State.__init__(self, outcomes=['handshake_ready','cmd_modechg','shutdown'])
- 
+
 
 # Event - Hello Parts
 class Hello_Start(Simple_State):
@@ -364,8 +364,8 @@ def main():
     smach.StateMachine.add('Hello_Ready', Hello_Ready(), transitions={'hello_do':'Hello_Do','hello_introduce':'Hello_Introduce','hello_introduce_end':'Hello_Introduce_End','cmd_modechg':'Mode_Chg','shutdown':'END'})
     smach.StateMachine.add('Hello_Do', Hello_Do(), transitions={'hello_ready':'Hello_Ready','hello_end':'Hello_End','hello_introduce':'Hello_Introduce','hello_introduce_end':'Hello_Introduce_End','cmd_modechg':'Mode_Chg','shutdown':'END'})
     smach.StateMachine.add('Hello_End', Hello_End(), transitions={'hello_ready':'Hello_Ready','hello_introduce':'Hello_Introduce','hello_introduce_end':'Hello_Introduce_End','cmd_modechg':'Mode_Chg','shutdown':'END'})
-    smach.StateMachine.add('Hello_Introduce', Hello_Introduce(), transitions={'hello_ready':'Hello_Ready','hello_do':'Hello_Do','hello_end':'Hello_End','hello_introduce_end':'Hello_Introduce_End','cmd_modechg':'Mode_Chg','shutdown':'END'})	
-    smach.StateMachine.add('Hello_Introduce_End', Hello_Introduce_End(), transitions={'hello_ready':'Hello_Ready','hello_do':'Hello_Do','hello_end':'Hello_End','hello_introduce':'Hello_Introduce','cmd_modechg':'Mode_Chg','shutdown':'END'})	
+    smach.StateMachine.add('Hello_Introduce', Hello_Introduce(), transitions={'hello_ready':'Hello_Ready','hello_do':'Hello_Do','hello_end':'Hello_End','hello_introduce_end':'Hello_Introduce_End','cmd_modechg':'Mode_Chg','shutdown':'END'})
+    smach.StateMachine.add('Hello_Introduce_End', Hello_Introduce_End(), transitions={'hello_ready':'Hello_Ready','hello_do':'Hello_Do','hello_end':'Hello_End','hello_introduce':'Hello_Introduce','cmd_modechg':'Mode_Chg','shutdown':'END'})
     # Valve_Mission state
     smach.StateMachine.add('Valve_Mission', Valve_Mission(), transitions={'v_init':'Valve_Init','v_ready':'Valve_Ready','v_approach':'Valve_Approach','v_reach':'Valve_Reach','v_close':'Valve_Close','shutdown':'END'})
     # Valve_init state
@@ -438,4 +438,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-
