@@ -10,7 +10,7 @@ cd ~/catkin_ws/src
 git clone https://github.com/KumarRobotics/imu_3dm_gx4
 git clone https://github.com/psh117/rt_dynamixel_msgs
 git clone -b 3.6.0 https://github.com/ROBOTIS-GIT/DynamixelSDK.git
-git clone https://github.com/Junhyung-Kim/dyros_jet_mujoco_sim.git
+git clone https://github.com/saga0619/mujoco_ros_sim.git
 ```
 
 ### RBDL Setup ###
@@ -80,17 +80,10 @@ rosrun tf static_transform_publisher 0 0 0 -1.5708 0 -1.5708 base_link odom2 100
 ```
 tf static_tranform_publisher x y z α β γ parent_frame child_frame period(milliseconds)
 
+### Mujoco Update (19/01/31) ###
 
 
 
 ### How do I contribuite to this repo? ###
 * Read this http://wiki.ros.org/CppStyleGuide
 
-
-### Mujoco Update (19/01/31) ###
-If you don't have Mujoco Interface package.
-* Install Mujoco Interface package
-```sh
-cd ~catkin_ws/src
-https://github.com/Junhyung-Kim/dyros_jet_mujoco_sim.git
-```
