@@ -7,6 +7,7 @@
 #include <std_msgs/Float32.h>
 #include <sensor_msgs/JointState.h>
 #include <mujoco_ros_msgs/SensorState.h>
+#include <mujoco_ros_msgs/JointSet.h>
 
 namespace dyros_jet_controller {
 
@@ -24,7 +25,7 @@ private:  // CALLBACK
 
   void jointStateCallback(const sensor_msgs::JointStateConstPtr& msg);
   void sensorStateCallback(const mujoco_ros_msgs::SensorStateConstPtr& msg);
-  void simCommandCallback(const std_msgs::StringConstPtr& msg);
+  void simCommandCallback(const  std_msgs::StringConstPtr& msg);
   void simTimeCallback(const std_msgs::Float32ConstPtr &msg);
   void simready();
   void torque_control();
@@ -48,7 +49,7 @@ private:
   ros::Subscriber mujoco_sim_command_sub_;
   ros::Subscriber mujoco_sim_time_sub_;
 
-  sensor_msgs::JointState mujoco_joint_set_msg_;
+  mujoco_ros_msgs::JointSet mujoco_joint_set_msg_;
 
 
 public:
