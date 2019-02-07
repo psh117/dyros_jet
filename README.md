@@ -10,7 +10,7 @@ cd ~/catkin_ws/src
 git clone https://github.com/KumarRobotics/imu_3dm_gx4
 git clone https://github.com/psh117/rt_dynamixel_msgs
 git clone -b 3.6.0 https://github.com/ROBOTIS-GIT/DynamixelSDK.git
-git clone https://github.com/Junhyung-Kim/dyros_jet_mujoco_sim.git
+git clone https://github.com/saga0619/mujoco_ros_sim.git
 ```
 
 ### RBDL Setup ###
