@@ -16,7 +16,7 @@ git clone https://github.com/saga0619/mujoco_ros_sim.git
 ### RBDL Setup ###
 ```sh
 wget https://bitbucket.org/rbdl/rbdl/get/849d2aee8f4c.zip
-unzip default.zip
+unzip 849d2aee8f4c.zip
 cd rbdl-rbdl-849d2aee8f4c
 mkdir build
 cd build
