@@ -82,12 +82,6 @@ tf static_tranform_publisher x y z α β γ parent_frame child_frame period(mill
 
 ### Mujoco Update (19/01/31) ###
 
-
-
-### How do I contribuite to this repo? ###
-* Read this http://wiki.ros.org/CppStyleGuide
-
-
 * GUI
 ```sh
 rosrun dyros_jet_gui dyros_jet_gui
@@ -96,3 +90,7 @@ rosrun dyros_jet_gui dyros_jet_gui
 ```sh
 roslaunch dyros_jet_launch mujoco.launch
 ```
+
+### How do I contribuite to this repo? ###
+* Read this http://wiki.ros.org/CppStyleGuide
+
