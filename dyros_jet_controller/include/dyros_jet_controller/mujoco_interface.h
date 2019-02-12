@@ -31,7 +31,6 @@ private:  // CALLBACK
   void torque_control();
   void joint_control();
 
-
   //void your_Callback(const sensor_msgs::ImuConstPtr& msg);
 
 private:

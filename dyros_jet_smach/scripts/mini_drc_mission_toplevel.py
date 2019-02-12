@@ -56,8 +56,12 @@ def main():
     # Set the initial state explicitly
     if run_mode == 'simulation':
         mini_drc_sm.set_initial_state(['READY'])
+    elif run_mode == 'mujoco':
+          mini_drc_sm.set_initial_state(['READY'])
     elif run_mode == 'real_robot':
         mini_drc_sm.set_initial_state(['POWER_OFF'])
+    else:
+        print 'unknown mode'
 
     #request = rt_dynamixel_msgs.srv.ModeSettingRequest(rt_dynamixel_msgs.srv.ModeSettingRequest.SETTING)
     #print(request)

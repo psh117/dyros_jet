@@ -1,0 +1,7 @@
+<launch>
+  <node name="mujoco_ros" pkg="mujoco_ros" type="mujoco_ros" required="true" respawn="false" output="screen">
+	<param name="license" type="string" value="$(find dyros_jet_description)/mjkey.txt" />
+	<param name="model_file" type="string" value="$(find dyros_jet_description)/robots/dyros_jet_robot.xml"/>
+  </node>
+</launch>
+

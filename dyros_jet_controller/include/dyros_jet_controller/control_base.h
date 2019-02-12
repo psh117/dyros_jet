@@ -78,7 +78,8 @@ public:
 
   void stateChangeEvent();
 
-
+  double currentTime(){return control_time_;};
+  void syncSimControlTime(double time){control_time_ = time; std::cout <<"control time "<< (double)control_time_ <<std::endl;};
 
   const double getHz() { return Hz_; }
 protected:

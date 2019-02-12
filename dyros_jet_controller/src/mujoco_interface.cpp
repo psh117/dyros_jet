@@ -6,7 +6,7 @@ mujoco_interface::mujoco_interface(ros::NodeHandle &nh, double Hz):
     ControlBase(nh,Hz), rate_(Hz), dyn_hz(Hz)
 {
     simulation_running_= true;
-    mujoco_joint_set_pub_=nh.advertise<mujoco_ros_msgs::JointSet>("/mujoco_ros_interface/joint_set",1);
+    mujoco_joint_set_pub_=nh.advertise<mujoco_ros_msgs::JointSet>("/mujoco_ros_interface/joint_set",100);
     mujoco_sim_command_pub_=nh.advertise<std_msgs::String>("/mujoco_ros_interface/sim_command_con2sim",100);
     mujoco_sim_command_sub_=nh.subscribe("/mujoco_ros_interface/sim_command_sim2con",100,&mujoco_interface::simCommandCallback,this);
 
@@ -32,24 +32,17 @@ void mujoco_interface::simready()
     poll_rate.sleep();
   }
   mujoco_ready=false;
-
-/*
-  while(!mujoco_init_receive &&ros::ok()){
-    ros::spinOnce();
-    poll_rate.sleep();
-  }
-  mujoco_init_receive=false;*/
 }
 
 void mujoco_interface::simTimeCallback(const std_msgs::Float32ConstPtr &msg)
 {
   mujoco_sim_time = msg->data;
-//  control_time_ = mujoco_sim_time;
+  //ControlBase::syncSimControlTime(mujoco_sim_time);
+  //std::cout << 'asdrfsdf' <<std::endl;
 }
 
 void mujoco_interface::jointStateCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
-
     for(int i=0;i<total_dof_-4;i++)
     {
         for(int j=0; j<msg->name.size();j++){
@@ -70,6 +63,15 @@ void mujoco_interface::jointStateCallback(const sensor_msgs::JointStateConstPtr 
     //  q_dot_virtual_(i) = msg->velocity[i];
     //  q_ext_(i) = msg->position[i];
     //  q_ext_(i+6) = msg->position[i+6];
+    }
+
+    if(mujoco_init_receive == false)
+    {
+      for(int i=0;i<total_dof_;i++)
+      {
+       desired_q_(i)=q_(i);
+      }
+      mujoco_init_receive = true;
     }
 }
 
@@ -159,15 +161,18 @@ void mujoco_interface::writeDevice()
 {
   mujoco_joint_set_msg_.MODE = 0;
 
-  for(int i=0;i<total_dof_;i++) {
-   mujoco_joint_set_msg_.position[i] = desired_q_(i);}
-
-   mujoco_joint_set_msg_.header.stamp = ros::Time::now();
-   mujoco_joint_set_pub_.publish(mujoco_joint_set_msg_);
-
-   // mujoco_joint_set_msg_.time = control_time_;
-   //mujoco_joint_set_pub_.publish(mujoco_joint_set_msg_);
-  // mujoco_sim_last_time = mujoco_sim_time;
+  if(mujoco_init_receive == true)
+  {
+    for(int i=0;i<total_dof_;i++)
+    {
+     mujoco_joint_set_msg_.position[i] = desired_q_(i);
+    }
+     mujoco_joint_set_msg_.header.stamp = ros::Time::now();
+     mujoco_joint_set_msg_.time = mujoco_sim_time;
+     // mujoco_joint_set_msg_.time = ControlBase::currentTime();
+     mujoco_joint_set_pub_.publish(mujoco_joint_set_msg_);
+     mujoco_sim_last_time = mujoco_sim_time;
+  }
 }
 
 void mujoco_interface::wait()
@@ -185,8 +190,6 @@ void mujoco_interface::wait()
       n++;
   }
   ROS_INFO_COND(test_b, " wait loop exit with n = %d", n);
-  /*
-    ros::Rate poll_rate(200);
 
     while((mujoco_sim_time<(mujoco_sim_last_time+1.0/dyn_hz))&&ros::ok()){
         //ROS_INFO("WAIT WHILE");
@@ -194,7 +197,7 @@ void mujoco_interface::wait()
         poll_rate.sleep();
 
     }
-*/
+
 
 }
 

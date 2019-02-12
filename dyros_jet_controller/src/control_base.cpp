@@ -129,7 +129,6 @@ void ControlBase::stateChangeEvent()
 }
 void ControlBase::compute()
 {
-
   task_controller_.compute();
   haptic_controller_.compute();
   joint_controller_.compute();

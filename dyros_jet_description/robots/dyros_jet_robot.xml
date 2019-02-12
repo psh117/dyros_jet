@@ -4,14 +4,14 @@
 	
 	<default>
 	
-	<joint damping="10" stiffness = "0"/>
+	<joint damping="2" stiffness = "0"/>
 	<geom rgba = ".7 .7 .7 1"/>
 	<default class="viz">
 			<geom contype="0" conaffinity="0" group="1" type="mesh" rgba=".6 .6 .7 1"/>
 	</default>
 	
 	<default class="position">
-			<position ctrllimited="false" forcelimited="false" ></position> 
+			<position ctrllimited="true" forcelimited="false" ></position> 
 
 	</default>
 
@@ -281,8 +281,9 @@
 		<torque name="L_Torque"	site="L_FT"/>
 		<torque name="R_Torque"	site="R_FT"/>
 	</sensor>
+
 	<keyframe>
-		<key time="0" qpos ="0 0 0.90 0 0 0 1  
+		<key time="0" qpos ="0 0 0.90 1 0 0 0  
 				 
 				     0 0.034906585  -0.034906585 0.733038285 -0.6981317 -0.034906585
 		   		     0 -0.034906585 0.034906585 -0.733038285 0.6981317 0.034906585 
@@ -291,4 +292,5 @@
 				     -0.6981317008  1.6580627893  1.3962634016  1.9198621771  0  1.2217304764  0.17453292519"/>
         </keyframe>
 	
+
 </mujoco>

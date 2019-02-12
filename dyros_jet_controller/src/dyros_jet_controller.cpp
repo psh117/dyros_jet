@@ -37,10 +37,10 @@ int main(int argc, char **argv)
         ROS_INFO("DYROS JET MAIN CONTROLLER - !!! SIMULATION MODE !!!");
         ctr_obj = new SimulationInterface(nh, Hz);
     }
-    if(mode == "mujoco")
+    else if(mode == "mujoco")
     {
-      ROS_INFO("DYROS JET MAIN CONTROLLER - !!! MUJOCO SIMULATION MODE !!!");
-      ctr_obj = new mujoco_interface(nh, Hz);
+        ROS_INFO("DYROS JET MAIN CONTROLLER - !!! MUJOCO SIMULATION MODE !!!");
+        ctr_obj = new mujoco_interface(nh, Hz);
     }
     else if(mode == "real_robot")
     {
