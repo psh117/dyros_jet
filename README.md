@@ -1,4 +1,4 @@
-# DYROS JET Repository #
+# DYROS JET Repository 
 
 * This is a DYROS JET Humanoid Repository
 
@@ -81,6 +81,7 @@ rosrun tf static_transform_publisher 0 0 0 -1.5708 0 -1.5708 base_link odom2 100
 tf static_tranform_publisher x y z α β γ parent_frame child_frame period(milliseconds)
 
 ### Mujoco Update (19/01/31) ###
+* Install mujoco - [MUJOCO_ROS_SIM](https://github.com/saga0619/mujoco_ros_sim)
 
 * GUI
 ```sh
