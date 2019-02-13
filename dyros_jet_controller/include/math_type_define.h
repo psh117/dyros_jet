@@ -642,5 +642,25 @@ static Eigen::Vector3d QuinticSpline(
 }
 
 
+
+static double secondOrderLowPassFilter(
+                   double x_k,        ///< input x[k]
+                   double x_k_1,      ///< x[k-1]
+                   double x_k_2,      ///< x[k-2]
+                   double y_k_1,      ///< y[k-1]
+                   double y_k_2,      ///< y[k-2]
+                   double fc,         ///< cut off frequency
+                   double d,          ///< damping ratio
+                   double hz)         ///< sampling freqeuncy
+{
+  double y_k;
+  double omega = 2*M_PI*fc/hz;
+  double D = 4+4*d*omega+omega*omega;
+
+  y_k = (8-2*omega*omega)/D*y_k_1 - (4-4*d*omega+omega*omega)/D*y_k_2 + omega*omega/D*(x_k + 2*x_k_1 + x_k_2);
+
+  return y_k;
+}
+
 }
 #endif

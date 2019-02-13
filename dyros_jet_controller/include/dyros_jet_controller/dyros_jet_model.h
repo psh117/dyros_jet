@@ -109,12 +109,10 @@ public:
   const Eigen::Matrix<double, 6, 7>& getArmLinkJacobian(unsigned int i) { return arm_link_jacobian_[i]; }
   const Eigen::Vector3d & getLinkComPosition(unsigned int id) { return link_local_com_position_[id];}
   const double & getLinkMass(unsigned int id) { return link_mass_[id]; }
+  const Eigen::Matrix3d & getLinkInertia(unsigned int id) { return link_inertia_[id]; }
 
 
   const Eigen::Vector3d& getSimulationCom(){return com_simulation_;}
-  const Eigen::Vector3d& getSimulationGyro(){return gyro_simulation_;}
-  const Eigen::Vector3d& getSimulationAccel(){return accel_simulation_;}
-
   const Eigen::Isometry3d& getSimulationRfoot(){return rfoot_simulation_;}
   const Eigen::Isometry3d& getSimulationLfoot(){return lfoot_simulation_;}
   const Eigen::Isometry3d& getSimulationBase(){return base_simulation_;}
@@ -145,6 +143,7 @@ private:
   Eigen::Isometry3d link_transform_[28];    //all of links
   double link_mass_[29];
   Eigen::Vector3d link_local_com_position_[29];
+  Eigen::Matrix3d link_inertia_[29];
 
   Eigen::Matrix<double, 6, 6> leg_jacobian_[2];
   Eigen::Matrix<double, 6, 7> arm_jacobian_[2];

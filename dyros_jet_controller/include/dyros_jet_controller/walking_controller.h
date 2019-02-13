@@ -3,6 +3,7 @@
 
 
 #include "dyros_jet_controller/dyros_jet_model.h"
+#include "moving_average_filter.h"
 #include "math_type_define.h"
 #include <vector>
 #include <fstream>
@@ -14,27 +15,28 @@
 #define ZERO_LIBRARY_MODE
 
 
-const int FILE_CNT = 15;
+const int FILE_CNT = 16;
 
 const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
 
-  "/home/pen/data/walking/0_desired_zmp_.txt",
-  "/home/pen/data/walking/1_desired_com_.txt",
-  "/home/pen/data/walking/2_desired_q_.txt",
-  "/home/pen/data/walking/3_real_q_.txt",
-  "/home/pen/data/walking/4_desired_swingfoot_.txt",
-  "/home/pen/data/walking/5_desired_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/7_current_foot_trajectory_.txt",
-  "/home/pen/data/walking/8_QPestimation_variables_.txt",
-  "/home/pen/data/walking/9_ft_sensor_.txt",
-  "/home/pen/data/walking/10_ext_encoder_.txt",
-  "/home/pen/data/walking/11_kalman_estimator2_.txt",
-  "/home/pen/data/walking/12_kalman_estimator1_.txt",
-  "/home/pen/data/walking/13_kalman_estimator3_.txt",
-  "/home/pen/data/walking/14_grav_torque_.txt"
+  "/home/dg/data/walking/0_desired_zmp_.txt",
+  "/home/dg/data/walking/1_desired_com_.txt",
+  "/home/dg/data/walking/2_desired_q_.txt",
+  "/home/dg/data/walking/3_real_q_.txt",
+  "/home/dg/data/walking/4_desired_swingfoot_.txt",
+  "/home/dg/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/dg/data/walking/7_current_foot_trajectory_.txt",
+  "/home/dg/data/walking/8_QPestimation_variables_.txt",
+  "/home/dg/data/walking/9_ft_sensor_.txt",
+  "/home/dg/data/walking/10_ext_encoder_.txt",
+  "/home/dg/data/walking/11_kalman_estimator2_.txt",
+  "/home/dg/data/walking/12_kalman_estimator1_.txt",
+  "/home/dg/data/walking/13_kalman_estimator3_.txt",
+  "/home/dg/data/walking/14_grav_torque_.txt",
+  "/home/dg/data/walking/15_ekf1_state.txt"
 };
 
 using namespace std;
@@ -59,7 +61,8 @@ public:
     {
       file[i].open(FILE_NAMES[i].c_str(),ios_base::out);
     }
-    file[0]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"zmp_desired_(0)"<<"\t"<<"zmp_desired_(1)"<<"\t"<<"foot_step_(current_step_num_, 0)"<<"\t"<<"foot_step_(current_step_num_, 1)"<<"\t"<<"foot_step_support_frame_(current_step_num_, 0)"<<"\t"<<"foot_step_support_frame_(current_step_num_, 1)"<<"\t"<<"foot_step_support_frame_(current_step_num_, 2)"<<endl;
+    file[0]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"ref_zmp_(0, 0)"<<"\t"<<"ref_zmp_(0, 1)"<<"\t"<<"zmp_desired_(0)"<<"\t"<<"zmp_desired_(1)"<<"\t"<<"zmp_measured_(0)"<<"\t"<<"zmp_measured_(1)"<<"\t"<<"zmp_measured_inverse_(0)"<<"\t"<<"zmp_measured_inverse_(1)"
+          <<"\t"<<"zmp_dist_(0)"<<"\t"<<"zmp_dist_(1)"<<"\t"<<"foot_step_(current_step_num_, 0)"<<"\t"<<"foot_step_(current_step_num_, 1)"<<"\t"<<"foot_step_support_frame_(current_step_num_, 0)"<<"\t"<<"foot_step_support_frame_(current_step_num_, 1)"<<"\t"<<"foot_step_support_frame_(current_step_num_, 2)"<<endl;
     file[1]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"com_desired_(0)"<<"\t"<<"com_desired_(1)"<<"\t"<<"com_desired_(2)"<<"\t"<<"com_dot_desired_(0)"<<"\t"<<"com_dot_desired_(1)"<<"\t"<<"com_dot_desired_(2)"<<"\t"<<"com_support_init_(0)"<<"\t"<<"com_support_init_(0)"<<"\t"<<"com_support_init_(0)"<<endl;
     file[2]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"desired_leg_q_(0)"<<"\t"<<"desired_leg_q_(1)"<<"\t"<<"desired_leg_q_(2)"<<"\t"<<"desired_leg_q_(3)"<<"\t"<<"desired_leg_q_(4)"<<"\t"<<"desired_leg_q_(5)"<<"\t"<<"desired_leg_q_(6)"<<"\t"<<"desired_leg_q_(7)"<<"\t"<<"desired_leg_q_(8)"<<"\t"<<"desired_leg_q_(9)"<<"\t"<<"desired_leg_q_(10)"<<"\t"<<"desired_leg_q_(11)"<<endl;
     file[3]<<"walking_tick_"<<"\t"<<"current_step_num_"<<"\t"<<"current_q_(0)"<<"\t"<<"current_q_(1)"<<"\t"<<"current_q_(2)"<<"\t"<<"current_q_(3)"<<"\t"<<"current_q_(4)"<<"\t"<<"current_q_(5)"<<"\t"<<"current_q_(6)"<<"\t"<<"current_q_(7)"<<"\t"<<"current_q_(8)"<<"\t"<<"current_q_(9)"<<"\t"<<"current_q_(10)"<<"\t"<<"current_q_(11)"<<endl;
@@ -78,7 +81,7 @@ public:
     file[12]<<"walking_tick_"<<"\t"<<"X_hat_post_1_(0)"<<"\t"<<"X_hat_post_1_(1)"<<"\t"<<"X_hat_post_1_(2)"<<"\t"<<"X_hat_post_1_(3)"<<"\t"<<"X_hat_post_1_(4)"<<"\t"<<"X_hat_post_1_(5)"<<endl;
     file[13]<<"walking_tick_"<<"\t"<<"X_hat_post_3_(0)"<<"\t"<<"X_hat_post_3_(1)"<<"\t"<<"X_hat_post_3_(2)"<<"\t"<<"X_hat_post_3_(3)"<<"\t"<<"X_hat_post_3_(4)"<<"\t"<<"X_hat_post_3_(5)"<<endl;
     file[14]<<"walking_tick_"<<"\t"<<"grav_ground_torque_(0)"<<"\t"<<"grav_ground_torque_(1)"<<"\t"<<"grav_ground_torque_(2)"<<"\t"<<"grav_ground_torque_(3)"<<"\t"<<"grav_ground_torque_(4)"<<"\t"<<"grav_ground_torque_(5)"<<endl;
-
+    file[15]<<"walking_tick_"<<"\t"<<"comX"<<"\t"<<"comY"<<"\t"<<"comZ"<<"\t"<<"velX"<<"\t"<<"velY"<<"\t"<<"velZ"<<"\t"<<"fX"<<"\t"<<"fY"<<"\t"<<"fZ"<<"\t"<<"com_x_error_"<<"\t"<<"com_y_error_"<<"\t"<<"com_z_error_"<<endl;
   }
   //WalkingController::~WalkingController()
   //{
@@ -112,6 +115,8 @@ public:
   void compensator();
 
   void linkMass();
+  void linkInertia();
+  Eigen::Matrix3d inertiaTensorTransform(Eigen::Matrix3d local_inertia, double mass, Eigen::Isometry3d transformation);
   void getComJacobian();
   void computeComJacobianControl(Eigen::Vector12d &desired_leg_q_dot);
 
@@ -129,7 +134,9 @@ public:
   void addZmpOffset();
   void zmpGenerator(const unsigned int norm_size, const unsigned planning_step_num);
   void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
-
+  void computeZmp();
+  void zmpCompensator();
+  void inverseZmpPlant(Eigen::Vector2d zmp, Eigen::Vector2d zmp_pre, Eigen::Vector2d zmp_ppre, double fc, double damping_ratio, double hz);
   //functions in compensator()
   void hipCompensator(); //reference Paper: http://dyros.snu.ac.kr/wp-content/uploads/2017/01/ICHR_2016_JS.pdf
   void hipCompensation();
@@ -183,9 +190,27 @@ private:
   //sensorData
   Eigen::Vector6d r_ft_;
   Eigen::Vector6d l_ft_;
+  Eigen::Vector6d r_ft_pre_;
+  Eigen::Vector6d l_ft_pre_;
+  Eigen::Vector6d r_ft_ppre_;
+  Eigen::Vector6d l_ft_ppre_;
+
+  Eigen::Vector6d r_ft_filtered_;
+  Eigen::Vector6d l_ft_filtered_;
+  Eigen::Vector6d r_ft_filtered_pre_;
+  Eigen::Vector6d l_ft_filtered_pre_;
+  Eigen::Vector6d r_ft_filtered_ppre_;
+  Eigen::Vector6d l_ft_filtered_ppre_;
+
   Eigen::Vector3d imu_acc_;
   Eigen::Vector3d imu_ang_;
+  Eigen::Vector3d imu_ang_old_;
+  Eigen::Vector3d imu_ang_dot_;
   Eigen::Vector3d imu_grav_rpy_;
+
+  Eigen::Vector3d f_ft_support_;
+  Eigen::Vector3d moment_support_desried_;
+  Eigen::Vector3d moment_support_current_;
 
   //parameterSetting()
   double t_last_;
@@ -237,6 +262,7 @@ private:
   Eigen::MatrixXd foot_step_support_frame_offset_;
 
   Eigen::MatrixXd ref_zmp_;
+  Eigen::MatrixXd compensated_zmp_;
 
 
   VectorQd start_q_;
@@ -294,9 +320,6 @@ private:
   Eigen::Isometry3d rfoot_sim_float_current_;
   Eigen::Isometry3d supportfoot_float_sim_current_;
 
-  Eigen::Vector3d gyro_sim_current_;
-  Eigen::Vector3d accel_sim_current_;
-
   Eigen::Isometry3d supportfoot_float_current_;
   Eigen::Isometry3d pelv_support_current_;
   Eigen::Isometry3d lfoot_support_current_;
@@ -319,7 +342,29 @@ private:
   Eigen::Vector12d desired_leg_q_dot_;
   Eigen::Vector3d com_desired_;
   Eigen::Vector3d com_dot_desired_;
+
   Eigen::Vector2d zmp_desired_;
+  Eigen::Vector2d zmp_desired_pre_;
+  Eigen::Vector2d zmp_desired_ppre_;
+
+  Eigen::Vector2d zmp_desired_filtered_;
+  Eigen::Vector2d zmp_desired_filtered_pre_;
+  Eigen::Vector2d zmp_desired_filtered_ppre_;
+
+  Eigen::Vector2d zmp_dist_;
+  Eigen::Vector2d zmp_dist_pre_;
+  Eigen::Vector2d zmp_dist_ppre_;
+
+  Eigen::Vector2d zmp_dist_filtered_;
+  Eigen::Vector2d zmp_dist_filtered_pre_;
+  Eigen::Vector2d zmp_dist_filtered_ppre_;
+
+  Eigen::Vector2d zmp_measured_inverse_;
+  Eigen::Vector2d zmp_measured_inverse_pre_;
+  Eigen::Vector2d zmp_measured_inverse_ppre_;
+
+  Eigen::Vector2d zmp_measured_pre_;
+  Eigen::Vector2d zmp_measured_ppre_;
 
   Eigen::Isometry3d rfoot_trajectory_support_;  //local frame
   Eigen::Isometry3d lfoot_trajectory_support_;
@@ -345,6 +390,9 @@ private:
   Eigen::Matrix<double, 7, 1> mass_r_arm_;
   Eigen::Matrix<double, 3, 1> mass_body_;
   double mass_total_;
+
+  Eigen::Matrix3d inertia_link_float_[29];
+  Eigen::Matrix3d inertia_total_;
 
   Eigen::Vector3d c_l_leg_[6];
   Eigen::Vector3d c_r_leg_[6];
@@ -623,6 +671,85 @@ private:
   void kalmanFilter3();
   void kalmanStateSpace3();
   //////////////////////////////////////////////////////////////
+
+  ////////////////////////Extended Kalman Filter1////////////////////
+
+private:
+
+  Eigen::Matrix<double, 12, 12> F, P, I, Q, Fd;
+
+  Eigen::Vector3d COP, fN, L, ti, contact_moment_;
+
+  Eigen::Matrix<double, 9, 12> H;
+
+  Eigen::Matrix<double, 12, 9> K;
+
+  Eigen::Matrix<double, 9, 9> R, S;
+
+
+  Eigen::Matrix<double, 9, 1> z;
+
+  double tmp;
+
+  void EKF1UpdateVars();
+
+  MovingAverageFilter **moving_avg_filter_;
+
+
+public:
+
+  Eigen::Matrix<double, 12, 1> x, f;
+
+  double comd_q, com_q, fd_q, comerr_q, com_r, comdd_r, ft_r;
+
+  double dt, m, g, I_xx,I_yy;
+
+    double bias_fx, bias_fy, bias_fz;
+  bool firstrun;
+  bool firstGyrodot_;
+  void EKF1Init();
+
+  void EKF1Setdt(double dtt) {
+    dt = dtt;
+  }
+
+  void EKF1SetParams(double m_, double I_xx_, double I_yy_, double g_,
+                     double com_q_, double comd_q_, double fd_q_, double comerr_q_, double com_r_, double comdd_r_, double ft_r_)
+  {
+    m = m_;
+    I_xx = I_xx_;
+    I_yy = I_yy_;
+    g = g_;
+    com_q = com_q_;
+    comd_q = comd_q_;
+    fd_q = fd_q_;
+    comerr_q = comerr_q_;
+    com_r = com_r_;
+    comdd_r = comdd_r_;
+    ft_r = ft_r_;
+  }
+
+  void EKF1SetCoMPos(Eigen::Vector3d pos) {
+    x(0) = pos(0);
+    x(1) = pos(1);
+    x(2) = pos(2);
+  }
+  void EKF1SetCoMExternalForce(Eigen::Vector3d force) {
+    x(6) = force(0);
+    x(7) = force(1);
+    x(8) = force(2);
+  }
+
+  void EKF1Predict(Eigen::Vector3d COP_, Eigen::Vector3d fN_, Eigen::Vector3d ti_, Eigen::Vector3d L_);
+  void EKF1Update(Eigen::Vector3d Acc, Eigen::Vector3d Pos, Eigen::Vector3d Gyro, Eigen::Vector3d Gyrodot);
+  void EKF1UpdateWithEnc(Eigen::Vector3d Pos);
+  void EKF1UpdateWithImu(Eigen::Vector3d Acc, Eigen::Vector3d Pos, Eigen::Vector3d Gyro);  
+  void gyrodotFilter();
+
+  double comX, comY, comZ, velX, velY, velZ, fX, fY, fZ, com_x_error_, com_y_error_, com_z_error_;
+
+
+  ///////////////////////////////////////////////////////////////////
 
 };
 

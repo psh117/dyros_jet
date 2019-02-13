@@ -4,6 +4,7 @@
 
 namespace dyros_jet_controller
 {
+
 void WalkingController::linkMass()
 {
   ///////////////////////////////////////////////////////////////////////////////////
@@ -42,6 +43,7 @@ void WalkingController::linkMass()
     mass_total_ += model_.getLinkMass(i);
   }
 
+  cout<<"mass_total: "<<mass_total_<<endl;
   /*
   mass_l_leg_(0) = 1.54216;  //hip yaw link mass
   mass_l_leg_(1) = 1.16907;  //hip roll link mass
@@ -184,6 +186,41 @@ void WalkingController::linkMass()
 
 }
 
+void WalkingController::linkInertia()
+{
+  ///////////////////////////////////////////////////////////////////////////////////
+  inertia_total_.setZero();
+
+  for(int i=0; i<29; i++)
+  {
+    Eigen::Isometry3d link_com_t_float;
+    if(i == 0)
+    {
+      link_com_t_float.setIdentity();
+    }
+    else
+    {
+      link_com_t_float = model_.getCurrentLinkTransform(i-1);
+    }
+
+    link_com_t_float.translation() = DyrosMath::multiplyIsometry3dVector3d(link_com_t_float, model_.getLinkComPosition(i));
+
+    inertia_link_float_[i] = inertiaTensorTransform(model_.getLinkInertia(i), model_.getLinkMass(i), link_com_t_float);
+    inertia_total_ += inertia_link_float_[i];
+  }
+}
+
+Eigen::Matrix3d WalkingController::inertiaTensorTransform(Eigen::Matrix3d local_inertia, double mass, Eigen::Isometry3d transformation)
+{
+  Eigen::Matrix3d inertia_prime;
+  Eigen::Matrix3d R = transformation.linear();
+  Eigen::Vector3d p = transformation.translation();
+
+  double p_square = (p.transpose()*p);
+  inertia_prime = R*local_inertia*R.transpose();
+  inertia_prime += mass*((p_square)*Eigen::Matrix3d::Identity() - p*p.transpose());
+  return inertia_prime;
+}
 
 void WalkingController::getComJacobian()
 {
@@ -296,22 +333,18 @@ void WalkingController::getComJacobian()
   Eigen::Vector3d error_zmp;
   Eigen::Vector4d error_w;
   Eigen::Vector3d error_moment;
-  Eigen::Vector3d moment_support_desried;
-  Eigen::Vector3d moment_support_current;
 
   double switch_l_ft;
   double switch_r_ft;
-
-  kc = 100.0; kp = 0.1; kd = 0.000;  //gains for simulation
-  kf = 100.0; kw = 200.0;
+  kc = 50.0; kp = 0.0; kd = 0.000;  //gains for simulation
+  kf = 50.0; kw = 100.0;
 
   //kc = 300.0; kp = 45.0; kd = 0.005;  //gains for real robot
   //kf = 300.0; kw = 200.0;
   lambda = 0.000;
   error_zmp.setZero();
   error_moment.setZero();
-  moment_support_current.setZero();
-  moment_support_desried.setZero();
+  moment_support_desried_.setZero();
 
   if(estimator_flag_ == true)
   {
@@ -352,21 +385,12 @@ void WalkingController::getComJacobian()
     switch_r_ft = 0;
   }
 
-  moment_support_desried(0) = zmp_desired_(0)*(l_ft_(2)+r_ft_(2));
-  moment_support_desried(1) = zmp_desired_(1)*(l_ft_(2)+r_ft_(2));
+  moment_support_desried_(0) = zmp_desired_(0)*(l_ft_(2)+r_ft_(2));
+  moment_support_desried_(1) = zmp_desired_(1)*(l_ft_(2)+r_ft_(2));
 
-  if (foot_step_(current_step_num_, 6) == 1) //left support foot
-  {
-    moment_support_current(0) = -l_ft_(4) - switch_r_ft*(r_ft_(4) + rfoot_support_current_.translation()(0)*r_ft_(2));
-    moment_support_current(1) = +l_ft_(3) + switch_r_ft*(r_ft_(3) + rfoot_support_current_.translation()(1)*r_ft_(2));
-  }
-  else
-  {
-    moment_support_current(0) = -r_ft_(4) - switch_l_ft*(l_ft_(4) + lfoot_support_current_.translation()(0)*l_ft_(2));
-    moment_support_current(1) = +r_ft_(3) + switch_l_ft*(l_ft_(3) + lfoot_support_current_.translation()(1)*l_ft_(2));
-  }
 
-  error_moment = moment_support_desried - moment_support_current;
+
+  error_moment = moment_support_desried_ - moment_support_current_;
 
 
   disturbance_accel_old_ = disturbance_accel_;
@@ -377,9 +401,6 @@ void WalkingController::getComJacobian()
   disturbance_accel_(2) = 0;
 
   //disturbance_accel_ = 0.3*disturbance_accel_ +0.7*disturbance_accel_old_;
-
-  cout<<"disturbance_accel_"<<disturbance_accel_<<endl;
-  cout<<"error_zmp"<<error_zmp<<endl;
   //cout<<"error_moment"<<error_moment<<endl;
 
 

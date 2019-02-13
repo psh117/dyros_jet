@@ -96,25 +96,6 @@ void DyrosJetModel::test()
   q_vjoint.setZero();
 
   updateKinematics(q_vjoint);
-
-
-
-  std::cout << "left_leg_jacobian_" << std::endl;
-  std::cout << leg_jacobian_[0] << std::endl << std::endl;
-  std::cout << "right_leg_jacobian_" << std::endl;
-  std::cout << leg_jacobian_[1] << std::endl;
-  std::cout << "left_arm_jacobian_" << std::endl;
-  std::cout << arm_jacobian_[0] << std::endl << std::endl;
-  std::cout << "right_arm_jacobian_" << std::endl;
-  std::cout << arm_jacobian_[1] << std::endl;
-  std::cout << "currnet_transform_" << std::endl;
-  std::cout << currnet_transform_[0].translation() << std::endl << std::endl;
-  std::cout << currnet_transform_[1].translation() << std::endl << std::endl;
-  std::cout << currnet_transform_[2].translation() << std::endl << std::endl;
-  std::cout << currnet_transform_[3].translation() << std::endl << std::endl;
-  std::cout << "com" << std::endl;
-  std::cout << com_<< std::endl;
-
 }
 
 void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
@@ -141,12 +122,14 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
   }
 
   link_mass_[0] = model_.mBodies[link_id_[0]].mMass; //plevis link mass
+  link_inertia_[0] = model_.mBodies[link_id_[0]].mInertia; //plevis link inertia
+
   for(unsigned int i=1; i<29; i++)
   {
     getTransformEachLinks(i, &link_transform_[i-1]);
     link_local_com_position_[i] =  model_.mBodies[link_id_[i]].mCenterOfMass;
     link_mass_[i] = model_.mBodies[link_id_[i]].mMass;
-
+    link_inertia_[i] = model_.mBodies[link_id_[i]].mInertia;
 
     if(0< i && i<13)
     {
@@ -157,7 +140,6 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q)
       getArmLinksJacobianMatrix(i, &arm_link_jacobian_[i-15]);
     }
   }
-
 }
 
 void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy)
@@ -174,16 +156,6 @@ void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::V
 void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)
 {
   com_simulation_ = sim_com;
-}
-
-void DyrosJetModel::updateSimGyro(const Eigen::Vector3d &sim_gyro)
-{
-  gyro_simulation_ = sim_gyro;
-}
-
-void DyrosJetModel::updateSimAccel(const Eigen::Vector3d &sim_accel)
-{
-  accel_simulation_ = sim_accel;
 }
 
 void DyrosJetModel::updateSimRfoot(const Eigen::Isometry3d &sim_rfoot)
@@ -408,7 +380,6 @@ void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
   //Eigen::Vector3d com_vel;
   //Eigen::Vector3d angular_momentum;
   double mass;
-
   RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_virtual_, qdot, mass, position_temp, NULL, NULL, false);
   //RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp, NULL, NULL, false);
 

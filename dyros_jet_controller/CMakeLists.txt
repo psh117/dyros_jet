@@ -57,6 +57,7 @@ file(GLOB WALKING_SRC
     "src/walking_controller.cpp"
     "src/state_estimator.cpp"
     "src/com_jacobian.cpp"
+    "src/moving_average_filter.cpp"
     )
 file(GLOB CONTROLLER_SRC
     "src/dyros_jet_model.cpp"

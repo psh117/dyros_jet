@@ -87,13 +87,9 @@ void SimulationInterface::update()
 {
   ControlBase::update();
   ControlBase::model_.updateSimCom(com_sim_);
-  ControlBase::model_.updateSimGyro(gyro_);
-  ControlBase::model_.updateSimAccel(accelometer_);
   ControlBase::model_.updateSimLfoot(lfoot_global_);
   ControlBase::model_.updateSimRfoot(rfoot_global_);
   ControlBase::model_.updateSimBase(base_global_);
-
-
 }
 
 void SimulationInterface::compute()
