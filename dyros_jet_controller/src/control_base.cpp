@@ -319,13 +319,14 @@ void ControlBase::walkingCommandCallback(const dyros_jet_msgs::WalkingCommandCon
   {
     walking_controller_.setEnable(true);
     walking_controller_.setTarget(msg->walk_mode, msg->compensator_mode[0], msg->compensator_mode[1], msg->ik_mode, msg->heel_toe, msg->first_foot_step,
-        msg->x, msg->y, msg->z, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y);
+        msg->x, msg->y, msg->z, msg->height, msg->theta, msg-> step_length_x, msg-> step_length_y, msg->walking_pattern);
   }
   else
   {
     cout<<"fffffffffff"<<endl;
     walking_controller_.setEnable(false);
   }
+
 }
 
 void ControlBase::shutdownCommandCallback(const std_msgs::StringConstPtr &msg)

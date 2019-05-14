@@ -353,6 +353,8 @@ void TaskWindow::on_button_walk_start_clicked()
 
   qnode.walk_cmd_msg_.compensator_mode[0] = ui.checkBox_hip_compensator->isChecked();
   qnode.walk_cmd_msg_.compensator_mode[1] = ui.checkBox_ext_encoder_cmp->isChecked();
+
+  qnode.walk_cmd_msg_.walking_pattern = ui.checkBox_DCM ->isChecked();
   //if(ui.check)
   /*
   if(std::strcmp(ui.comboBox_compensator->currentText().toStdString().c_str(), "Hip Compensator") == 0)

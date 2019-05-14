@@ -23,3 +23,6 @@ float32 height
 float32 theta
 float32 step_length_x
 float32 step_length_y
+
+bool walking_pattern
+

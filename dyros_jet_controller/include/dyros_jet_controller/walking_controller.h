@@ -20,21 +20,21 @@ const std::string FILE_NAMES[FILE_CNT] =
 {
   ///change this directory when you use this code on the other computer///
 
-  "/home/pen/data/walking/0_desired_zmp_.txt",
-  "/home/pen/data/walking/1_desired_com_.txt",
-  "/home/pen/data/walking/2_desired_q_.txt",
-  "/home/pen/data/walking/3_real_q_.txt",
-  "/home/pen/data/walking/4_desired_swingfoot_.txt",
-  "/home/pen/data/walking/5_desired_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/6_current_com_pelvis_trajectory_.txt",
-  "/home/pen/data/walking/7_current_foot_trajectory_.txt",
-  "/home/pen/data/walking/8_QPestimation_variables_.txt",
-  "/home/pen/data/walking/9_ft_sensor_.txt",
-  "/home/pen/data/walking/10_ext_encoder_.txt",
-  "/home/pen/data/walking/11_kalman_estimator2_.txt",
-  "/home/pen/data/walking/12_kalman_estimator1_.txt",
-  "/home/pen/data/walking/13_kalman_estimator3_.txt",
-  "/home/pen/data/walking/14_grav_torque_.txt"
+  "/home/jhk/data/walking/0_desired_zmp_.txt",
+  "/home/jhk/data/walking/1_desired_com_.txt",
+  "/home/jhk/data/walking/2_desired_q_.txt",
+  "/home/jhk/data/walking/3_real_q_.txt",
+  "/home/jhk/data/walking/4_desired_swingfoot_.txt",
+  "/home/jhk/data/walking/5_desired_pelvis_trajectory_.txt",
+  "/home/jhk/data/walking/6_current_com_pelvis_trajectory_.txt",
+  "/home/jhk/data/walking/7_current_foot_trajectory_.txt",
+  "/home/jhk/data/walking/8_QPestimation_variables_.txt",
+  "/home/jhk/data/walking/9_ft_sensor_.txt",
+  "/home/jhk/data/walking/10_ext_encoder_.txt",
+  "/home/jhk/data/walking/11_kalman_estimator2_.txt",
+  "/home/jhk/data/walking/12_kalman_estimator1_.txt",
+  "/home/jhk/data/walking/13_kalman_estimator3_.txt",
+  "/home/jhk/data/walking/14_grav_torque_.txt"
 
 };
 
@@ -93,7 +93,7 @@ public:
   void compute();
   void setTarget(int walk_mode, bool hip_compensation, bool lqr, int ik_mode, bool heel_toe,
                  bool is_right_foot_swing, double x, double y, double z, double height, double theta,
-                 double step_length, double step_length_y);
+                 double step_length, double step_length_y, bool walking_pattern);
   void setEnable(bool enable);
   void setFootPlan(int footnum, int startfoot, Eigen::MatrixXd footpose);
   void updateControlMask(unsigned int *mask);
@@ -168,6 +168,28 @@ public:
   void impedancefootUpdate();
   void impedanceControl();
 
+  //CapturePoint
+  void getCapturePointTrajectory();
+  Eigen::VectorXd capturePoint_refx, capturePoint_refy;
+  Eigen::VectorXd zmp_refx, zmp_refy;
+  bool capturePoint_debug = false;
+  void previewControl_cap(double dt, int NL, int tick, double x_i, double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
+                          double ux_1, double uy_1 , double& ux, double& uy, double gi, Eigen::VectorXd gp_l,
+                          Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c,
+                          Eigen::Vector3d &xd, Eigen::Vector3d &yd);
+  void zmptoInitFloat();
+
+  double ux_1, uy_1;
+  Eigen::Vector3d xs, ys;
+    int currentstep;
+    bool firsttime = false;
+
+    Eigen::Isometry3d float_support_init;
+    Eigen::Isometry3d current_step_float_support_;
+    Eigen::Isometry3d support_float_init;
+    Eigen::Isometry3d current_step_support_float_;
+
+
 private:
 
   const double hz_;
@@ -225,6 +247,7 @@ private:
   double current_step_num_;
   int foot_step_plan_num_;
   int foot_step_start_foot_;
+  bool walkingPatternDCM_;
   Eigen::MatrixXd foot_pose_;
 
   Eigen::MatrixXd foot_step_;

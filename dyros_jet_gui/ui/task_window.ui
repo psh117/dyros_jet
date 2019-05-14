@@ -20,7 +20,7 @@
    <string>DYROS THORMANG User Interface</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../../dyros_black_ui/resources/images.qrc">
+   <iconset resource="../resources/images.qrc">
     <normaloff>:/images/icon_2.png</normaloff>:/images/icon_2.png</iconset>
   </property>
   <property name="locale">
@@ -295,6 +295,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="checkBox_DCM">
+             <property name="text">
+              <string>DCM Walking</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <layout class="QVBoxLayout" name="verticalLayout_30">
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -469,12 +476,12 @@
                     <widget class="QComboBox" name="comboBox_method">
                      <item>
                       <property name="text">
-                       <string>Jacobian</string>
+                       <string>Inverse Kinematics</string>
                       </property>
                      </item>
                      <item>
                       <property name="text">
-                       <string>Inverse Kinematics</string>
+                       <string>Jacobian</string>
                       </property>
                      </item>
                     </widget>
@@ -979,7 +986,7 @@
      <x>0</x>
      <y>0</y>
      <width>1920</width>
-     <height>34</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -1024,7 +1031,7 @@
   </action>
  </widget>
  <resources>
-  <include location="../../../dyros_black_ui/resources/images.qrc"/>
+  <include location="../resources/images.qrc"/>
  </resources>
  <connections>
   <connection>
