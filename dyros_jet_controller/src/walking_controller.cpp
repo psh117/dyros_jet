@@ -47,9 +47,15 @@ void WalkingController::compute()
       if(current_step_num_< total_step_num_)
 
       {
-        getZmpTrajectory();
+        if(walkingPatternDCM_ == false)
+        {
+          getZmpTrajectory();
+        }
+        else
+        {
+          getCapturePointTrajectory();
 
-        getCapturePointTrajectory();
+        }
 
         getComTrajectory();
 
@@ -170,7 +176,7 @@ void WalkingController::setTarget(int walk_mode, bool hip_compensation, bool lqr
   is_right_foot_swing_ = is_right_foot_swing;
 
   walkingPatternDCM_ = walking_pattern;
-
+  std::cout << "Walking_pattern  " << walkingPatternDCM_<< std::endl;
   calc_start_flag_ = lqr;
 
   parameterSetting();
@@ -1545,11 +1551,13 @@ void WalkingController::onestepZmp(unsigned int current_step_number, Eigen::Vect
 
 void WalkingController::getComTrajectory()
 {
+  if(walkingPatternDCM_ == false)
+  {
+    modifiedPreviewControl();
 
- // modifiedPreviewControl();
-
- // xs_ = xd_;
- // ys_ = yd_;
+    xs_ = xd_;
+    ys_ = yd_;
+  }
 
   if (walking_tick_ == t_start_+t_total_-1 && current_step_num_ != total_step_num_-1)
   {
@@ -3647,7 +3655,7 @@ void WalkingController::getCapturePointTrajectory()
 
     if(walking_tick_ == 0)
     {
-
+      std::cout << "sssszzss" << std::endl;
       //t_temp = t_total_-t_rest_init_-t_rest_last_;
       t_temp = t_total_;
       t_temp_init = t_temp_+t_rest_init_+t_double1_;
