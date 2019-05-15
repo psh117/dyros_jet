@@ -45,7 +45,6 @@ void WalkingController::compute()
 
 
       if(current_step_num_< total_step_num_)
-
       {
         if(walkingPatternDCM_ == false)
         {
@@ -1605,8 +1604,17 @@ void WalkingController::getComTrajectory()
   else
     start_time = t_start_;
 
-  zmp_desired_(0) = ref_zmp_(walking_tick_-start_time,0);
-  zmp_desired_(1) = ref_zmp_(walking_tick_-start_time,1);
+  if(walkingPatternDCM_ == false)
+  {
+    zmp_desired_(0) = ref_zmp_(walking_tick_-start_time,0);
+    zmp_desired_(1) = ref_zmp_(walking_tick_-start_time,1);
+  }
+  else
+  {
+    zmp_desired_(0) = zmp_refx(walking_tick_);
+    zmp_desired_(1) = zmp_refy(walking_tick_);
+  }
+
 
   if(com_control_mode_ == true)
   {
