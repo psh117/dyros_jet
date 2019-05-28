@@ -104,6 +104,24 @@ void mujoco_interface::sensorStateCallback(const mujoco_ros_msgs::SensorStateCon
             }
 
         }
+        if(msg->sensor[i].name=="Acc_Pelvis_IMU"){
+            for(int j=0;j<3;j++){
+                accelometer_(j) = msg->sensor[i].data[j];
+            }
+
+        }
+        if(msg->sensor[i].name=="Gyro_Pelvis_IMU"){
+            for(int j=0;j<3;j++){
+                gyro_(j) = msg->sensor[i].data[j];
+            }
+
+        }
+        if(msg->sensor[i].name=="Magnet_Pelvis_IMU"){
+            for(int j=0;j<3;j++){
+            //    right_foot_ft(j+3) = msg->sensor[i].data[j];
+            }
+
+        }
 
     }
 

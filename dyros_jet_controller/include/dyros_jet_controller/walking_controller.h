@@ -183,7 +183,7 @@ public:
   Eigen::Vector3d xs, ys;
     int currentstep;
     bool firsttime = false;
-
+    Eigen::Vector2d capturePoint_offset_;
     Eigen::Isometry3d float_support_init;
     Eigen::Isometry3d current_step_float_support_;
     Eigen::Isometry3d support_float_init;

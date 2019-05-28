@@ -53,7 +53,6 @@ void WalkingController::compute()
         else
         {
           getCapturePointTrajectory();
-
         }
 
         getComTrajectory();
@@ -3523,129 +3522,6 @@ Eigen::MatrixXd WalkingController::discreteRiccatiEquationPrev(Eigen::MatrixXd a
     }
   }
 
-  /*
-  Eigen::Matrix4d z11;
-  Eigen::Matrix4d z12;
-  Eigen::Matrix4d z21;
-  Eigen::Matrix4d z22;
-
-  Eigen::Matrix8d z;
-
-  std::vector<Eigen::Vector8d> eigVec_real;
-  std::vector<Eigen::Vector8d> eigVec_img;
-  Eigen::Vector8d deigVal_real;
-  Eigen::Vector8d deigVal_img;
-  Eigen::Matrix8x2d deigVec_real;
-  Eigen::Matrix8d deigVec_img;
-
-  Eigen::Matrix8x4d tempZ_real;
-  Eigen::Matrix8x4d tempZ_img;
-  Eigen::Matrix8x4cd tempZ_comp;
-
-  Eigen::Matrix4cd U11;
-  Eigen::Matrix4cd U21;
-  Eigen::Matrix4d X_sol;
-  Eigen::Matrix4cd X;
-
-  z11 = a.inverse();
-  z12 = a.inverse()*b*r.inverse()*b.transpose();
-  z21 = q*a.inverse();
-  z22 = a.transpose() + q*a.inverse()*b*r.inverse()*b.transpose();
- // std::cout<<"c2" <<std::endl;
-
-  z.setZero();
-  z.topLeftCorner(n,n) = z11;
-  z.topRightCorner(n,n) = z12;
-  z.bottomLeftCorner(n,n) = z21;
-  z.bottomRightCorner(n,n) = z22;
-
-  for(int i=0; i<8; i++)
-  {
-    eigVec_real[i].resize(2*n);
-    eigVec_real[i].setZero();
-    eigVec_img[i].resize(2*n);
-    eigVec_img[i].setZero();
-  }
- // std::cout<<"c3" <<std::endl;
-
-  deigVal_real.setZero();
-  deigVal_img.setZero();
-  deigVec_real.setZero();
-  deigVec_img.setZero();
-
-  deigVal_real = z.eigenvalues().real();
-  deigVal_img = z.eigenvalues().imag();
-
-  Eigen::EigenSolver<Eigen::MatrixXd> ev(z);
-  //EigenVector Solver
-  //Matrix3D ones = Matrix3D::Ones(3,3);
-  //EigenSolver<Matrix3D> ev(ones);
-  //cout << "The first eigenvector of the 3x3 matrix of ones is:" << endl << ev.eigenvectors().col(1) << endl;
-//  std::cout<<"c3-1" <<std::endl;
-
-  for(int i=0;i<2*n; i++)
-  {
-    for(int j=0; j<2*n; j++)
-    {
-      deigVec_real(j,i) = ev.eigenvectors().col(i)(j).real();
-      deigVec_img(j,i) = ev.eigenvectors().col(i)(j).imag();
-   //   std::cout<<"c3-2" <<std::endl;
-    }
-  }
-//  std::cout<<"c4" <<std::endl;
-
-  //Order the eigenvectors
-  //move e-vectors correspnding to e-value outside the unite circle to the left
-
-  tempZ_real.setZero();
-  tempZ_img.setZero();
-  int c=0;
-
-  for (int i=0;i<2*n;i++)
-  {
-    if ((deigVal_real(i)*deigVal_real(i)+deigVal_img(i)*deigVal_img(i))>1.0) //outside the unit cycle
-    {
-      for(int j=0; j<2*n; j++)
-      {
-        tempZ_real(j,c) = deigVec_real(j,i);
-        tempZ_img(j,c) = deigVec_img(j,i);
-      }
-      c++;
-
-    }
-
-    this_thread::sleep_for(chrono::milliseconds(100));
-
-  }
-
-  for(int i=0;i<2*n;i++)
-  {
-    for(int j=0;j<n;j++)
-    {
-      tempZ_comp.real()(i,j) = tempZ_real(i,j);
-      tempZ_comp.imag()(i,j) = tempZ_img(i,j);
-    }
-  }
- // std::cout<<"c5" <<std::endl;
-
-  for(int i=0;i<n;i++)
-  {
-    for(int j=0;j<n;j++)
-    {
-      U11(i,j) = tempZ_comp(i,j);
-      U21(i,j) = tempZ_comp(i+n,j);
-    }
-  }
-  X = U21*(U11.inverse());
-
-  for(int i=0;i<n;i++)
-  {
-    for(int j=0;j<n;j++)
-    {
-      X_sol(i,j) = X.real()(i,j);
-    }
-  }
-*/
   return X_sol;
 }
 
@@ -3655,20 +3531,15 @@ void WalkingController::getCapturePointTrajectory()
   double w, b, t_total, t_total_init, t_temp, t_temp_init, b_init;
 
   zmptoInitFloat();
+
   if(walking_tick_==0)
   {
     previewControlParameter(1.0/hz_, 16*hz_/10, k_ ,com_support_init_, gi_, gp_l_, gx_, a_, b_, c_);
   }
 
-
-    if(walking_tick_ == 0)
-    {
-      std::cout << "sssszzss" << std::endl;
-      //t_temp = t_total_-t_rest_init_-t_rest_last_;
       t_temp = t_total_;
       t_temp_init = t_temp_+t_rest_init_+t_double1_;
       t_total_init = t_temp_init/hz_;
-      //t_temp = 1.2;
       t_total = t_temp/hz_;//3.0;//t_temp;
       w = sqrt(GRAVITY/zc_);
       b = exp(w * t_total);
@@ -3687,15 +3558,57 @@ void WalkingController::getCapturePointTrajectory()
       zmp_refy.resize((t_total_*(total_step_num_+1)+t_temp_));
 
 
-        for(int i = 1; i<total_step_num_+1; i++)
+      capturePoint_offset_(0) = 0.00; //CapturePointx offset
+      capturePoint_offset_(1) = 0.02; //CapturePointy offset
+
+        for(int i = 0; i<total_step_num_+1; i++)
         {
-          capturePoint_ox(i+1) = foot_step_(i-1,0);
-          capturePoint_oy(i+1) = foot_step_(i-1,1);
+          if(foot_step_(0,6)==0) //right support
+          {
+            if(i == 0)
+            {
+              capturePoint_ox(1) = foot_step_(0,0);
+              capturePoint_oy(1) = -1*foot_step_(0,1)+capturePoint_offset_(1);
+            }
+            else
+            {
+              if(i % 2 == 0)
+              {
+                capturePoint_ox(i+1) = foot_step_(i-1,0);
+                capturePoint_oy(i+1) = foot_step_(i-1,1)+capturePoint_offset_(1);
+              }
+              else
+              {
+                capturePoint_ox(i+1) = foot_step_(i-1,0);
+                capturePoint_oy(i+1) = foot_step_(i-1,1)-capturePoint_offset_(1);
+              }
+            }
+          }
+          else
+          {
+            if(i == 0)
+            {
+              capturePoint_ox(1) = foot_step_(0,0);
+              capturePoint_oy(1) = -1*foot_step_(0,1)-capturePoint_offset_(1);
+            }
+            else
+            {
+              if(i % 2 == 0)
+              {
+                capturePoint_ox(i+1) = foot_step_(i-1,0);
+                capturePoint_oy(i+1) = foot_step_(i-1,1)-capturePoint_offset_(1);
+              }
+              else
+              {
+                capturePoint_ox(i+1) = foot_step_(i-1,0);
+                capturePoint_oy(i+1) = foot_step_(i-1,1)+capturePoint_offset_(1);
+              }
+            }
+          }
         }
+
         capturePoint_ox(0) = 0.0;
         capturePoint_oy(0) = 0.0;
-        capturePoint_ox(1) = foot_step_(0,0);
-        capturePoint_oy(1) = -1*foot_step_(0,1);
         capturePoint_ox(7) = foot_step_(total_step_num_-1,0);
         capturePoint_oy(7) = 0.0;
 
@@ -3752,7 +3665,6 @@ void WalkingController::getCapturePointTrajectory()
              }
              else if(i >= t_rest_init_+t_temp_ && i < t_rest_init_+t_double1_+t_temp_)
              {
-              // std::cout << 'sdfa ' << std::endl;
                zmp_refx(i) = kx*(i+1-t_rest_init_-t_temp_)/t_double1_;
                zmp_refy(i) = ky*(i+1-t_rest_init_-t_temp_ )/t_double1_;
              }
@@ -3787,7 +3699,6 @@ void WalkingController::getCapturePointTrajectory()
            }
            else if(i >= t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_ && i < t_rest_init_+t_double1_+(current_step-1)*t_total_+t_temp_+t_total_)
            {
-            // std::cout << 'sdfa ' << std::endl;
              zmp_refx(i) = (zmp_dx(current_step+1)+zmp_dx(current_step))/2.0+kx*(i+1-t_rest_init_-(current_step-1)*t_total_-t_temp_-t_total_)/t_double1_;
              zmp_refy(i) = (zmp_dy(current_step+1)+zmp_dy(current_step))/2.0+ky*(i+1-t_rest_init_-(current_step-1)*t_total_-t_temp_-t_total_)/t_double1_;
            }
@@ -3818,9 +3729,8 @@ void WalkingController::getCapturePointTrajectory()
           capturePoint_refx(i) = exp(w*t_total/hz_)*capturePoint_ox(capturePointChange)+(1-exp(w*t_total/hz_))*zmp_dx(capturePointChange);
           capturePoint_refy(i) = exp(w*t_total/hz_)*capturePoint_oy(capturePointChange)+(1-exp(w*t_total/hz_))*zmp_dy(capturePointChange);
         }
-        file[14]<<capturePoint_refy(i)<<"\t"<<zmp_refy(i)<<"\t"<<capturePointChange<<"\t"<<capturePoint_oy(capturePointChange)<<endl;
-     }
-    }
+      }
+
   Eigen::Vector3d xd,yd;
   Eigen::Vector4d xyd, xyd2;
   double xi, yi;
@@ -3845,7 +3755,7 @@ void WalkingController::getCapturePointTrajectory()
   xs = xd;
   ys = yd;
 
-//  file[14]<<zmp_refy(walking_tick_)<<"\t"<<xyd2(1)<<"\t"<<yd(0)<<"\t"<<current_step_float_support_(1,3)<<"\t"<< current_step_support_float_(1,3)<<endl;
+  file[14]<<capturePoint_refy(walking_tick_)<<"\t"<<zmp_refy(walking_tick_)<<"\t"<<xyd2(1)<<"\t"<<yd(0)<<"\t"<<current_step_float_support_(1,3)<<"\t"<< current_step_support_float_(1,3)<<endl;
 }
 
 void WalkingController::previewControl_cap(
@@ -3965,13 +3875,7 @@ void WalkingController::zmptoInitFloat()
       reference1.translation() = -1*reference.translation();
       current_step_float_support_ = reference;
       current_step_support_float_ = reference1;
-   /*   float_support_init.translation() = -reference.linear().transpose()*reference.translation();
-      float_support_init.linear() =  reference.linear().transpose();
-      current_step_float_support_ = float_support_init;*/
- /*     support_float_init.linear() = float_support_init.linear().transpose();
-      support_float_init.translation() = -float_support_init.translation();
-      current_step_support_float_ = support_float_init;
-*/
+
     }
 
    }
@@ -3989,11 +3893,7 @@ void WalkingController::zmptoInitFloat()
        reference1.translation() = -1*reference.translation();
        current_step_float_support_ = reference;
        current_step_support_float_ = reference1;
-
-    /*   float_support_init.translation() = -reference.linear().transpose()*reference.translation();
-       float_support_init.linear() =  reference.linear().transpose();
-       current_step_float_support_ = float_support_init;*/
-     }
+      }
    }
 }
 }
