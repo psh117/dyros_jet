@@ -59,8 +59,8 @@ void mujoco_interface::jointStateCallback(const sensor_msgs::JointStateConstPtr 
     }
     //virtual joint
     for(int i=0;i<6;i++){
-    //  q_virtual_(i) = msg->position[i];
-    //  q_dot_virtual_(i) = msg->velocity[i];
+      mujoco_virtual_(i) = msg->position[i];
+      mujoco_virtual_dot_(i) = msg->velocity[i];
     //  q_ext_(i) = msg->position[i];
     //  q_ext_(i+6) = msg->position[i+6];
     }
@@ -168,6 +168,8 @@ void mujoco_interface::simCommandCallback(const std_msgs::StringConstPtr &msg)
 void mujoco_interface::update()
 {
     ControlBase::update();
+    ControlBase::model_.updateMujCom(mujoco_virtual_);
+    ControlBase::model_.updateMujComDot(mujoco_virtual_dot_);
 }
 
 void mujoco_interface::compute()

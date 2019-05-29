@@ -62,6 +62,8 @@ public:
   void updateSimRfoot(const Eigen::Isometry3d &sim_rfoot);
   void updateSimLfoot(const Eigen::Isometry3d &sim_lfoot);
   void updateSimBase(const Eigen::Isometry3d &sim_base);
+  void updateMujCom(const Eigen::Vector6d &sim_lfoot);
+  void updateMujComDot(const Eigen::Vector6d &sim_base);
 
 
   void getTransformEndEffector(EndEffector ee, Eigen::Isometry3d* transform_matrix);
@@ -91,6 +93,10 @@ public:
   const Eigen::Vector3d& getSimulationCom(){return com_simulation_;}
   const Eigen::Vector3d& getSimulationGyro(){return gyro_simulation_;}
   const Eigen::Vector3d& getSimulationAccel(){return accel_simulation_;}
+
+
+  const Eigen::Vector6d& getMujocoCom(){return q_virtual_1;}
+  const Eigen::Vector6d& getMujocoComDot(){return q_dot_virtual_1;}
 
   const Eigen::Isometry3d& getSimulationRfoot(){return rfoot_simulation_;}
   const Eigen::Isometry3d& getSimulationLfoot(){return lfoot_simulation_;}
@@ -143,6 +149,9 @@ private:
   Eigen::Isometry3d rfoot_simulation_;
   Eigen::Isometry3d lfoot_simulation_;
   Eigen::Isometry3d base_simulation_;
+
+  Eigen::Vector6d q_virtual_1;
+  Eigen::Vector6d q_dot_virtual_1;
 
   Eigen::Matrix28d A_;
   Eigen::MatrixXd A_temp_;

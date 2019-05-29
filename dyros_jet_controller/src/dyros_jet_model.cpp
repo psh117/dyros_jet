@@ -173,6 +173,16 @@ void DyrosJetModel::updateSimBase(const Eigen::Isometry3d &sim_base)
   base_simulation_ = sim_base;
 }
 
+void DyrosJetModel::updateMujCom(const Eigen::Vector6d &sim_lfoot)
+{
+  q_virtual_1 = sim_lfoot;
+}
+
+void DyrosJetModel::updateMujComDot(const Eigen::Vector6d &sim_base)
+{
+  q_dot_virtual_1 = sim_base;
+}
+
 void DyrosJetModel::getTransformEndEffector // must call updateKinematics before calling this function
 (EndEffector ee, Eigen::Isometry3d* transform_matrix)
 {

@@ -189,6 +189,9 @@ public:
     Eigen::Isometry3d support_float_init;
     Eigen::Isometry3d current_step_support_float_;
 
+    Eigen::Vector6d q_sim_virtual_;
+    Eigen::Vector6d q_sim_dot_virtual_;
+
 
 private:
 

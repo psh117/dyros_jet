@@ -118,6 +118,9 @@ protected:
   VectorQd desired_q_; // current desired joint values
   Eigen::Vector12d extencoder_offset_;
 
+  Eigen::Vector6d mujoco_virtual_;
+  Eigen::Vector6d mujoco_virtual_dot_;
+
 
   int total_dof_;
 

@@ -50,6 +50,8 @@ private:
 
   mujoco_ros_msgs::JointSet mujoco_joint_set_msg_;
 
+  Eigen::Vector6d mujoco_virtual_dot_;
+  Eigen::Vector6d mujoco_virtual_;
 
 public:
   bool simulation_running_;
