@@ -3530,278 +3530,271 @@ Eigen::MatrixXd WalkingController::discreteRiccatiEquationPrev(Eigen::MatrixXd a
 void WalkingController::getCapturePointTrajectory()
 {
   Eigen::VectorXd capturePoint_ox, capturePoint_oy, zmp_dx, zmp_dy;
-  double w, b, t_total, t_total_init, t_temp, t_temp_init, b_init;
+   double w, b, t_total, t_total_init, t_temp, t_temp_init, b_init, t_total_init2,b_init2;
 
-  zmptoInitFloat();
+   zmptoInitFloat();
 
-  if(walking_tick_==0)
-  {
-    previewControlParameter(1.0/hz_, 16*hz_/10, k_ ,com_support_init_, gi_, gp_l_, gx_, a_, b_, c_);
-  }
+   if(walking_tick_==0)
+   {
+     previewControlParameter(1.0/hz_, 16*hz_/10, k_ ,com_support_init_, gi_, gp_l_, gx_, a_, b_, c_);
+   }
 
-      t_temp = t_total_;
-      t_temp_init = t_temp_+t_rest_init_+t_double1_;
-      t_total_init = t_temp_init/hz_;
-      t_total = t_temp/hz_;//3.0;//t_temp;
-      w = sqrt(GRAVITY/zc_);
-      b = exp(w * t_total);
-      b_init = exp(w*t_total_init);
-      double kx, kx2, ky, ky2;
+       t_temp = t_total_;
+       t_temp_init = t_double1_;
+       t_total_init = t_temp_init/hz_;
+       t_total_init2 = t_total_/(hz_);
+       t_total = t_temp/hz_;//3.0;//t_temp;
+       w = sqrt(GRAVITY/zc_);
+       b = exp(w * t_total);
+       b_init = exp(w*t_total_init);
+       b_init2 = exp(w*t_total_init2);
+       double kx, kx2, ky, ky2;
 
-      capturePoint_ox.resize(total_step_num_+3);
-      capturePoint_oy.resize(total_step_num_+3);
+       capturePoint_ox.resize(total_step_num_+3);
+       capturePoint_oy.resize(total_step_num_+3);
 
-      zmp_dx.resize(total_step_num_+2);
-      zmp_dy.resize(total_step_num_+2);
+       zmp_dx.resize(total_step_num_+2);
+       zmp_dy.resize(total_step_num_+2);
 
-      capturePoint_refx.resize((t_total_*(total_step_num_+1)+t_temp_+1));
-      capturePoint_refy.resize((t_total_*(total_step_num_+1)+t_temp_+1));
-      zmp_refx.resize((t_total_*(total_step_num_+1)+t_temp_+1));
-      zmp_refy.resize((t_total_*(total_step_num_+1)+t_temp_+1));
+       capturePoint_refx.resize((t_total_*(total_step_num_+1)+t_temp_+1));
+       capturePoint_refy.resize((t_total_*(total_step_num_+1)+t_temp_+1));
+       zmp_refx.resize((t_total_*(total_step_num_+1)+t_temp_+1));
+       zmp_refy.resize((t_total_*(total_step_num_+1)+t_temp_+1));
 
 
-      capturePoint_offset_(0) = 0.00; //CapturePointx offset
-      capturePoint_offset_(1) = 0.02; //CapturePointy offset
+       capturePoint_offset_(0) = 0.00; //CapturePointx offset
+       capturePoint_offset_(1) = 0.02; //CapturePointy offset
 
-        for(int i = 0; i<total_step_num_+1; i++)
-        {
-          if(foot_step_(0,6)==0) //right support
-          {
-            if(i == 0)
-            {
-              capturePoint_ox(1) = 0.0;
-              capturePoint_oy(1) = -1*foot_step_(0,1)+capturePoint_offset_(1);
-            }
-            else
-            {
-              if(i % 2 == 0)
-              {
-                capturePoint_ox(i+1) = foot_step_(i-1,0);
-                capturePoint_oy(i+1) = foot_step_(i-1,1)+capturePoint_offset_(1);
-              }
-              else
-              {
-                capturePoint_ox(i+1) = foot_step_(i-1,0);
-                capturePoint_oy(i+1) = foot_step_(i-1,1)-capturePoint_offset_(1);
-              }
-            }
-          }
-          else
-          {
-            if(i == 0)
-            {
-              capturePoint_ox(1) = 0.0;
-              capturePoint_oy(1) = -1*foot_step_(0,1)-capturePoint_offset_(1);
-            }
-            else
-            {
-              if(i % 2 == 0)
-              {
-                capturePoint_ox(i+1) = foot_step_(i-1,0);
-                capturePoint_oy(i+1) = foot_step_(i-1,1)-capturePoint_offset_(1);
-              }
-              else
-              {
-                capturePoint_ox(i+1) = foot_step_(i-1,0);
-                capturePoint_oy(i+1) = foot_step_(i-1,1)+capturePoint_offset_(1);
-              }
-            }
-           }
-         }
-
-        capturePoint_ox(0) = com_support_init_(0);
-        capturePoint_oy(0) = com_float_init_(1);
-        capturePoint_ox(total_step_num_+2) = foot_step_(total_step_num_-1,0);
-        capturePoint_oy(total_step_num_+2) = 0.0;
-
-        for(int i = 1; i<total_step_num_+2; i++)
-        {
-          zmp_dx(i) = capturePoint_ox(i+1)/(1-b)-(b*capturePoint_ox(i))/(1-b);
-          zmp_dy(i) = capturePoint_oy(i+1)/(1-b)-(b*capturePoint_oy(i))/(1-b);
-        }
-          zmp_dx(0) = capturePoint_ox(1)/(1-b_init)-(b*capturePoint_ox(0))/(1-b_init);
-          zmp_dy(0) = capturePoint_oy(1)/(1-b_init)-(b*capturePoint_oy(0))/(1-b_init);
-
-      if(walking_tick_==0)
-      {
-      for(int i=0; i<(t_total_*(total_step_num_+1)+t_temp_+1); i++)
-      {
-        int current_step, capturePointChange;
-        double tick;
-        if(i<t_temp_+t_total_+t_rest_init_+t_double1_-1)
-        {
-          current_step=i/(t_temp_+t_total_);
-          tick = i/(hz_);
-          capturePointChange = i/(t_temp_+t_rest_init_+t_double1_-1);
-
-          if(capturePointChange == 1)
-          {
-            tick = (i-(t_temp_+t_rest_init_+t_double1_-1))/(hz_);
-          }
-
-        }
-        else
-        {
-          current_step = (i-t_temp_-t_total_)/(t_total_)+1;
-          capturePointChange = (i-t_temp_-t_rest_init_-t_double1_+1)/(t_total_)+1;
-          tick = i/(hz_)-t_total_*(capturePointChange-1)/hz_-(t_temp_+t_rest_init_+t_double1_-1)/hz_;
-        }
-
-        //ZMP trajectory from CP
-         if(current_step == 0)
+         for(int i = 0; i<total_step_num_+1; i++)
          {
-           if(i<1.5*hz_)
+           if(foot_step_(0,6)==0) //right support
            {
-             zmp_refx(i) = com_support_init_(0);
-             zmp_refy(i) = com_float_init_(1);
-           }
-           else if(1.5*hz_ <= i && i <= t_temp_+t_rest_init_)
-           {
-             zmp_refx(i) = com_support_init_(0)+(zmp_dx(0)-com_support_init_(0))*(i+1-1.5*hz_)/(t_temp_+t_rest_init_+1-1.5*hz_);
-             zmp_refy(i) = com_float_init_(1)+(zmp_dy(0)-com_float_init_(1))*(i+1-1.5*hz_)/(t_temp_+t_rest_init_+1-1.5*hz_);
-           }
-           else
-           {
-             kx = zmp_dx(1)-zmp_dx(0);
-             ky = zmp_dy(1)-zmp_dy(0);
-             kx2 = (zmp_dx(2)+zmp_dx(1))/2.0 - zmp_dx(1);
-             ky2 = (zmp_dy(2)+zmp_dy(1))/2.0- zmp_dy(1);
-
-             if(i < t_rest_init_+t_temp_)
+             if(i == 0)
              {
-               zmp_refx(i) = zmp_dx(0);
-               zmp_refy(i) = zmp_dy(0);
-             }
-             else if(i >= t_rest_init_+t_temp_ && i < t_rest_init_+t_double1_+t_temp_)
-             {
-               zmp_refx(i) = kx*(i+1-t_rest_init_-t_temp_)/t_double1_+zmp_dx(0);
-               zmp_refy(i) = ky*(i+1-t_rest_init_-t_temp_ )/t_double1_+zmp_dy(0);
-             }
-             else if(i>= t_rest_init_+t_double1_+t_temp_ && i< (current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)
-             {
-               zmp_refx(i) = zmp_dx(1);
-               zmp_refy(i) = zmp_dy(1);
-             }
-             else if(i >= (current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_ && i<(current_step+1)*t_total_+t_temp_-t_rest_last_)
-             {
-               zmp_refx(i) = zmp_dx(1)+kx2*(i+1-((current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_))/t_double2_;
-               zmp_refy(i) = zmp_dy(1)+ky2*(i+1-((current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_))/t_double2_;
+               capturePoint_ox(1) = 0.0;
+               capturePoint_oy(1) = -1*foot_step_(0,1)+capturePoint_offset_(1);
              }
              else
              {
-               zmp_refx(i) = zmp_refx(i-1);
-               zmp_refy(i) = zmp_refy(i-1);
+               if(i % 2 == 0)
+               {
+                 capturePoint_ox(i+1) = foot_step_(i-1,0);
+                 capturePoint_oy(i+1) = foot_step_(i-1,1)+capturePoint_offset_(1);
+               }
+               else
+               {
+                 capturePoint_ox(i+1) = foot_step_(i-1,0);
+                 capturePoint_oy(i+1) = foot_step_(i-1,1)-capturePoint_offset_(1);
+               }
              }
-           }
-         }
-         else if(current_step != 0 && current_step<total_step_num_)
-         {
-           kx = -(zmp_dx(current_step+1)+zmp_dx(current_step))/2.0 + zmp_dx(current_step+1);
-           ky = -(zmp_dy(current_step+1)+zmp_dy(current_step))/2.0 + zmp_dy(current_step+1);
-           kx2 = (zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0 - zmp_dx(current_step+1);
-           ky2 = (zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0 - zmp_dy(current_step+1);
-
-           if(i < t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_)
-           {
-             zmp_refx(i) = zmp_refx(i-1);
-             zmp_refy(i) = zmp_refy(i-1);
-           }
-           else if(i >= t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_ && i < t_rest_init_+t_double1_+(current_step-1)*t_total_+t_temp_+t_total_)
-           {
-             zmp_refx(i) = (zmp_dx(current_step+1)+zmp_dx(current_step))/2.0+kx*(i+1-t_rest_init_-(current_step-1)*t_total_-t_temp_-t_total_)/t_double1_;
-             zmp_refy(i) = (zmp_dy(current_step+1)+zmp_dy(current_step))/2.0+ky*(i+1-t_rest_init_-(current_step-1)*t_total_-t_temp_-t_total_)/t_double1_;
-           }
-           else if(i>= t_rest_init_+t_double1_+(current_step-1)*t_total_+t_temp_+t_total_ & i< (current_step)*t_total_+t_total_+t_temp_-t_rest_last_-t_double2_)
-           {
-             zmp_refx(i) = zmp_dx(current_step+1);
-             zmp_refy(i) = zmp_dy(current_step+1);
-           }
-           else if(i >= (current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_ && i< (current_step)*t_total_+t_total_+t_temp_-t_rest_last_)
-           {
-             zmp_refx(i) = zmp_dx(current_step+1)+kx2*(i+1-((current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_))/t_double2_;
-             zmp_refy(i) = zmp_dy(current_step+1)+ky2*(i+1-((current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_))/t_double2_;
            }
            else
            {
-             zmp_refx(i) = zmp_refx(i-1);
-             zmp_refy(i) = zmp_refy(i-1);
+             if(i == 0)
+             {
+               capturePoint_ox(1) = 0.0;
+               capturePoint_oy(1) = -1*foot_step_(0,1)-capturePoint_offset_(1);
+             }
+             else
+             {
+               if(i % 2 == 0)
+               {
+                 capturePoint_ox(i+1) = foot_step_(i-1,0);
+                 capturePoint_oy(i+1) = foot_step_(i-1,1)-capturePoint_offset_(1);
+               }
+               else
+               {
+                 capturePoint_ox(i+1) = foot_step_(i-1,0);
+                 capturePoint_oy(i+1) = foot_step_(i-1,1)+capturePoint_offset_(1);
+               }
+             }
+            }
+          }
+
+         capturePoint_ox(0) = com_support_init_(0);
+         capturePoint_oy(0) = com_float_init_(1);
+         capturePoint_ox(total_step_num_+2) = foot_step_(total_step_num_-1,0);
+         capturePoint_oy(total_step_num_+2) = 0.0;
+
+         for(int i = 2; i<total_step_num_+2; i++)
+         {
+           zmp_dx(i) = capturePoint_ox(i+1)/(1-b)-(b*capturePoint_ox(i))/(1-b);
+           zmp_dy(i) = capturePoint_oy(i+1)/(1-b)-(b*capturePoint_oy(i))/(1-b);
+         }
+           zmp_dx(0) = capturePoint_ox(1)/(1-b_init)-(b_init*capturePoint_ox(0))/(1-b_init);
+           zmp_dy(0) = capturePoint_oy(1)/(1-b_init)-(b_init*capturePoint_oy(0))/(1-b_init);
+           zmp_dx(1) = capturePoint_ox(2)/(1-b_init2)-(b_init2*capturePoint_ox(1))/(1-b_init2);
+           zmp_dy(1) = capturePoint_oy(2)/(1-b_init2)-(b_init2*capturePoint_oy(1))/(1-b_init2);
+
+
+       if(walking_tick_==0)
+       {
+       for(int i=0; i<(t_total_*(total_step_num_+1)+t_temp_+1); i++)
+       {
+         int current_step, capturePointChange;
+         double tick, tick_1;
+         if(i<t_temp_+t_total_+t_rest_init_+t_double1_-1)
+         {
+           current_step=i/(t_temp_+t_total_);
+           tick = i/(hz_);
+           capturePointChange = i/(t_temp_+t_rest_init_+t_double1_-1);
+
+           if(capturePointChange == 1)
+           {
+             tick = (i-(t_temp_+t_rest_init_+t_double1_))/(hz_);
            }
          }
          else
          {
-           zmp_refx(i) = zmp_refx(i-1);
-           zmp_refy(i) = zmp_refy(i-1);
+           current_step = (i-t_temp_-t_total_)/(t_total_)+1;
+           capturePointChange = (i-t_temp_-t_rest_init_-t_double1_+1)/(t_total_)+1;
+           tick = i/(hz_)-t_total_*(capturePointChange-1)/hz_-(t_temp_+t_rest_init_+t_double1_-1)/hz_;
          }
 
-        if(!(capturePointChange==total_step_num_+1 && tick>t_total/hz_)) //revise
-        {
-            capturePoint_refx(i) = exp(w*tick)*capturePoint_ox(capturePointChange)+(1-exp(w*tick))*zmp_dx(capturePointChange);
-            capturePoint_refy(i) = exp(w*tick)*capturePoint_oy(capturePointChange)+(1-exp(w*tick))*zmp_dy(capturePointChange);
-        }
-        else
-        {
-          capturePoint_refx(i) = exp(w*t_total/hz_)*capturePoint_ox(capturePointChange)+(1-exp(w*t_total/hz_))*zmp_dx(capturePointChange);
-          capturePoint_refy(i) = exp(w*t_total/hz_)*capturePoint_oy(capturePointChange)+(1-exp(w*t_total/hz_))*zmp_dy(capturePointChange);
-        }
+         //ZMP trajectory from CP
+          if(current_step == 0)
+          {
+            if(i<t_rest_init_+t_temp_)
+            {
+              zmp_refx(i) = com_support_init_(0);
+              zmp_refy(i) = com_float_init_(1);
+            }
+            else
+            {
+              kx = zmp_dx(1)-com_support_init_(0);
+              ky = zmp_dy(1)-com_float_init_(1);
+              kx2 = (zmp_dx(2)+zmp_dx(1))/2.0 - zmp_dx(1);
+              ky2 = (zmp_dy(2)+zmp_dy(1))/2.0- zmp_dy(1);
+             if(i >= t_rest_init_+t_temp_ && i < t_rest_init_+t_double1_+t_temp_)
+              {
+                zmp_refx(i) = kx*(i+1-t_rest_init_-t_temp_)/t_double1_+com_support_init_(0);
+                zmp_refy(i) = ky*(i+1-t_rest_init_-t_temp_ )/t_double1_+com_float_init_(1);
+              }
+              else if(i>= t_rest_init_+t_double1_+t_temp_ && i< (current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)
+              {
+                zmp_refx(i) = zmp_dx(1);
+                zmp_refy(i) = zmp_dy(1);
+              }
+              else if(i >= (current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_ && i<(current_step+1)*t_total_+t_temp_-t_rest_last_)
+              {
+                zmp_refx(i) = zmp_dx(1)+kx2*(i+1-((current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_))/t_double2_;
+                zmp_refy(i) = zmp_dy(1)+ky2*(i+1-((current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_))/t_double2_;
+              }
+              else
+              {
+                zmp_refx(i) = zmp_refx(i-1);
+                zmp_refy(i) = zmp_refy(i-1);
+              }
+            }
+          }
+          else if(current_step != 0 && current_step<total_step_num_)
+          {
+            kx = -(zmp_dx(current_step+1)+zmp_dx(current_step))/2.0 + zmp_dx(current_step+1);
+            ky = -(zmp_dy(current_step+1)+zmp_dy(current_step))/2.0 + zmp_dy(current_step+1);
+            kx2 = (zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0 - zmp_dx(current_step+1);
+            ky2 = (zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0 - zmp_dy(current_step+1);
 
-        if(capturePointChange==0 && i<1.5*hz_)
-        {
-          capturePoint_refx(i) = capturePoint_ox(0);
-          capturePoint_refx(i) = capturePoint_oy(0);
-        }
-        else if(capturePointChange==0 && 1.5*hz_ <= i && i <= t_temp_+t_rest_init_)
-        {
-          tick = (i-1.5*hz_)/hz_;
-          capturePoint_refx(i) = exp(w*tick)*capturePoint_ox(capturePointChange)+(1-exp(w*tick))*capturePoint_ox(0);
-          capturePoint_refy(i) = exp(w*tick)*capturePoint_oy(capturePointChange)+(1-exp(w*tick))*capturePoint_oy(0);
-        }
-        else if(capturePointChange==0 &&  t_rest_init_+t_temp_ <= i && i < t_rest_init_+t_double1_+t_temp_)
-        {
-          tick = (i-t_rest_init_-t_temp_)/hz_;
-          capturePoint_refx(i) = exp(w*tick)*capturePoint_ox(capturePointChange)+(1-exp(w*tick))*zmp_dx(capturePointChange);
-          capturePoint_refy(i) = exp(w*tick)*capturePoint_oy(capturePointChange)+(1-exp(w*tick))*zmp_dy(capturePointChange);
-        }
-        else if(capturePointChange==0 &&  i >= t_rest_init_+t_double1_+t_temp_)
-        {
-          capturePoint_refx(i) = exp(w*tick)*capturePoint_ox(capturePointChange)+(1-exp(w*tick))*zmp_dx(capturePointChange);
-          capturePoint_refy(i) = exp(w*tick)*capturePoint_oy(capturePointChange)+(1-exp(w*tick))*zmp_dy(capturePointChange);
-        }
-       }
-}
-  Eigen::Vector3d xd,yd;
-  Eigen::Vector4d xyd, xyd2;
-  double xi, yi;
-  if(current_step_num_ == 0)
-  {
-    xi = com_support_init_(0);
-    yi = com_float_init_(1);
-  }
-  else
-  {
-    xi = com_float_init_(0);
-    yi = com_float_init_(1);
-  }
+            if(i < t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_)
+            {
+              zmp_refx(i) = zmp_refx(i-1);
+              zmp_refy(i) = zmp_refy(i-1);
+            }
+            else if(i >= t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_ && i < t_rest_init_+t_double1_+(current_step-1)*t_total_+t_temp_+t_total_)
+            {
+              zmp_refx(i) = (zmp_dx(current_step+1)+zmp_dx(current_step))/2.0+kx*(i+1-t_rest_init_-(current_step-1)*t_total_-t_temp_-t_total_)/t_double1_;
+              zmp_refy(i) = (zmp_dy(current_step+1)+zmp_dy(current_step))/2.0+ky*(i+1-t_rest_init_-(current_step-1)*t_total_-t_temp_-t_total_)/t_double1_;
+            }
+            else if(i>= t_rest_init_+t_double1_+(current_step-1)*t_total_+t_temp_+t_total_ & i< (current_step)*t_total_+t_total_+t_temp_-t_rest_last_-t_double2_)
+            {
+              zmp_refx(i) = zmp_dx(current_step+1);
+              zmp_refy(i) = zmp_dy(current_step+1);
+            }
+            else if(i >= (current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_ && i< (current_step)*t_total_+t_total_+t_temp_-t_rest_last_)
+            {
+              zmp_refx(i) = zmp_dx(current_step+1)+kx2*(i+1-((current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_))/t_double2_;
+              zmp_refy(i) = zmp_dy(current_step+1)+ky2*(i+1-((current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_))/t_double2_;
+            }
+            else
+            {
+              zmp_refx(i) = zmp_refx(i-1);
+              zmp_refy(i) = zmp_refy(i-1);
+            }
+          }
+          else
+          {
+            zmp_refx(i) = zmp_refx(i-1);
+            zmp_refy(i) = zmp_refy(i-1);
+          }
 
- previewControl_cap(1.0/hz_, 16*hz_/10, walking_tick_, xi, yi, xs, ys, ux_1_, uy_1_, ux_, uy_, gi_, gp_l_, gx_, a_, b_, c_, xd, yd);
+         if(!(capturePointChange==total_step_num_+1 && tick>t_total/hz_)) //revise
+         {
+             capturePoint_refx(i) = exp(w*tick)*capturePoint_ox(capturePointChange)+(1-exp(w*tick))*zmp_dx(capturePointChange);
+             capturePoint_refy(i) = exp(w*tick)*capturePoint_oy(capturePointChange)+(1-exp(w*tick))*zmp_dy(capturePointChange);
+         }
+         else
+         {
+           capturePoint_refx(i) = exp(w*t_total/hz_)*capturePoint_ox(capturePointChange)+(1-exp(w*t_total/hz_))*zmp_dx(capturePointChange);
+           capturePoint_refy(i) = exp(w*t_total/hz_)*capturePoint_oy(capturePointChange)+(1-exp(w*t_total/hz_))*zmp_dy(capturePointChange);
+         }
 
-  xyd.setZero();
-  xyd(0) = xd(0);
-  xyd(1) = yd(0);
-  xyd(3) = 1;
-  xyd2 = (current_step_support_float_*xyd);
+         if(capturePointChange==0 && i<0.5*hz_)
+         {
+           capturePoint_refx(i) = capturePoint_ox(0);
+           capturePoint_refy(i) = capturePoint_oy(0);
+         }
+         else if(capturePointChange==0 && 0.5*hz_ <= i && i < t_temp_/3+0.5*hz_)
+         {
+           tick_1 = (i-0.5*hz_)/hz_;
+           capturePoint_refx(i) = exp(w*tick_1)*capturePoint_ox(capturePointChange)+(1-exp(w*tick_1))*capturePoint_ox(capturePointChange);
+           capturePoint_refy(i) = exp(w*tick_1)*capturePoint_oy(capturePointChange)+(1-exp(w*tick_1))*capturePoint_oy(capturePointChange);
+         }
+         else if(capturePointChange==0 &&  t_temp_/3+0.5*hz_ <= i && i < t_rest_init_+t_temp_)
+         {
+           capturePoint_refx(i) = capturePoint_ox(0);
+           capturePoint_refy(i) = capturePoint_oy(0);
+         }
+         else if(capturePointChange==0 &&  i >= t_rest_init_+t_temp_)
+         {
+           tick_1 = (i-t_rest_init_-t_temp_)/hz_;
 
-  xd_(0) = xyd2(0);
-  yd_(0) = xyd2(1);
-  for(int i=1; i<3; i++)
-  {
-     xd_(i) = xd(i);
-     yd_(i) = yd(i);
-  }
-  xs = xd;
-  ys = yd;
-  file[14]<<capturePoint_refx(walking_tick_)<<"\t"<<zmp_refx(walking_tick_)<<"\t"<<xyd2(1)<<"\t"<<yd(0)<<"\t"<<current_step_float_support_(1,3)<<"\t"<< current_step_support_float_(1,3)<<endl;
+           capturePoint_refx(i) = exp(w*tick_1)*capturePoint_ox(capturePointChange)+(1-exp(w*tick_1))*zmp_dx(capturePointChange);
+           capturePoint_refy(i) = exp(w*tick_1)*capturePoint_oy(capturePointChange)+(1-exp(w*tick_1))*zmp_dy(capturePointChange);
+         }
+         file[14]<<capturePoint_refx(i)<<"\t"<<zmp_refx(i)<<"\t"<<capturePoint_ox(capturePointChange)<<"\t"<<zmp_dx(i)<<"\t"<<tick<<endl;//zmp_dx(walking_tick_)<<"\t"<<xd(0)<<"\t"<<capturePoint_ox(walking_tick_)<<"\t"<< current_step_support_float_(1,3)<<endl;
+        }
+ }
+   Eigen::Vector3d xd,yd;
+   Eigen::Vector4d xyd, xyd2;
+   double xi, yi;
+   if(current_step_num_ == 0)
+   {
+     xi = com_support_init_(0);
+     yi = com_float_init_(1);
+   }
+   else
+   {
+     xi = com_float_init_(0);
+     yi = com_float_init_(1);
+   }
 
-}
+  previewControl_cap(1.0/hz_, 16*hz_/10, walking_tick_, xi, yi, xs, ys, ux_1_, uy_1_, ux_, uy_, gi_, gp_l_, gx_, a_, b_, c_, xd, yd);
+
+   xyd.setZero();
+   xyd(0) = xd(0);
+   xyd(1) = yd(0);
+   xyd(3) = 1;
+   xyd2 = (current_step_support_float_*xyd);
+
+   xd_(0) = xyd2(0);
+   yd_(0) = xyd2(1);
+   for(int i=1; i<3; i++)
+   {
+      xd_(i) = xd(i);
+      yd_(i) = yd(i);
+   }
+   xs = xd;
+   ys = yd;
+ }
 
 void WalkingController::previewControl_cap(
     double dt, int NL, int tick, double x_i, double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
