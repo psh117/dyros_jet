@@ -197,6 +197,8 @@ public:
     Eigen::VectorXd com_dot_refy;
     Eigen::Vector2d com_initx;
     Eigen::Vector2d com_inity;
+    Eigen::VectorXd com_pattern_refx;
+    Eigen::VectorXd com_pattern_refy;
 
 
 private:
