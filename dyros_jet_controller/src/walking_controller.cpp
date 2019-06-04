@@ -1,4 +1,5 @@
 #include "dyros_jet_controller/dyros_jet_model.h"
+#include "dyros_jet_controller/dyros_jet_model.h"
 #include "dyros_jet_controller/walking_controller.h"
 #include "cvxgen_6_8_0/cvxgen/solver.h"
 
@@ -1165,7 +1166,7 @@ void WalkingController::floatToSupportFootstep()
 }
 
 void WalkingController::updateInitialState()
-{  
+{
   if( walking_tick_ ==0)
   {
     thread_tick_ = 0;
@@ -1302,7 +1303,7 @@ void WalkingController::updateNextStepTime()
       t_last_ = t_start_ + t_total_ -1;
 
       current_step_num_ ++;
-    }    
+    }
   }
   if(current_step_num_ == total_step_num_-1 && walking_tick_ >= t_last_ + t_total_)
   {
@@ -1842,7 +1843,7 @@ void WalkingController::getFootTrajectory()
       {
         rfoot_trajectory_support_.translation()(2) = DyrosMath::cubic(walking_tick_,t_start_real_+t_double1_+(t_total_-t_rest_init_-t_rest_last_-t_double1_-t_double2_-t_imp_)/2.0,t_start_+t_total_-t_rest_last_-t_double2_-t_imp_-t_rest_temp,foot_height_,target_swing_foot(2),0.0,0.0);
         rfoot_trajectory_dot_support_(2) = DyrosMath::cubicDot(walking_tick_,t_start_real_+t_double1_+(t_total_-t_rest_init_-t_rest_last_-t_double1_-t_double2_-t_imp_)/2.0,t_start_+t_total_-t_rest_last_-t_double2_-t_imp_-t_rest_temp,foot_height_,target_swing_foot(2),0.0,0.0,hz_);
-        
+
         rfoot_trajectory_euler_support_(1) = DyrosMath::cubic(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-t_rest_temp,t_start_+t_total_-t_rest_last_,ankle_temp,0.0,0.0,0.0);
         rfoot_trajectory_dot_support_(4) = DyrosMath::cubicDot(walking_tick_,t_start_+t_total_-t_rest_last_-t_double2_-t_rest_temp,t_start_+t_total_-t_rest_last_,ankle_temp,0.0,0.0,0.0,hz_);
       } // the period for putting the right foot
@@ -3252,7 +3253,7 @@ void WalkingController::discreteRiccatiEquationInitialize(Eigen::MatrixXd a, Eig
 
 {
   int n=a.rows(); //number of rows
-  int	m=b.cols(); //number of columns
+  int    m=b.cols(); //number of columns
 
   Z11.resize(n, n);
   Z12.resize(n, n);
@@ -3292,7 +3293,7 @@ Eigen::MatrixXd WalkingController::discreteRiccatiEquationLQR(Eigen::MatrixXd A,
 {
   int n=A.rows(); //number of rows
   int n2 = n * 2;
-  int	m=B.cols(); //number of columns
+  int    m=B.cols(); //number of columns
 
   for (int i = 0; i<2 * n; i++) //\B0\AA\C0\C7 \C3ʱ\E2ȭ
   {
@@ -3347,10 +3348,10 @@ Eigen::MatrixXd WalkingController::discreteRiccatiEquationLQR(Eigen::MatrixXd A,
   Eigen::MatrixXd Z_evr = Z; // \C0ӽ\C3 \C0\FA\C0\E5, rmath\C0\C7 evr\C0\BB \C7ϸ\E9 \BF\F8\BA\BB Z matrix\B0\A1 \BA\AF\C7\FC\B5\CA
 
   /////////////////////////
-  Eigen::EigenSolver<Eigen::MatrixXd> es(Z_evr);	//8ms
+  Eigen::EigenSolver<Eigen::MatrixXd> es(Z_evr);    //8ms
 
 
-  Z_eig = Z.eigenvalues();	//5ms
+  Z_eig = Z.eigenvalues();    //5ms
   es_eig = es.eigenvectors();
 
   deigVal_real = Z_eig.real();
@@ -3418,7 +3419,7 @@ Eigen::MatrixXd WalkingController::discreteRiccatiEquationLQR(Eigen::MatrixXd A,
 Eigen::MatrixXd WalkingController::discreteRiccatiEquationPrev(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd r, Eigen::MatrixXd q)
 {
   int n=a.rows(); //number of rows
-  int	m=b.cols(); //number of columns
+  int    m=b.cols(); //number of columns
 
   Eigen::MatrixXd z11(n, n), z12(n, n), z21(n, n), z22(n, n);
 
@@ -3661,10 +3662,34 @@ void WalkingController::getCapturePointTrajectory()
           {
             if(i<t_rest_init_+t_temp_)
             {
+              Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+              Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+
               zmp_refx(i) = com_support_init_(0);
               zmp_refy(i) = com_float_init_(1);
-              com_pattern_refx(i)=zmp_refx(i);
-              com_pattern_refy(i)=zmp_refy(i);
+              if(i<t_rest_init_+t_temp_-com_time*2)
+              {
+                com_pattern_refx(i) = com_support_init_(0);
+                com_pattern_refy(i) = com_float_init_(1);
+                if(i>t_rest_init_+t_temp_-100)
+                {
+                  com_pattern_refx(i) =DyrosMath::cubic(i,t_rest_init_+t_temp_-100,(t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2,com_support_init_(0),(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)),0,(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*w/hz_*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*w/hz_*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)));
+                  com_pattern_refy(i)=DyrosMath::cubic(i,t_rest_init_+t_temp_-100,t_rest_init_+t_temp_+com_time,com_float_init_(1),(-abs(zmp_dy(1))+Ky)*cosh(w*(t_temp_+t_rest_init_+com_time-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(t_temp_+t_rest_init_+com_time-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1)),0,Ky/com_time);
+                }
+              }
+              else if(i<=t_rest_init_+t_temp_-com_time/2-1)
+              {
+                Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+                com_pattern_refx(i) =DyrosMath::cubic(i,t_rest_init_+t_temp_-100,(t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2,com_support_init_(0),(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)),0,(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*w/hz_*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*w/hz_*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)));
+                com_pattern_refy(i)=DyrosMath::cubic(i,t_rest_init_+t_temp_-100,t_rest_init_+t_temp_+com_time,com_float_init_(1),(-abs(zmp_dy(1))+Ky)*cosh(w*(t_temp_+t_rest_init_+com_time-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(t_temp_+t_rest_init_+com_time-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1)),0,Ky/com_time);
+              }
+              else
+              {
+                com_pattern_refx(i) =DyrosMath::cubic(i,t_rest_init_+t_temp_-100,(t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2,com_support_init_(0),(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)),0,(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*w/hz_*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*w/hz_*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)));
+
+                com_pattern_refy(i)=DyrosMath::cubic(i,t_rest_init_+t_temp_-100,t_rest_init_+t_temp_+com_time,com_float_init_(1),(-abs(zmp_dy(1))+Ky)*cosh(w*(t_temp_+t_rest_init_+com_time-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(t_temp_+t_rest_init_+com_time-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1)),0,Ky/com_time);
+
+              }
             }
             else
             {
@@ -3672,64 +3697,84 @@ void WalkingController::getCapturePointTrajectory()
               ky = zmp_dy(1)-com_float_init_(1);
               kx2 = (zmp_dx(2)+zmp_dx(1))/2.0 - zmp_dx(1);
               ky2 = (zmp_dy(2)+zmp_dy(1))/2.0- zmp_dy(1);
-              Kx= abs(com_support_init_(0));
-              Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(220/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(220/2-com_time)/hz_));
-             if(i >= t_rest_init_+t_temp_ && i < t_rest_init_+t_double1_+t_temp_)
+              Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+             if(i < t_rest_init_+t_double1_+t_temp_)
               {
                 zmp_refx(i) = kx*(i+1-t_rest_init_-t_temp_)/t_double1_+com_support_init_(0);
                 zmp_refy(i) = ky*(i+1-t_rest_init_-t_temp_ )/t_double1_+com_float_init_(1);
-                if(i<t_rest_init_+t_temp_+com_time)
-                {
-                  com_pattern_refy(i)=Ky*(i-t_rest_init_-t_temp_+1)/com_time+zmp_refy(t_rest_init_+t_temp_-1);
+                if(i<t_temp_+t_rest_init_+com_time)
+                { ///////
+                  Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(290/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+                  com_pattern_refy(i)=DyrosMath::cubic(i,t_rest_init_+t_temp_-100,t_rest_init_+t_temp_+com_time,com_float_init_(1),(-abs(zmp_dy(1))+Ky)*cosh(w*(t_temp_+t_rest_init_+com_time-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(t_temp_+t_rest_init_+com_time-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1)),0,Ky/com_time);
+
                 }
                 else
                 {
-                 com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-(com_time+t_rest_init_+t_temp_-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-(com_time+t_rest_init_+t_temp_-1))/hz_))+abs(zmp_dy(1));
+                 com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1));
                 }
-                com_pattern_refx(i)=zmp_refx(i);
+                com_pattern_refx(i) =DyrosMath::cubic(i,t_rest_init_+t_temp_-100,(t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2,com_support_init_(0),(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)),0,(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*w/hz_*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*w/hz_*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)));
               }
               else if(i>= t_rest_init_+t_double1_+t_temp_ && i< (current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)
               {
-               Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(220/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(220/2-com_time)/hz_));
+               Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
 
-               Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(220/2-com_time)/hz_));
+               Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
                 zmp_refx(i) = zmp_dx(1);
                 zmp_refy(i) = zmp_dy(1);
                if(i<(t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2)
                {
-                 com_pattern_refx(i)=zmp_dx(1);
-                 com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-(com_time+t_rest_init_+t_temp_-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-(com_time+t_rest_init_+t_temp_-1))/hz_))+abs(zmp_dy(1));
+                 if(current_step_num_==1)
+                 {
+                   Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+                 }
+                 com_pattern_refx(i) =DyrosMath::cubic(i,t_rest_init_+t_temp_-100,(t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2,com_support_init_(0),(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)),0,(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*w/hz_*sinh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*w/hz_*cosh(w*((t_rest_init_+t_double1_+t_temp_+(current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_)/2-(com_time+t_temp_-1))/hz_)));
+                 com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1));
                }
                else
                {
-                  com_pattern_refx(i)=(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*(i-(com_time+t_temp_+t_rest_init_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-(com_time+t_temp_+t_rest_init_-1))/hz_));
-                 com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-(com_time+t_rest_init_+t_temp_-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-(com_time+t_rest_init_+t_temp_-1))/hz_))+abs(zmp_dy(1));
+                 com_pattern_refx(i)=(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*(i-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-(com_time+t_temp_-1))/hz_));
+                 com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1));
                }
              }
               else if(i >= (current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_ && i<(current_step+1)*t_total_+t_temp_-t_rest_last_)
               {
                 zmp_refx(i) = zmp_dx(1)+kx2*(i+1-((current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_))/t_double2_;
                 zmp_refy(i) = zmp_dy(1)+ky2*(i+1-((current_step+1)*t_total_+t_temp_-t_rest_last_-t_double2_))/t_double2_;
-                Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(220/2-com_time)/hz_));
-                if(i<(current_step+1)*t_total_+t_temp_-t_rest_last_-com_time)
+                Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+                if(i<(current_step+1)*t_total_+t_temp_-com_time)
                 {
-                  Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(220/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(220/2-com_time)/hz_));
-                  com_pattern_refx(i)=(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*(i-(com_time+t_temp_+t_rest_init_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-(com_time+t_temp_+t_rest_init_-1))/hz_));
-                  com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-(com_time+t_rest_init_+t_temp_-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-(com_time+t_rest_init_+t_temp_-1))/hz_))+abs(zmp_dy(1));
+                  Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+                  com_pattern_refx(i)=(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*(i-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-(com_time+t_temp_-1))/hz_));
+                  com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1));
                 }
                 else
                 {
-                  Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(220/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(220/2-com_time)/hz_));
-                  com_pattern_refx(i)=Kx*(i-((current_step+1)*t_total_+t_temp_-t_rest_last_-1))/com_time+(zmp_dx(2)+zmp_dx(1))/2.0;
-                  com_pattern_refy(i)=-Ky*(i-((current_step+1)*t_total_+t_temp_-t_rest_last_-1))/com_time+(zmp_dy(2)+zmp_dy(1))/2.0 ;
+                  Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+                  Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+                  com_pattern_refx(i)=Kx*(i-((current_step+1)*t_total_+t_temp_-1))/com_time+(zmp_dx(2)+zmp_dx(1))/2.0;
+                  com_pattern_refy(i)=-Ky*(i-((current_step+1)*t_total_+t_temp_-1))/com_time+(zmp_dy(2)+zmp_dy(1))/2.0 ;
                 }
               }
               else
               {
+               Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
                 zmp_refx(i) = zmp_refx(i-1);
                 zmp_refy(i) = zmp_refy(i-1);
-                com_pattern_refx(i)=zmp_refx(i);
-                com_pattern_refy(i)=zmp_refy(i);
+                if(i<(current_step+1)*t_total_+t_temp_-com_time)
+                {
+                  Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+                  com_pattern_refx(i)=(-(zmp_dx(2)+zmp_dx(1))/2+Kx)*cosh(w*(i-(com_time+t_temp_-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-(com_time+t_temp_-1))/hz_));
+                  com_pattern_refy(i)=(-abs(zmp_dy(1))+Ky)*cosh(w*(i-((com_time+t_temp_-1)))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-((com_time+t_temp_-1)))/hz_))+abs(zmp_dy(1));
+                }
+                else
+                {
+                  Kx=(zmp_dx(2)+zmp_dx(1))/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+                  Ky= abs(zmp_dy(1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+                  com_pattern_refx(i)=Kx*(i-((current_step+1)*t_total_+t_temp_-1))/com_time+(zmp_dx(2)+zmp_dx(1))/2.0;
+                  com_pattern_refy(i)=-Ky*(i-((current_step+1)*t_total_+t_temp_-1))/com_time+(zmp_dy(2)+zmp_dy(1))/2.0 ;
+                }
+//                com_pattern_refx(i)=Kx*(i-((current_step+1)*t_total_+t_temp_-1))/com_time+(zmp_dx(2)+zmp_dx(1))/2.0;
+ //               com_pattern_refy(i)=-Ky*(i-((current_step+1)*t_total_+t_temp_-1))/com_time+(zmp_dy(2)+zmp_dy(1))/2.0 ;
               }
             }
           }
@@ -3747,14 +3792,42 @@ void WalkingController::getCapturePointTrajectory()
               kx2 = (zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0 - zmp_dx(current_step+1);
               ky2 = (zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0 - zmp_dy(current_step+1);
             }
-            Kx= abs(zmp_dx(current_step+1)-com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1))*com_time/hz_*w/(com_time/hz_*w+tanh(w*(220/2-com_time)/hz_));
-            Ky= abs(zmp_dy(current_step+1))*com_time/hz_*w*tanh(w*(220/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(220/2-com_time)/hz_));
-            if(i < t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_)
-            {
+            if(current_step >= total_step_num_-3)
+            {///////////////////////////////
+              Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+            }
+            Kx= abs(zmp_dx(current_step+1)-zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1))*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+            Ky= abs(zmp_dy(current_step+1))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+              if(i < t_rest_init_+(current_step)*t_total_+t_temp_)
+              {
               zmp_refx(i) = zmp_refx(i-1);
               zmp_refy(i) = zmp_refy(i-1);
-              com_pattern_refx(i)=zmp_refx(i);
-              com_pattern_refy(i)=zmp_refy(i);
+              if(i<(current_step)*t_total_+t_temp_+com_time)
+              {
+                if(foot_step_(current_step,6)==1)
+                {
+                  com_pattern_refx(i)=Kx*(i-((current_step-1)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step)+zmp_dx(current_step+1))/2.0;
+                  com_pattern_refy(i)=Ky*(i-((current_step-1)*t_total_+t_total_+t_temp_-1))/com_time;
+                }
+                else
+                {
+                  com_pattern_refx(i)=Kx*(i-((current_step-1)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step)+zmp_dx(current_step+1))/2.0;
+                  com_pattern_refy(i)=(-Ky*(i-((current_step-1)*t_total_+t_total_+t_temp_-1))/com_time);
+                }
+              }
+              else
+              {
+                if(foot_step_(current_step,6)==1)
+                {
+                  com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                  com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
+                }
+                else
+                {
+                  com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                  com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
+                }
+              }
             }
             else if(i >= t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_ && i < t_rest_init_+t_double1_+(current_step-1)*t_total_+t_temp_+t_total_)
             {
@@ -3762,34 +3835,19 @@ void WalkingController::getCapturePointTrajectory()
               zmp_refy(i) = (zmp_dy(current_step+1)+zmp_dy(current_step))/2.0+ky*(i+1-t_rest_init_-(current_step-1)*t_total_-t_temp_-t_total_)/t_double1_;
               if(current_step >= total_step_num_-3)
               {///////////////////////////////
-                Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(220/2-com_time)/hz_));
+                Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
               }
-              if(i< t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time)
+              if(foot_step_(current_step,6)==1)
               {
-                if(foot_step_(current_step,6)==1)
-                {
-                  com_pattern_refx(i)=Kx*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_))/com_time+zmp_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1);
-                  com_pattern_refy(i)=Ky*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_))/com_time+zmp_refy(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1);
-                }
-                else
-                {
-                  com_pattern_refx(i)=Kx*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_))/com_time+zmp_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1);
-                  com_pattern_refy(i)=-Ky*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_))/com_time+zmp_refy(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1);
-                }
+                com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
               }
               else
               {
-                if(foot_step_(current_step,6)==1)
-                {
-                  com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
-                  com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
-                }
-                else
-                {
-                  com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
-                  com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
-                 }
-               }
+                com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
+              }
+             //  }
             }
             else if(i>= t_rest_init_+t_double1_+(current_step-1)*t_total_+t_temp_+t_total_ & i< (current_step)*t_total_+t_total_+t_temp_-t_rest_last_-t_double2_)
             {
@@ -3797,29 +3855,29 @@ void WalkingController::getCapturePointTrajectory()
               zmp_refy(i) = zmp_dy(current_step+1);
               if(current_step >= total_step_num_-3)
               {///////////////////////////////
-                Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(220/2-com_time)/hz_));
+                Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
                 if(foot_step_(current_step,6)==1)
                 {
-                   com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1);
-                   com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
+                   com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1);
+                   com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
                 }
                 else
                 {
-                   com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1);
-                   com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
+                   com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1);
+                   com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
                 }
               }
               else
               {
                 if(foot_step_(current_step,6)==1)
                 {
-                   com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
-                   com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
+                   com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                   com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
                 }
                 else
                 {
-                  com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
-                  com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
+                  com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                  com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
                 }
               }
             }
@@ -3827,20 +3885,20 @@ void WalkingController::getCapturePointTrajectory()
             {
               zmp_refx(i) = zmp_dx(current_step+1)+kx2*(i+1-((current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_))/t_double2_;
               zmp_refy(i) = zmp_dy(current_step+1)+ky2*(i+1-((current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_))/t_double2_;
-              if(i> (current_step)*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_+com_time)
+              if(i> (current_step)*t_total_+t_temp_+t_total_-com_time)
               {
                 if(current_step == total_step_num_-1)
                 {
-                  Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(220/2-com_time)/hz_));
+                  Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
 
                   if(foot_step_(current_step,6)==1)
                   {
-                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-t_rest_last_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
+                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
                     com_pattern_refy(i)=-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-t_rest_last_-1))/com_time;
                   }
                   else
                   {
-                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-t_rest_last_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
+                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
                     com_pattern_refy(i)=-(-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-t_rest_last_-1))/com_time);
                   }
                 }
@@ -3848,16 +3906,16 @@ void WalkingController::getCapturePointTrajectory()
                 {
                   if(current_step == total_step_num_-3)
                   {///////////////////////////////
-                    Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(220/2-com_time)/hz_));
+                    Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
                   }
                   if(foot_step_(current_step,6)==1)
                   {
-                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-t_rest_last_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
+                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
                     com_pattern_refy(i)=-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-t_rest_last_-1))/com_time+ (zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0;
                   }
                   else
                   {
-                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-t_rest_last_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
+                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
                     com_pattern_refy(i)=-(-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-t_rest_last_-1))/com_time+ (zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0);
                   }
                 }
@@ -3866,29 +3924,29 @@ void WalkingController::getCapturePointTrajectory()
               {
                 if(current_step >= total_step_num_-3)
                 {///////////////////////////////
-                  Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(220/2-com_time)/hz_));
+                  Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
                   if(foot_step_(current_step,6)==1)
                   {
-                     com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1);
-                     com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
+                     com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1);
+                     com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
                   }
                   else
                   {
-                     com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1);
-                     com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
+                     com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1);
+                     com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
                   }
                 }
                 else
                 {
                   if(foot_step_(current_step,6)==1)
                   {
-                     com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
-                     com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
+                     com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                     com_pattern_refy(i)=(-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1));
                   }
                   else
                   {
-                    com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+com_pattern_refx(t_rest_init_+(current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
-                    com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( t_rest_init_+(current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
+                    com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                    com_pattern_refy(i)=-((-abs(zmp_dy(current_step+1))+Ky)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Ky/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dy(current_step+1)));
                   }
                 }
               }
@@ -3897,16 +3955,92 @@ void WalkingController::getCapturePointTrajectory()
             {
               zmp_refx(i) = zmp_refx(i-1);
               zmp_refy(i) = zmp_refy(i-1);
-              com_pattern_refx(i)=zmp_refx(i);
-              com_pattern_refy(i)=zmp_refy(i);
+              if(i> (current_step)*t_total_+t_temp_+t_total_-com_time)
+              {
+                if(current_step == total_step_num_-1)
+                {
+                  Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+
+                  if(foot_step_(current_step,6)==1)
+                  {
+                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
+                    com_pattern_refy(i)=-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time;
+                  }
+                  else
+                  {
+                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
+                    com_pattern_refy(i)=-(-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time);
+                  }
+                }
+                else
+                {
+                  if(current_step == total_step_num_-3)
+                  {///////////////////////////////
+                    Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+                  }
+                  if(foot_step_(current_step,6)==1)
+                  {
+                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
+                    com_pattern_refy(i)=-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0;
+                  }
+                  else
+                  {
+                    com_pattern_refx(i)=Kx*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dx(current_step+1)+zmp_dx(current_step+2))/2.0;
+                    com_pattern_refy(i)=-(-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+ (zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0);
+                  }
+                }
+              }
+              else
+              {
+                if(current_step >= total_step_num_-3)
+                {///////////////////////////////
+                  Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+                  if(foot_step_(current_step,6)==1)
+                  {
+                     com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1);
+                     com_pattern_refy(i)=-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time;
+                  }
+                  else
+                  {
+                     com_pattern_refx(i)=(-((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1);
+                     com_pattern_refy(i)=-(-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time);
+                  }
+                }
+                else
+                {
+                  if(foot_step_(current_step,6)==1)
+                  {
+                     com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                     com_pattern_refy(i)=-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+(zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0;
+                  }
+                  else
+                  {
+                    com_pattern_refx(i)=(-abs(zmp_dx(current_step+1))+zmp_refx((current_step-1)*t_total_+t_total_+t_temp_-1)+Kx)*cosh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_)+(Kx/(com_time/hz_*w)*sinh(w*(i-( (current_step-1)*t_total_+t_temp_+t_total_+com_time-1))/hz_))+abs(zmp_dx(current_step+1));
+                    com_pattern_refy(i)=-(-Ky*(i-((current_step)*t_total_+t_total_+t_temp_-1))/com_time+ (zmp_dy(current_step+1)+zmp_dy(current_step+2))/2.0);
+                  }
+                }
+              }
             }
           }
           else
           {
             zmp_refx(i) = zmp_refx(i-1);
             zmp_refy(i) = zmp_refy(i-1);
-            com_pattern_refx(i)=zmp_refx(i);
-            com_pattern_refy(i)=zmp_refy(i);
+            com_pattern_refx(i) = zmp_refx(i);
+            com_pattern_refy(i) = zmp_refy(i);
+          }
+
+          if(current_step == total_step_num_-1 && i>=(total_step_num_-1)*t_total_+t_temp_+t_rest_init_&& i<=(total_step_num_-1)*t_total_+t_total_+t_temp_+2)
+          {
+            Kx=((-zmp_dx(current_step)+(zmp_dx(current_step+1)))/2+(-zmp_dx(current_step+1)+(zmp_dx(current_step+2)))/2)/2*com_time/hz_*w/(com_time/hz_*w+tanh(w*(240/2-com_time)/hz_));
+
+            com_pattern_refx(i) = DyrosMath::cubic(i,(total_step_num_-1)*t_total_+t_temp_+t_rest_init_,(total_step_num_-1)*t_total_+t_total_+t_temp_+2,com_pattern_refx((total_step_num_-1)*t_total_+t_temp_+t_rest_init_-1),zmp_dx(total_step_num_),Kx/com_time,0);
+          }
+          if(i>=(total_step_num_-1 )*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_&& i<=(total_step_num_-1)*t_total_+t_total_+t_temp_+50)
+          {
+            Ky= abs(zmp_dy(total_step_num_))*com_time/hz_*w*tanh(w*(240/2-com_time)/hz_)/(1+com_time/hz_*w*tanh(w*(240/2-com_time)/hz_));
+
+            com_pattern_refy(i) = DyrosMath::cubic(i,(total_step_num_-1 )*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_,(total_step_num_-1)*t_total_+t_total_+t_temp_+50,com_pattern_refy((total_step_num_-1 )*t_total_+t_temp_+t_total_-t_rest_last_-t_double2_),0,Ky/com_time,0);
           }
 
          if(!(capturePointChange==total_step_num_+1 && tick>t_total/hz_)) //revise
@@ -3953,7 +4087,7 @@ void WalkingController::getCapturePointTrajectory()
            com_refx(i) = com_support_init_(0);
            com_refy(i) = com_float_init_(1);
          }
-         file[14]<<zmp_refx(i)<<"\t"<<zmp_refy(i)<<"\t"<<com_pattern_refx(i)<<"\t"<<com_pattern_refy(i)<<"\t"<<Kx<<endl;
+         file[14]<<com_pattern_refx(i)<<"\t"<<com_pattern_refy(i)<<"\t" <<zmp_refx(i)<<"\t"<<zmp_refy(i)<<"\t"<<com_refy(i)<<endl;
         }
        }
    Eigen::Vector3d xd,yd;
@@ -3972,49 +4106,62 @@ void WalkingController::getCapturePointTrajectory()
    }
 
    //// Preview Control ////
-   previewControl_cap(1.0/hz_, 16*hz_/10, walking_tick_, xi, yi, xs, ys, ux_1_, uy_1_, ux_, uy_, gi_, gp_l_, gx_, a_, b_, c_, xd, yd);
+ previewControl_cap(1.0/hz_, 16*hz_/10, walking_tick_, xi, yi, xs, ys, ux_1_, uy_1_, ux_, uy_, gi_, gp_l_, gx_, a_, b_, c_, xd, yd);
+/*if(walking_tick_<=756)
+{
+  xyd.setZero();
+  xyd(0) = xd(0);
+  xyd(1) = com_pattern_refy(walking_tick_);;
+  xyd(3) = 1;
+  xyd2 = (current_step_support_float_*xyd);
 
-   xyd.setZero();
-   xyd(0) = xd(0);
-   xyd(1) = yd(0);
-   xyd(3) = 1;
-   xyd2 = (current_step_support_float_*xyd);
+  xd_(0) = xyd2(0);
+  yd_(0) = xyd2(1);
+  for(int i=1; i<3; i++)
+  {
+     xd_(i) = xd(i);
+  //   yd_(i) = yd(i);
+  }
 
-   xd_(0) = xyd2(0);
-   yd_(0) = xyd2(1);
-   for(int i=1; i<3; i++)
-   {
-      xd_(i) = xd(i);
-      yd_(i) = yd(i);
-   }
-   xs = xd;
-   ys = yd;
-/*
-   ///CapturePoint to COM///
-   xyd.setZero();
-   xyd(0) = com_refx(walking_tick_);
-   xyd(1) = com_refy(walking_tick_);
-   xyd(3) = 1;
-   xyd2 = (current_step_support_float_*xyd);
+  yd_(1)=(com_pattern_refy(walking_tick_)-com_pattern_refy(walking_tick_-1))*hz_;
+  xs = xd;
+  ys = yd;
+}
+else
+{*/
+  ///CapturePoint to COM///
+  xyd.setZero();
+  xyd(0) = com_pattern_refx(walking_tick_);
+  xyd(1) = com_pattern_refy(walking_tick_);
+  xyd(3) = 1;
+  xyd2 = (current_step_support_float_*xyd);
 
-   xd_(0) = xyd2(0);
-   yd_(0) = xyd2(1);
-   for(int i=1; i<3; i++)
-   {
-      xd_(i) = xd(i);
-      yd_(i) = yd(i);
-   }
-   xs = xd;
-   ys = yd; double cap;
-   if(walking_tick_ == 0)
-   {
-     cap = com_refx(walking_tick_);
-   }
-   else
-   {
-     cap = com_refx(walking_tick_)+(com_refx(walking_tick_)-com_refx(walking_tick_-1))*hz_/w;
-   }*/
-//   file[14]<<capturePoint_refy(walking_tick_)<<"\t"<<yd(0)<<"\t" <<capturePoint_refx(walking_tick_)<<"\t"<<com_refx(walking_tick_)<<endl;
+  xd_(0) = xyd2(0);
+  yd_(0) = xyd2(1);
+  for(int i=1; i<3; i++)
+  {
+     xd_(i) = xd(i);
+     yd_(i) = yd(i);
+  }
+  xs = xd;
+  ys = yd; double cap;
+  if(walking_tick_ == 0)
+  {
+    cap = com_refx(walking_tick_);
+    xd_(1) = 0;
+    yd_(1)= 0;
+  }
+  else
+  {
+    cap = com_refx(walking_tick_)+(com_refx(walking_tick_)-com_refx(walking_tick_-1))*hz_/w;
+    xd_(1)=(com_refx(walking_tick_)-com_refx(walking_tick_-1))*hz_;
+    yd_(1)=(com_pattern_refy(walking_tick_)-com_pattern_refy(walking_tick_-1))*hz_;
+  }
+ //}
+
+
+
+  // file[14]<<com_pattern_refx(walking_tick_)<<"\t"<<com_pattern_refy(walking_tick_)<<"\t" <<xd(0)<<"\t"<<yd(0)<<endl;
  }
 
 void WalkingController::previewControl_cap(

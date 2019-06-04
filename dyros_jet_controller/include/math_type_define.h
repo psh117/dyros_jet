@@ -556,6 +556,7 @@ static void toEulerAngle(double qx, double qy, double qz, double qw, double& rol
   yaw = atan2(siny, cosy);
 
 }
+
 static Eigen::Vector3d QuinticSpline(
                    double time,       ///< Current time
                    double time_0,     ///< Start time
