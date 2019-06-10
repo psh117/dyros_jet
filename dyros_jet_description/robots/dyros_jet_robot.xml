@@ -26,7 +26,7 @@
 
 	</default>
 	
-        <option  timestep='0.0005' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9"/>
+        <option  timestep='0.0006' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9"/>
 	
     <asset>
         <mesh name="base_link" file="base_link.stl" />
