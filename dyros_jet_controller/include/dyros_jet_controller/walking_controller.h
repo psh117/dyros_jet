@@ -170,33 +170,33 @@ public:
 
   //CapturePoint
   void getCapturePointTrajectory();
+  void getCapturePoint_init_ref();
+  void zmptoInitFloat();
   Eigen::VectorXd capturePoint_refx, capturePoint_refy;
   Eigen::VectorXd zmp_refx, zmp_refy;
-  bool capturePoint_debug = false;
-  void previewControl_cap(double dt, int NL, int tick, double x_i, double y_i, Eigen::Vector3d xs, Eigen::Vector3d ys,
-                          double ux_1, double uy_1 , double& ux, double& uy, double gi, Eigen::VectorXd gp_l,
-                          Eigen::Matrix1x3d gx, Eigen::Matrix3d a, Eigen::Vector3d b, Eigen::Matrix1x3d c,
-                          Eigen::Vector3d &xd, Eigen::Vector3d &yd);
-  void zmptoInitFloat();
+  Eigen::VectorXd capturePoint_ox, capturePoint_oy, zmp_dx, zmp_dy;
+  Eigen::Vector3d capturePoint_measured_;
+  double last_time_;
+  int capturePoint_current_num_;
 
   double ux_1, uy_1;
   Eigen::Vector3d xs, ys;
-    int currentstep;
-    bool firsttime = false;
-    Eigen::Vector2d capturePoint_offset_;
-    Eigen::Isometry3d float_support_init;
-    Eigen::Isometry3d current_step_float_support_;
-    Eigen::Isometry3d support_float_init;
-    Eigen::Isometry3d current_step_support_float_;
+  int currentstep;
+  bool firsttime = false;
+  Eigen::Vector2d capturePoint_offset_;
+  Eigen::Isometry3d float_support_init;
+  Eigen::Isometry3d current_step_float_support_;
+  Eigen::Isometry3d support_float_init;
+  Eigen::Isometry3d current_step_support_float_;
 
-    Eigen::Vector6d q_sim_virtual_;
-    Eigen::Vector6d q_sim_dot_virtual_;
-    Eigen::VectorXd com_refx;
-    Eigen::VectorXd com_refy;
-    Eigen::VectorXd com_dot_refx;
-    Eigen::VectorXd com_dot_refy;
-    Eigen::Vector2d com_initx;
-    Eigen::Vector2d com_inity;
+  Eigen::Vector6d q_sim_virtual_;
+  Eigen::Vector6d q_sim_dot_virtual_;
+  Eigen::VectorXd com_refx;
+  Eigen::VectorXd com_refy;
+  Eigen::VectorXd com_dot_refx;
+  Eigen::VectorXd com_dot_refy;
+  Eigen::Vector2d com_initx;
+  Eigen::Vector2d com_inity;
 
 
 private:
