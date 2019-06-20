@@ -25,12 +25,13 @@
 	</default>
 
 	</default>
-	
+
+
         <option  timestep='0.0006' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9"/>
 	
     <asset>
         <mesh name="base_link" file="base_link.stl" />
-        <mesh name="left_shin" file="left_shin.stl" />
+       <mesh name="left_shin" file="left_shin.stl" />
         <mesh name="left_ankle_pitch" file="left_ankle_pitch.stl" />
         <mesh name="hip_yaw" file="hip_yaw.stl" />
         <mesh name="hip_roll" file="hip_roll.stl" />
@@ -124,7 +125,7 @@
                         <joint name="R_HipPitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="20"/>
 						<geom name="R_HipPitch1" type="box" size="0.04 0.06 0.15" pos="0.15 0 -0.22"/>
 						<geom name="R_HipPitch2" type="box" size="0.04 0.06 0.07" pos="0.075 0 -0.14"/>
-                        <geom name="R_HipPitch_Link"class="viz" mesh="hip_pitch" />
+                        <geom name="R_HipPitch_Link" class="viz" mesh="hip_pitch" />
                          <body name="R_KneePitch_Link" pos="0.1515 0 -0.339">
                             <inertial pos="0.05276 0.01856 -0.22635" quat="0.96797 -0.109968 0.0713641 0.214123" mass="2.04524" diaginertia="0.0364097 0.0322608 0.00479686" />
                             <joint name="R_KneePitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping = "170"/>
@@ -241,19 +242,20 @@
         </body>
     </worldbody>
 	<actuator>		
-		<position class="position" ctrllimited="true" ctrlrange="-5 5"  name="L_HipYaw" joint="L_HipYaw" kp = "15000"/>
+                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="
+                L_HipYaw" joint="L_HipYaw" kp = "15000"/>
                 <position class="position" ctrllimited="false"  name="L_HipRoll" joint="L_HipRoll" kp = "15000"/>
-		<position class="position" ctrllimited="true" ctrlrange="-5 5"  name="L_HipPitch" joint="L_HipPitch" kp = "15000"/>
-	        <position class="position" ctrllimited="false"   name="L_KneePitch" joint="L_KneePitch" kp = "15000"/>
-		<position class="position" ctrllimited="true" ctrlrange="-5 5"  name="L_AnklePitch" joint="L_AnklePitch" kp = "8000"/>
-		<position class="position" ctrllimited="true" ctrlrange="-5 5"  name="L_AnkleRoll" joint="L_AnkleRoll" kp = "8000"/>
+                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="L_HipPitch" joint="L_HipPitch" kp = "15000"/>
+                <position class="position" ctrllimited="false"   name="L_KneePitch" joint="L_KneePitch" kp = "15000"/>
+                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="L_AnklePitch" joint="L_AnklePitch" kp = "7000"/>
+                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="L_AnkleRoll" joint="L_AnkleRoll" kp = "7000"/>
 					
-		<position class="position" ctrllimited="true" ctrlrange="-5 5"  name="R_HipYaw" joint="R_HipYaw" kp = "15000"/>
+                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="R_HipYaw" joint="R_HipYaw" kp = "15000"/>
                 <position class="position" ctrllimited="false"   name="R_HipRoll" joint="R_HipRoll" kp = "15000"/>
-		<position class="position" ctrllimited="true" ctrlrange="-5 5"  name="R_HipPitch" joint="R_HipPitch" kp = "15000"/>
-		<position class="position" ctrllimited="false"  name="R_KneePitch" joint="R_KneePitch" kp = "15000"/>
-		<position class="position" ctrllimited="true" ctrlrange="-5 5"  name="R_AnklePitch" joint="R_AnklePitch" kp = "8000"/>
-                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="R_AnkleRoll" joint="R_AnkleRoll" kp = "8000"/>
+                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="R_HipPitch" joint="R_HipPitch" kp = "15000"/>
+                <position class="position" ctrllimited="false"  name="R_KneePitch" joint="R_KneePitch" kp = "15000"/>
+                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="R_AnklePitch" joint="R_AnklePitch" kp = "7000"/>
+                <position class="position" ctrllimited="true" ctrlrange="-5 5"  name="R_AnkleRoll" joint="R_AnkleRoll" kp = "7000"/>
 
                 <position class="position" ctrllimited="true" ctrlrange="-3 3"  name="WaistPitch" joint="WaistPitch" kp = "15000"/>
                 <position class="position" ctrllimited="true" ctrlrange="-3 3"  name="WaistYaw" joint="WaistYaw" kp = "15000"/>

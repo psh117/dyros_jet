@@ -65,6 +65,7 @@ file(GLOB CONTROLLER_SRC
     "src/haptic_controller.cpp"
     "src/joint_controller.cpp"
     "src/moveit_controller.cpp"
+    "src/quadraticprogram.cpp"
     )
 
 

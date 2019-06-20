@@ -82,31 +82,31 @@ void mujoco_interface::sensorStateCallback(const mujoco_ros_msgs::SensorStateCon
     for(int i=0;i<msg->sensor.size();i++){
         if(msg->sensor[i].name=="L_Force"){
             for(int j=0;j<3;j++){
-                left_foot_ft(j) = msg->sensor[i].data[j];
+         //      left_foot_ft(j) = msg->sensor[i].data[j];
             }
 
         }
         if(msg->sensor[i].name=="R_Force"){
             for(int j=0;j<3;j++){
-                right_foot_ft(j) = msg->sensor[i].data[j];
+        //        right_foot_ft(j) = msg->sensor[i].data[j];
             }
 
         }
         if(msg->sensor[i].name=="L_Torque"){
             for(int j=0;j<3;j++){
-                left_foot_ft(j+3) = msg->sensor[i].data[j];
+         //       left_foot_ft(j+3) = msg->sensor[i].data[j];
             }
 
         }
         if(msg->sensor[i].name=="R_Torque"){
             for(int j=0;j<3;j++){
-                right_foot_ft(j+3) = msg->sensor[i].data[j];
+         //       right_foot_ft(j+3) = msg->sensor[i].data[j];
             }
 
         }
         if(msg->sensor[i].name=="Acc_Pelvis_IMU"){
             for(int j=0;j<3;j++){
-                accelometer_(j) = msg->sensor[i].data[j];
+               accelometer_(j) = msg->sensor[i].data[j];
             }
 
         }

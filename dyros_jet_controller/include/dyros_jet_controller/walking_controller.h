@@ -171,6 +171,7 @@ public:
   //CapturePoint
   void getCapturePointTrajectory();
   void getCapturePoint_init_ref();
+  void CapturePointModify();
   void zmptoInitFloat();
   Eigen::VectorXd capturePoint_refx, capturePoint_refy;
   Eigen::VectorXd zmp_refx, zmp_refy;
@@ -178,7 +179,8 @@ public:
   Eigen::Vector3d capturePoint_measured_;
   double last_time_;
   int capturePoint_current_num_;
-
+  Eigen::Vector3d com_float_prev_;
+  Eigen::Vector4d com_float_prev;
   double ux_1, uy_1;
   Eigen::Vector3d xs, ys;
   int currentstep;
@@ -186,6 +188,7 @@ public:
   Eigen::Vector2d capturePoint_offset_;
   Eigen::Isometry3d float_support_init;
   Eigen::Isometry3d current_step_float_support_;
+
   Eigen::Isometry3d support_float_init;
   Eigen::Isometry3d current_step_support_float_;
 
