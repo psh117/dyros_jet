@@ -11,7 +11,7 @@ ControlBase::ControlBase(ros::NodeHandle &nh, double Hz) :
   joint_controller_(q_, q_dot_filtered_, control_time_),
   task_controller_(model_, q_, q_dot_filtered_, Hz, control_time_),
   haptic_controller_(model_,q_,Hz, control_time_),
-  walking_controller_(model_, q_, Hz, control_time_),
+  walking_controller_(model_, q_, q_dot_filtered_, Hz, control_time_),
   moveit_controller_(model_, q_, Hz),
   joint_control_as_(nh, "/dyros_jet/joint_control", false) // boost::bind(&ControlBase::jointControlActionCallback, this, _1), false
 {
@@ -94,15 +94,17 @@ void ControlBase::update()
   model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_, accelometer_, gyro_, imu_grav_rpy_);
 
 
-  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint;
+  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint, q_vjoint_dot;
   q_vjoint.setZero();
+  q_vjoint_dot.setZero();
   q_vjoint.segment<DyrosJetModel::MODEL_DOF>(6) = q_.head<DyrosJetModel::MODEL_DOF>();
 
-  q_dot_filtered_ = DyrosMath::lowPassFilter<DyrosJetModel::HW_TOTAL_DOF>(q_dot_, q_dot_filtered_, 1.0 / Hz_, 0.05);
+  q_dot_filtered_ = q_dot_;//DyrosMath::lowPassFilter<DyrosJetModel::HW_TOTAL_DOF>(q_dot_, q_dot_filtered_, 1.0 / Hz_, 0.05);
+  q_vjoint_dot.segment<DyrosJetModel::MODEL_DOF>(6) = q_dot_filtered_.head<DyrosJetModel::MODEL_DOF>();
   //q_vjoint.segment<12>(6) = q_ext_offset_;
   //q_vjoint.segment<12>(6) = WalkingController::desired_q_not_compensated_;
 
-  model_.updateKinematics(q_vjoint);  // Update end effector positions and Jacobians
+  model_.updateKinematics(q_vjoint, q_vjoint_dot);  // Update end effector positions and Jacobians
 
   stateChangeEvent();
 }

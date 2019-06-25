@@ -51,7 +51,7 @@ public:
     return (joint_name_map_.find(joint_name) != joint_name_map_.end());
   }
   // Calc Jacobian, Transformation
-  void updateKinematics(const Eigen::VectorXd &q);
+  void updateKinematics(const Eigen::VectorXd &q, const Eigen::VectorXd &qdot);
   void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft);
 
   void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy);
@@ -78,6 +78,7 @@ public:
   void getJacobianMatrix18DoF(EndEffector ee, Eigen::Matrix<double, 6, 18> *jacobian);
 
   void getCenterOfMassPosition(Eigen::Vector3d* position);
+  void getCenterOfMassPositionDot(Eigen::Vector3d* position);
 
   void getInertiaMatrix34DoF(Eigen::Matrix<double, 34, 34> *inertia);
   void getInertiaMatrix18DoF(Eigen::Matrix<double, 18, 18> *leg_inertia);
@@ -89,6 +90,7 @@ public:
   const Eigen::Matrix<double, 6, 7>& getArmJacobian(EndEffector ee) { return arm_jacobian_[ee-2]; }
   const Eigen::Matrix<double, 6, 18>& getLegWithVLinkJacobian(EndEffector ee) { return leg_with_vlink_jacobian_[ee]; }
   const Eigen::Vector3d& getCurrentCom(){ return com_;}
+  const Eigen::Vector3d& getCurrentComDot(){return comDot_;}
 
   const Eigen::Vector3d& getSimulationCom(){return com_simulation_;}
   const Eigen::Vector3d& getSimulationGyro(){return gyro_simulation_;}
@@ -118,6 +120,7 @@ private:
 
   Eigen::Vector28d q_;
   Eigen::Matrix<double, 34, 1> q_virtual_;
+  Eigen::Matrix<double, 34, 1> q_virtual_dot_;
   Eigen::Vector12d q_ext_;
 
   bool extencoder_init_flag_;
@@ -133,7 +136,9 @@ private:
   Eigen::Matrix<double, 34, 34> full_inertia_mat_;
   Eigen::Matrix<double, 18, 18> leg_inertia_mat_;
 
+
   Eigen::Vector3d com_;
+  Eigen::Vector3d comDot_;
   Eigen::Vector3d com_simulation_;
 
   Eigen::Vector3d accel_;
@@ -157,13 +162,10 @@ private:
   Eigen::MatrixXd A_temp_;
 
 
+  };
+
+  typedef Eigen::Matrix<double, DyrosJetModel::HW_TOTAL_DOF, 1> VectorQd;
 
 
-
-};
-
-typedef Eigen::Matrix<double, DyrosJetModel::HW_TOTAL_DOF, 1> VectorQd;
-
-
-}
-#endif // DYROS_JET_MODEL_H
+  }
+  #endif // DYROS_JET_MODEL_H

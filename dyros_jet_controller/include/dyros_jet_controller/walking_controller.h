@@ -51,8 +51,8 @@ public:
   static constexpr unsigned int PRIORITY = 8;
 
 
-  WalkingController(DyrosJetModel& model, const VectorQd& current_q, const double hz, const double& control_time) :
-    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_update_flag_(false), calc_start_flag_(false), ready_for_thread_flag_(false), ready_for_compute_flag_(false), foot_step_planner_mode_(false), walking_end_foot_side_ (false), foot_plan_walking_last_(false), foot_last_walking_end_(false)
+  WalkingController(DyrosJetModel& model, const VectorQd& current_q, const VectorQd& current_qdot, const double hz, const double& control_time) :
+    total_dof_(DyrosJetModel::HW_TOTAL_DOF), model_(model), current_q_(current_q), current_qdot_(current_qdot), hz_(hz), current_time_(control_time), start_time_{}, end_time_{}, slowcalc_thread_(&WalkingController::slowCalc, this), calc_update_flag_(false), calc_start_flag_(false), ready_for_thread_flag_(false), ready_for_compute_flag_(false), foot_step_planner_mode_(false), walking_end_foot_side_ (false), foot_plan_walking_last_(false), foot_last_walking_end_(false)
   {
     walking_state_send = false;
     walking_end_ = false;
@@ -115,15 +115,13 @@ public:
   void updateInitialState();
 
   //functions for getFootStep()
-  void calculateFootStepTotal();
-  void calculateFootStepSeparate();
-  void usingFootStepPlanner();
-
-  //functions for getZMPTrajectory()
   void floatToSupportFootstep();
   void addZmpOffset();
   void zmpGenerator(const unsigned int norm_size, const unsigned planning_step_num);
   void onestepZmp(unsigned int current_step_number, Eigen::VectorXd& temp_px, Eigen::VectorXd& temp_py);
+  void calculateFootStepSeparate();
+  void calculateFootStepTotal();
+  void usingFootStepPlanner();
 
   //functions in compensator()
   void hipCompensator(); //reference Paper: http://dyros.snu.ac.kr/wp-content/uploads/2017/01/ICHR_2016_JS.pdf
@@ -180,7 +178,9 @@ public:
   double last_time_;
   int capturePoint_current_num_;
   Eigen::Vector3d com_float_prev_;
+  Eigen::Vector4d com_float_prev_dot_;
   Eigen::Vector4d com_float_prev;
+  Eigen::Vector3d com_support_prev;
   double ux_1, uy_1;
   Eigen::Vector3d xs, ys;
   int currentstep;
@@ -273,6 +273,7 @@ private:
   VectorQd desired_q_;
   VectorQd target_q_;
   const VectorQd& current_q_;
+  const VectorQd& current_qdot_;
 
 
 
@@ -313,6 +314,10 @@ private:
   //Step current state variable//
   Eigen::Vector3d com_support_current_;
   Eigen::Vector3d com_support_dot_current_;//from support foot
+  //capture
+  Eigen::Isometry3d lfoot_float_current_1;
+  Eigen::Isometry3d rfoot_float_current_1;
+  Eigen::Vector3d com_support_current_1;
 
   ///simulation
   Eigen::Vector3d com_sim_current_;
@@ -333,6 +338,7 @@ private:
   Eigen::Isometry3d rfoot_support_current_;
 
   Eigen::Vector3d com_float_current_;
+  Eigen::Vector3d com_float_current_dot_;
   Eigen::Isometry3d pelv_float_current_;
   Eigen::Isometry3d lfoot_float_current_;
   Eigen::Isometry3d rfoot_float_current_;
@@ -416,6 +422,7 @@ private:
   Eigen::Matrix<double, 36, 12> bd_copy_;
 
   Eigen::Matrix<double, 36, 36> ad_right_;
+
   Eigen::Matrix<double, 36, 12> bd_right_;
   Eigen::Matrix<double, 48, 48> ad_total_right_;
   Eigen::Matrix<double, 48, 12> bd_total_right_;
