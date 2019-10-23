@@ -116,11 +116,11 @@ static double cubicDot(double time,     ///< Current time
 
   if (time < time_0)
   {
-    x_t = x_0;
+    x_t = x_dot_0;
   }
   else if (time > time_f)
   {
-    x_t = x_f;
+    x_t = x_dot_f;
   }
   else
   {
