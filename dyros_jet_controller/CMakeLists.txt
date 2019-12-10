@@ -92,7 +92,7 @@ target_link_libraries(dyros_jet_controller
     dyros_jet_controller_lib
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
-    ${CVXGEN_SRC}
+    ${CVXGEN_SRC} 
     )
 
 add_dependencies(dyros_jet_controller_lib ${catkin_EXPORTED_TARGETS})

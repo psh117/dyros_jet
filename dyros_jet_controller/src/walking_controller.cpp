@@ -1974,7 +1974,7 @@ void WalkingController::supportToFloatPattern()
 void WalkingController::computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q)
 {
 
-  Eigen::Vector3d lp, rp, d;
+  Eigen::Vector3d lp, rp, d;  
   d.setZero();
   d(2) = -0.095;
   lp = float_lleg_transform.linear().transpose()*(float_trunk_transform.translation()-float_lleg_transform.translation());
@@ -3418,23 +3418,11 @@ void WalkingController::getCapturePointTrajectory()
     }
     else if(walking_tick_ >= t_start_real_+t_double1_ && walking_tick_ < t_start_real_+t_total_-t_double2_-t_rest_last_)
     {
-      if(zmp_desired(0)>0.02+foot_step_(current_step_num_-1,0))
-      {
-        zmp_desired(0) = 0.02+foot_step_(current_step_num_-1,0);
-      }
-      else if(zmp_desired(0)<-0.02+foot_step_(current_step_num_-1,0))
-      {
-        zmp_desired(0) = -0.02+foot_step_(current_step_num_-1,0);
-      }
-    }
-
-    else if(walking_tick_ < t_start_real_+t_double1_)
-    {
-      if(current_step_num_ ==1 )
+      if(current_step_num_ == 0)
       {
         if(zmp_desired(0)>0.02+foot_step_(current_step_num_-1,0))
         {
-          zmp_desired(0) = 0.02+foot_step_(current_step_num_-1,0);
+          zmp_desired(0) = 0.02;
         }
         else if(zmp_desired(0)<-0.02)
         {
@@ -3443,13 +3431,38 @@ void WalkingController::getCapturePointTrajectory()
       }
       else
       {
-        if(zmp_desired(0)>0.02+foot_step_(current_step_num_-1,0))
+        if(zmp_desired(0)>0.06+foot_step_(current_step_num_-1,0))
         {
-          zmp_desired(0) =0.02+foot_step_(current_step_num_-1,0);
+          zmp_desired(0) = 0.06+foot_step_(current_step_num_-1,0);
         }
-        else if(zmp_desired(0)<-0.02+foot_step_(current_step_num_-2,0))
+        else if(zmp_desired(0)<-0.06+foot_step_(current_step_num_-1,0))
         {
-          zmp_desired(0) = -0.02+foot_step_(current_step_num_-2,0);
+          zmp_desired(0) = -0.06+foot_step_(current_step_num_-1,0);
+        }
+      }
+     }
+    else if(walking_tick_ < t_start_real_+t_double1_)
+    {
+      if(current_step_num_ != 0)
+      {
+        if(zmp_desired(0)>0.06+foot_step_(current_step_num_-1,0))
+        {
+          zmp_desired(0) = 0.06+foot_step_(current_step_num_-1,0);
+        }
+        else if(zmp_desired(0)<-0.06+foot_step_(current_step_num_-1,0))
+        {
+          zmp_desired(0) = -0.06+foot_step_(current_step_num_-1,0);
+        }
+      }
+      else
+      {
+        if(zmp_desired(0)>0.02)
+        {
+          zmp_desired(0) =0.02;
+        }
+        else if(zmp_desired(0)<-0.02)
+        {
+          zmp_desired(0) = -0.02;
         }
       }
     }
@@ -3486,7 +3499,6 @@ void WalkingController::getCapturePointTrajectory()
     com_refx(walking_tick_) = (2+w*w/(hz_*hz_))*com_refx(walking_tick_-1)-com_refx(walking_tick_-2)-w*w/(hz_*hz_)*zmp_desired(0);
     com_refy(walking_tick_) = (2+w*w/(hz_*hz_))*com_refy(walking_tick_-1)-com_refy(walking_tick_-2)-w*w/(hz_*hz_)*zmp_desired(1);
   }
-
   else
   {
     zmp_desired(0) = zmp_refx(walking_tick_);
@@ -3526,7 +3538,7 @@ void WalkingController::getCapturePointTrajectory()
     xd_(2) = 0.0;
     yd_(2) = 0.0;
   }
-  file[14]<<com_float(0)<<"\t"<<com_float(1)<<"\t"<<capturePoint_desired(0)<<"\t"<<capturePoint_desired(1)<<"\t"<<zmp_desired(0)<<"\t"<<zmp_desired(1)<<"\t"<<com_refx(walking_tick_)<<"\t"<<com_refy(walking_tick_)<<endl;
+  file[14]<<com_float(0)<<"\t"<<capturePoint_measured(0)<<"\t"<<capturePoint_measured(1)<<"\t"<<capturePoint_desired(0)<<"\t"<<capturePoint_desired(1)<<"\t"<<zmp_desired(0)<<"\t"<<zmp_desired(1)<<"\t"<<com_refx(walking_tick_)<<"\t"<<com_refy(walking_tick_)<<endl;
 }
 
 void WalkingController::getCapturePoint_init_ref()
