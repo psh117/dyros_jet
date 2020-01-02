@@ -147,11 +147,17 @@ public:
   void slowCalc();
   void slowCalcContent();
 
-
+  void cpsControl();
 
   void discreteRiccatiEquationInitialize(Eigen::MatrixXd a, Eigen::MatrixXd b);
   Eigen::MatrixXd discreteRiccatiEquationLQR(Eigen::MatrixXd A, Eigen::MatrixXd B, Eigen::MatrixXd R, Eigen::MatrixXd Q);
   Eigen::MatrixXd discreteRiccatiEquationPrev(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd r, Eigen::MatrixXd q);
+
+  void linkMass();
+  void linkInertia();
+  Eigen::Matrix3d inertiaTensorTransform(Eigen::Matrix3d local_inertia, double mass, Eigen::Isometry3d transformation);
+  void getComJacobian();
+  void computeComJacobianControl(Eigen::Vector12d &desired_leg_q_dot);
 
   VectorQd desired_q_not_compensated_;
 
@@ -188,6 +194,7 @@ public:
   Eigen::Vector2d capturePoint_offset_;
   Eigen::Isometry3d float_support_init;
   Eigen::Isometry3d current_step_float_support_;
+  Eigen::Isometry3d reference_temp;
 
   Eigen::Isometry3d support_float_init;
   Eigen::Isometry3d current_step_support_float_;
@@ -200,6 +207,50 @@ public:
   Eigen::VectorXd com_dot_refy;
   Eigen::Vector2d com_initx;
   Eigen::Vector2d com_inity;
+ //comJacobian variables
+  Eigen::Matrix<double, 6, 1> mass_l_leg_;
+  Eigen::Matrix<double, 6, 1> mass_r_leg_;
+  Eigen::Matrix<double, 7, 1> mass_l_arm_;
+  Eigen::Matrix<double, 7, 1> mass_r_arm_;
+  Eigen::Matrix<double, 3, 1> mass_body_;
+  double mass_total_;
+
+  Eigen::Matrix3d inertia_link_float_[29];
+  Eigen::Matrix3d inertia_total_;
+
+  Eigen::Vector3d c_l_leg_[6];
+  Eigen::Vector3d c_r_leg_[6];
+  Eigen::Vector3d c_l_arm_[7];
+  Eigen::Vector3d c_r_arm_[7];
+  Eigen::Vector3d c_waist_[3];
+
+  Eigen::Matrix6d adjoint_support_;
+  Eigen::Matrix6d adjoint_21_;
+  Eigen::Vector3d disturbance_accel_;
+  Eigen::Vector3d disturbance_accel_old_;
+  Eigen::Vector3d desired_w_;
+  Eigen::Vector3d desired_u_;
+  Eigen::Vector3d desired_u_old_;
+  Eigen::Vector3d desired_u_dot_;
+  Eigen::Vector6d x2_d_dot_;
+
+  Eigen::Matrix<double, 3, 6> j_rleg_com_total_support;
+  Eigen::Matrix<double, 3, 6> j_lleg_com_total_support;
+
+  Eigen::Matrix<double, 3, 7> j_rarm_com_total_support;
+  Eigen::Matrix<double, 3, 7> j_larm_com_total_support;
+
+  Eigen::Matrix6d j1_;
+  Eigen::Matrix6d j2_;
+  Eigen::Matrix<double, 3, 6> j_v1_;
+  Eigen::Matrix<double, 3, 6> j_w1_;
+
+  Eigen::Matrix<double, 3, 6> j_com_psem_;
+  Eigen::Vector3d desired_c_dot_psem_;
+
+  Eigen::Matrix6d j_total_;
+  Eigen::Vector6d c_total_;
+
 
 
 private:
@@ -215,6 +266,10 @@ private:
   Eigen::Vector3d imu_acc_;
   Eigen::Vector3d imu_ang_;
   Eigen::Vector3d imu_grav_rpy_;
+
+  Eigen::Vector3d f_ft_support_;
+  Eigen::Vector3d moment_support_desried_;
+  Eigen::Vector3d moment_support_current_;
 
   //parameterSetting()
   double t_last_;

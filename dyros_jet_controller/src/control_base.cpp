@@ -92,7 +92,7 @@ void ControlBase::update()
   }
   DyrosMath::toEulerAngle(imu_data_.x(), imu_data_.y(), imu_data_.z(), imu_data_.w(), imu_grav_rpy_(0), imu_grav_rpy_(1), imu_grav_rpy_(2));
   model_.updateSensorData(right_foot_ft_, left_foot_ft_, q_ext_offset_, accelometer_, gyro_, imu_grav_rpy_);
-
+  model_.mujocovirtual(mujoco_virtual_);
 
   Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint, q_vjoint_dot;
   q_vjoint.setZero();
@@ -105,6 +105,8 @@ void ControlBase::update()
   //q_vjoint.segment<12>(6) = WalkingController::desired_q_not_compensated_;
 
   model_.updateKinematics(q_vjoint, q_vjoint_dot);  // Update end effector positions and Jacobians
+  //real_q
+  model_.realQ(q_vjoint, q_vjoint_dot);
 
   stateChangeEvent();
 }
@@ -250,7 +252,7 @@ void ControlBase::taskCommandCallback(const dyros_jet_msgs::TaskCommandConstPtr&
 
       if(msg->mode[i] == dyros_jet_msgs::TaskCommand::RELATIVE)
       {
-        const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
+        const auto &current =  model_.getCurrentTransform((DyrosJetModel::EndEffector)i);
         target.translation() = target.translation() + current.translation();
         target.linear() = current.linear() * target.linear();
       }
@@ -271,13 +273,13 @@ void ControlBase::hapticCommandCallback(const dyros_jet_msgs::TaskCommandConstPt
 
       if(msg->mode[i] == dyros_jet_msgs::TaskCommand::ABSOLUTE)
       {
-        const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
+        const auto &current =  model_.getCurrentTransform((DyrosJetModel::EndEffector)i);
         target.translation() = target.translation() + current.translation();
         target.linear() = current.linear() * target.linear();
       }
       if(msg->mode[i] == dyros_jet_msgs::TaskCommand::RELATIVE)
       {
-        const auto &current =  model_.getCurrentTrasmfrom((DyrosJetModel::EndEffector)i);
+        const auto &current =  model_.getCurrentTransform((DyrosJetModel::EndEffector)i);
         target.translation() = current.linear()*target.translation() + current.translation();
         target.linear() = current.linear() * target.linear();
       }

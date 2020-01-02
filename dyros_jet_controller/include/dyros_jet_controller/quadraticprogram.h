@@ -18,8 +18,11 @@ public:
   virtual ~CQuadraticProgram();
 
 public:
-
+  void Initialize();
 private:
+  int _num_var;
+  int _num_cons;
+  bool _bInitialized;
 
 };
 

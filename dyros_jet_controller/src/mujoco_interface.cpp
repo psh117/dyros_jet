@@ -49,9 +49,9 @@ void mujoco_interface::jointStateCallback(const sensor_msgs::JointStateConstPtr 
             if(DyrosJetModel::JOINT_NAME[i] == msg->name[j].data())
             {
                 q_(i) = msg->position[j];
-             //   q_virtual_(i+6) = msg->position[j];
+            //    q_virtual_(i+6) = msg->position[j];
                 q_dot_(i) = msg->velocity[j];
-             //   q_dot_virtual_(i+6) = msg->velocity[j];
+            //     q_dot_virtual_(i+6) = msg->velocity[j];
                 torque_(i) = msg->effort[j];
             }
         }
@@ -82,25 +82,25 @@ void mujoco_interface::sensorStateCallback(const mujoco_ros_msgs::SensorStateCon
     for(int i=0;i<msg->sensor.size();i++){
         if(msg->sensor[i].name=="L_Force"){
             for(int j=0;j<3;j++){
-         //      left_foot_ft(j) = msg->sensor[i].data[j];
+               left_foot_ft(j) = msg->sensor[i].data[j];
             }
 
         }
         if(msg->sensor[i].name=="R_Force"){
             for(int j=0;j<3;j++){
-        //        right_foot_ft(j) = msg->sensor[i].data[j];
+                right_foot_ft(j) = msg->sensor[i].data[j];
             }
 
         }
         if(msg->sensor[i].name=="L_Torque"){
             for(int j=0;j<3;j++){
-         //       left_foot_ft(j+3) = msg->sensor[i].data[j];
+                left_foot_ft(j+3) = msg->sensor[i].data[j];
             }
 
         }
         if(msg->sensor[i].name=="R_Torque"){
             for(int j=0;j<3;j++){
-         //       right_foot_ft(j+3) = msg->sensor[i].data[j];
+                right_foot_ft(j+3) = msg->sensor[i].data[j];
             }
 
         }
@@ -120,11 +120,8 @@ void mujoco_interface::sensorStateCallback(const mujoco_ros_msgs::SensorStateCon
             for(int j=0;j<3;j++){
             //    right_foot_ft(j+3) = msg->sensor[i].data[j];
             }
-
         }
-
     }
-
    left_foot_ft_ = DyrosMath::lowPassFilter<6>(left_foot_ft, left_foot_ft_, 1.0 / 200, 0.05);
    right_foot_ft_ = DyrosMath::lowPassFilter<6>(right_foot_ft, right_foot_ft_, 1.0 / 200, 0.05);
 }
