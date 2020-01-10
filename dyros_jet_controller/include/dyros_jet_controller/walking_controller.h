@@ -108,6 +108,8 @@ public:
   void getRobotState();
   void getComTrajectory();
   void getZmpTrajectory();
+  void getComTrajectorySimpleLIPM();
+  void getZmpTrajectorySimpleLIPM();
   void getPelvTrajectory();
   void getFootTrajectory();
   void computeIkControl(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& desired_leg_q);

@@ -380,7 +380,7 @@ void DyrosJetModel::getCenterOfMassPosition(Eigen::Vector3d* position)
   //Eigen::Vector3d com_vel;
   //Eigen::Vector3d angular_momentum;
   double mass;
-  RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_virtual_, qdot, mass, position_temp, NULL, NULL, false);
+  RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_virtual_, qdot, NULL, mass, position_temp, NULL, NULL, NULL, NULL, false);
   //RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp, NULL, NULL, false);
 
   //RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_, qdot, mass, position_temp);

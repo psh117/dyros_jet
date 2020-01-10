@@ -336,8 +336,8 @@ void WalkingController::getComJacobian()
 
   double switch_l_ft;
   double switch_r_ft;
-  kc = 50.0; kp = 0.0; kd = 0.000;  //gains for simulation
-  kf = 50.0; kw = 100.0;
+  kc = 100.0; kp = 0.0; kd = 0.000;  //gains for simulation
+  kf = 100.0; kw = 100.0;
 
   //kc = 300.0; kp = 45.0; kd = 0.005;  //gains for real robot
   //kf = 300.0; kw = 200.0;
@@ -361,7 +361,7 @@ void WalkingController::getComJacobian()
   {
     error_zmp.segment<2>(0) = zmp_desired_ - zmp_measured_;
   }
-  else if(walking_tick_%100 == 0)
+  else if(walking_tick_%200 == 0)
   {
     cout<<"I'm flying"<<endl;
   }

@@ -299,7 +299,7 @@ void WalkingController::getRobotState()
   q_temp.segment<28>(6) = current_q_.segment<28>(0);
   if(ik_mode_==0 && walking_tick_ > 0) //IK control
   {
-    //q_temp.segment<12>(6) =   desired_q_not_compensated_.segment<12>(0);  //update robot state with desired q
+    q_temp.segment<12>(6) =   desired_q_not_compensated_.segment<12>(0);  //update robot state with desired q
     model_.updateKinematics(q_temp);
   }
   if(ik_mode_ == 0 && walking_tick_ == 0)
@@ -353,8 +353,6 @@ void WalkingController::getRobotState()
               q_temp(index++) = 10*DEG2RAD;
      */
         model_.updateKinematics(q_temp);
-
-
   }
 
 
@@ -1178,6 +1176,13 @@ void WalkingController::usingFootStepPlanner()
   walking_end_foot_side_ =foot_step_(foot_step_plan_num_ - 1,6);
 }
 
+void WalkingController::getZmpTrajectorySimpleLIPM()
+{
+  addZmpOffset();
+
+
+}
+
 void WalkingController::getZmpTrajectory()
 {
 
@@ -1576,7 +1581,6 @@ void WalkingController::zmpGenerator(const unsigned int norm_size, const unsigne
         ref_zmp_(i,0) = 0.0;
         ref_zmp_(i,1) = com_support_init_(1)+com_offset_(1);
       }
-
       index++;
     }
   }
@@ -1782,9 +1786,13 @@ void WalkingController::zmpCompensator()
   zmp_desired_filtered_(1) = DyrosMath::secondOrderLowPassFilter(zmp_desired_(1), zmp_desired_pre_(1), zmp_desired_ppre_(1), zmp_desired_filtered_pre_(1), zmp_desired_filtered_ppre_(1), 20, 1, hz_);
   /////////////////////////////////////////////
 
+  ////////////////////save pre data////////////////////////
+  zmp_measured_inverse_ppre_ = zmp_measured_inverse_pre_;
+  zmp_measured_inverse_pre_ = zmp_measured_inverse_;
+  ////////////////////////////////////////////////////////
 
   ///////////////////////output inverse & Q-filter//////////////
-  inverseZmpPlant(zmp_measured_, zmp_measured_pre_, zmp_measured_ppre_, 15, 1, hz_);
+  inverseZmpPlant(zmp_measured_, zmp_measured_pre_, zmp_measured_ppre_, 20, 1, hz_);
   zmp_measured_inverse_(0) = DyrosMath::secondOrderLowPassFilter(zmp_measured_(0), zmp_measured_pre_(0), zmp_measured_ppre_(0), zmp_measured_inverse_pre_(0), zmp_measured_inverse_ppre_(0), 20, 1, hz_);
   zmp_measured_inverse_(1) = DyrosMath::secondOrderLowPassFilter(zmp_measured_(1), zmp_measured_pre_(1), zmp_measured_ppre_(1), zmp_measured_inverse_pre_(1), zmp_measured_inverse_ppre_(1), 20, 1, hz_);
   /////////////////////////////////////////////////////////////
@@ -1796,13 +1804,14 @@ void WalkingController::zmpCompensator()
   {
     zmp_dist_ = zmp_desired_filtered_ - zmp_measured_inverse_;
   }
+  /*
   cout <<"zmp_desired_: "<<zmp_desired_.transpose()<<endl;
   cout <<"zmp_desired_filtered_: "<<zmp_desired_filtered_.transpose()<<endl;
 
   cout <<"zmp_measured: "<<zmp_measured_.transpose()<<endl;
   cout <<"zmp_measured_inverse_: "<<zmp_measured_inverse_.transpose()<<endl;
   cout <<"zmp_dist_: "<<zmp_dist_.transpose()<<endl;
-
+  */
 
   int zmp_size;
   zmp_size = ref_zmp_.col(0).size();
@@ -1830,10 +1839,7 @@ void WalkingController::zmpCompensator()
 
 void WalkingController::inverseZmpPlant(Eigen::Vector2d zmp, Eigen::Vector2d zmp_pre, Eigen::Vector2d zmp_ppre, double fc, double damping_ratio, double hz)
 {
-  ////////////////////save pre data////////////////////////
-  zmp_measured_inverse_ppre_ = zmp_measured_inverse_pre_;
-  zmp_measured_inverse_pre_ = zmp_measured_inverse_;
-  ////////////////////////////////////////////////////////
+
 
   double kp;
   double kp2;
@@ -1875,6 +1881,27 @@ void WalkingController::inverseZmpPlant(Eigen::Vector2d zmp, Eigen::Vector2d zmp
       + coeff_x_0*zmp + coeff_x_1*zmp_pre + coeff_x_2*zmp_ppre;
 }
 
+/*
+void WalkingController::getComTrajectorySimpleLIPM()
+{
+  double Tc = sqrt(zc_ / GRAVITY);
+  double C = cosh(t_double1_ / Tc);
+  double S = sinh(t_double1_ / Tc);
+
+  if(current_step_num_ == 0)
+  {
+
+  }
+  else if()
+  {
+
+  }
+  else
+  {
+
+  }
+}
+*/
 void WalkingController::getComTrajectory()
 {
 
@@ -1960,12 +1987,6 @@ void WalkingController::getComTrajectory()
       com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, com_support_init_(2), com_height_, 0, 0, hz_);
     }
 
-
-    double k= 100.0;
-    p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_current_(0));
-    p_ref_(1) = yd_(1)+k*(yd_(0)-com_support_current_(1));
-    p_ref_(2) = k*(com_desired_(2)-com_support_current_(2));
-    l_ref_.setZero();
   }
   else
   {
@@ -1977,11 +1998,6 @@ void WalkingController::getComTrajectory()
     com_dot_desired_(1) = yd_(1);
     com_dot_desired_(2) = DyrosMath::cubicDot(walking_tick_, t_start_, t_start_real_, pelv_support_init_.translation()(2), pelv_suppprt_start_.translation()(2), 0, 0, hz_);
 
-    double k= 100.0;
-    p_ref_(0) = xd_(1)+k*(xd_(0)-com_support_current_(0));
-    p_ref_(1) = yd_(1)+k*(yd_(0)-com_support_current_(1));
-    p_ref_(2) = k*(com_desired_(2)-com_support_current_(2));
-    l_ref_.setZero();
   }
 }
 
@@ -2579,14 +2595,21 @@ void WalkingController::modifiedPreviewControl()
   if(walking_tick_==0)
   {
     previewControlParameter(1.0/hz_, 16*hz_/10, k_ ,com_support_init_, gi_, gp_l_, gx_, a_, b_, c_);
+    ux_1_ = 0.0;
+    uy_1_ = 0.0;
+
+    cout<<"gp_l: \n"<<gp_l_<<endl;
+    cout<<"gi_: \n"<<gi_<<endl;
+    cout<<"gx_: \n"<<gx_<<endl;
+
   }
 
 
 
-  ux_1_ = 0.0;
-  uy_1_ = 0.0;
+  //ux_1_ = 0.0;
+  //uy_1_ = 0.0;
 
-  previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, xi_, yi_, xs_, ys_, ux_1_, uy_1_, ux_, uy_, gi_, gp_l_, gx_, a_, b_, c_, xd_, yd_);
+  //previewControl(1.0/hz_, 16*hz_/10, walking_tick_-zmp_start_time_, xi_, yi_, xs_, ys_, ux_1_, uy_1_, ux_, uy_, gi_, gp_l_, gx_, a_, b_, c_, xd_, yd_);
   Eigen::Vector3d xs_matrix, ys_matrix, xs, ys;
   for (int i=0; i<3; i++)
     xs_matrix(i) = xd_(i);
@@ -2642,20 +2665,23 @@ void WalkingController::previewControl(
     y = ys;
   }
 
+  x_1 = a.inverse()*x - a.inverse()*b*ux_1;
+  y_1 = a.inverse()*y - a.inverse()*b*uy_1;
+  /*
   x_1(0) = x(0)-x(1)*dt;
   x_1(1) = x(1)-x(2)*dt;
   x_1(2) = x(2);
   y_1(0) = y(0)-y(1)*dt;
   y_1(1) = y(1)-y(2)*dt;
   y_1(2) = y(2);
-
+  */
   double xzmp_err =0.0, yzmp_err = 0.0;
 
   Eigen::Matrix<double, 1, 1> px, py;
   px = (c*x);
   py = (c*y);
-  xzmp_err = px(0) - px_ref(tick);
-  yzmp_err = py(0) - py_ref(tick);
+  xzmp_err = -(px_ref(tick) - px(0));
+  yzmp_err = -(py_ref(tick) - py(0));
 
   double sum_gp_px_ref = 0.0, sum_gp_py_ref =0.0;
   for(int i = 0; i < NL; i++)
@@ -3196,7 +3222,7 @@ void WalkingController::vibrationControl(const Eigen::Vector12d desired_leg_q, E
         }
       }
 
-      lqr_output_(i) = lqr_output_pre_(i) + del_u_right(i, 0) - gain_temp*dist(i);
+      lqr_output_(i) = lqr_output_pre_(i) + del_u_right(i) - gain_temp*dist(i);
     }
     else // right foot
     {
@@ -3225,7 +3251,7 @@ void WalkingController::vibrationControl(const Eigen::Vector12d desired_leg_q, E
           gain_temp = default_gain;
         }
       }
-      lqr_output_(i) = lqr_output_pre_(i) + del_u_right(i, 0) - gain_temp*dist(i);
+      lqr_output_(i) = lqr_output_pre_(i) + del_u_right(i) - gain_temp*dist(i);
     }
   }
 

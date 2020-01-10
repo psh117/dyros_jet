@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/dg/catkin_ws/devel/include",
+                "/opt/ros/kinetic/include",
+                "/home/dg/catkin_ws/src/driver_common/driver_base/include",
+                "/home/dg/catkin_ws/src/DynamixelSDK/c++/include",
+                "/home/dg/catkin_ws/src/dyros_black_ui/include",
+                "/home/dg/catkin_ws/src/dyros_jet/dyros_jet_controller/include",
+                "/home/dg/catkin_ws/src/dyros_jet/dyros_jet_dynamixel_x_interface/include",
+                "/home/dg/catkin_ws/src/dyros_jet/dyros_jet_gui/include",
+                "/home/dg/catkin_ws/src/dyros_jet/dyros_jet_haptic/include",
+                "/home/dg/catkin_ws/src/dyros_red-1.0/dyros_red_controller/include",
+                "/home/dg/catkin_ws/src/mujoco_ros_sim/mujoco_ros/include",
+                "/home/dg/catkin_ws/src/driver_common/timestamp_tools/include",
+                "/home/dg/catkin_ws/src/vrep_franka_tutorial/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
