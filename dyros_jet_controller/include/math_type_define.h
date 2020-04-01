@@ -109,7 +109,7 @@ static double cubicDot(double time,     ///< Current time
              double x_f,      ///< End state
              double x_dot_0,  ///< Start state dot
              double x_dot_f,   ///< End state dot
-             double hz         ///< control frequency
+             double hz         ///< contl frequency
              )
 {
   double x_t;

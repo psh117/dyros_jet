@@ -3,6 +3,7 @@
 
 
 #include "dyros_jet_controller/dyros_jet_model.h"
+#include "dyros_jet_controller/quadraticprogram.h"
 #include "math_type_define.h"
 #include <vector>
 #include <fstream>
@@ -10,6 +11,9 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
+#include <tf/LinearMath/Matrix3x3.h>
 
 #define ZERO_LIBRARY_MODE
 
@@ -171,6 +175,7 @@ public:
   void getCapturePoint_init_ref();
   void CapturePointModify();
   void zmptoInitFloat();
+  void cpsControl();
   Eigen::VectorXd capturePoint_refx, capturePoint_refy;
   Eigen::VectorXd zmp_refx, zmp_refy;
   Eigen::VectorXd capturePoint_ox, capturePoint_oy, zmp_dx, zmp_dy;
@@ -179,18 +184,27 @@ public:
   int capturePoint_current_num_;
   Eigen::Vector3d com_float_prev_;
   Eigen::Vector4d com_float_prev_dot_;
+  Eigen::Vector4d com_float_ddot_;
   Eigen::Vector4d com_float_prev;
   Eigen::Vector3d com_support_prev;
+  Eigen::Vector4d measured_zmp_;
+  Eigen::Vector4d com_float_ddot_filter_;
+  Eigen::Vector4d com_float_prev1_;
   double ux_1, uy_1;
+  double step_tick_;
   Eigen::Vector3d xs, ys;
   int currentstep;
   bool firsttime = false;
   Eigen::Vector2d capturePoint_offset_;
   Eigen::Isometry3d float_support_init;
   Eigen::Isometry3d current_step_float_support_;
+  CQuadraticProgram foot_QP;
+  Eigen::Vector4d zmp_prev;
 
   Eigen::Isometry3d support_float_init;
   Eigen::Isometry3d current_step_support_float_;
+
+  Eigen::Vector12d leg_q_;
 
   Eigen::Vector6d q_sim_virtual_;
   Eigen::Vector6d q_sim_dot_virtual_;
@@ -261,6 +275,7 @@ private:
   int foot_step_start_foot_;
   bool walkingPatternDCM_;
   Eigen::MatrixXd foot_pose_;
+  
 
   Eigen::MatrixXd foot_step_;
   Eigen::MatrixXd foot_step_support_frame_;

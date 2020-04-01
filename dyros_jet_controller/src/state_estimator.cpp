@@ -20,17 +20,12 @@ void WalkingController::getQpEstimationInputMatrix()
     x_estimation_(i) = vars.x[i];
   }
 
-
-
-
   Eigen::Vector2d FT_xy;
 
   zmp_r_(0) = (-r_ft_(4) - r_ft_(0)*0.0062) / r_ft_(2);
   zmp_r_(1) = (r_ft_(3) - r_ft_(1)*0.0062) / r_ft_(2);
   zmp_l_(0) = (-l_ft_(4) - l_ft_(0)*0.0062) / l_ft_(2);
   zmp_l_(1) = (l_ft_(3) - l_ft_(1)*0.0062) / l_ft_(2);
-
-
 
 
   if (foot_step_(current_step_num_,6)==1) //left foot support

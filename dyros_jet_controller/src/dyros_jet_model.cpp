@@ -134,7 +134,7 @@ void DyrosJetModel::updateKinematics(const Eigen::VectorXd& q, const Eigen::Vect
   }
 }
 
-void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy)
+void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy, const  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint, const  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint_dot)
 {
   r_ft_wrench_ = r_ft;
   l_ft_wrench_ = l_ft;
@@ -143,6 +143,9 @@ void DyrosJetModel::updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::V
   accel_ = acc;
   angvel_ = angvel;
   grav_rpy_ = grav_rpy;
+  
+  q =  q_vjoint;
+  qdot =  q_vjoint_dot;
 }
 
 void DyrosJetModel::updateSimCom(const Eigen::Vector3d &sim_com)

@@ -6,7 +6,7 @@ mujoco_interface::mujoco_interface(ros::NodeHandle &nh, double Hz):
     ControlBase(nh,Hz), rate_(Hz), dyn_hz(Hz)
 {
     simulation_running_= true;
-    mujoco_joint_set_pub_=nh.advertise<mujoco_ros_msgs::JointSet>("/mujoco_ros_interface/joint_set",100);
+    mujoco_joint_set_pub_=nh.advertise<mujoco_ros_msgs::JointSet>("/mujoco_ros_interface/joint_set",1);
     mujoco_sim_command_pub_=nh.advertise<std_msgs::String>("/mujoco_ros_interface/sim_command_con2sim",100);
     mujoco_sim_command_sub_=nh.subscribe("/mujoco_ros_interface/sim_command_sim2con",100,&mujoco_interface::simCommandCallback,this);
 
@@ -53,6 +53,10 @@ void mujoco_interface::jointStateCallback(const sensor_msgs::JointStateConstPtr 
                 q_dot_(i) = msg->velocity[j];
              //   q_dot_virtual_(i+6) = msg->velocity[j];
                 torque_(i) = msg->effort[j];
+                q_ext_(i) = msg->position[j];
+             //   q_virtual_(i+6) = msg->position[j];
+                q_ext_dot_(i) = msg->velocity[j];
+             //   q_dot_virtual_(i+6) = msg->velocity[j];
             }
         }
         joint_name_mj[i] = msg->name[i+6].data();
@@ -82,27 +86,23 @@ void mujoco_interface::sensorStateCallback(const mujoco_ros_msgs::SensorStateCon
     for(int i=0;i<msg->sensor.size();i++){
         if(msg->sensor[i].name=="L_Force"){
             for(int j=0;j<3;j++){
-         //      left_foot_ft(j) = msg->sensor[i].data[j];
+               left_foot_ft(j) = msg->sensor[i].data[j];
             }
-
         }
         if(msg->sensor[i].name=="R_Force"){
             for(int j=0;j<3;j++){
-        //        right_foot_ft(j) = msg->sensor[i].data[j];
+                right_foot_ft(j) = msg->sensor[i].data[j];
             }
-
         }
         if(msg->sensor[i].name=="L_Torque"){
             for(int j=0;j<3;j++){
-         //       left_foot_ft(j+3) = msg->sensor[i].data[j];
+                left_foot_ft(j+3) = msg->sensor[i].data[j];
             }
-
         }
         if(msg->sensor[i].name=="R_Torque"){
             for(int j=0;j<3;j++){
-         //       right_foot_ft(j+3) = msg->sensor[i].data[j];
+                right_foot_ft(j+3) = msg->sensor[i].data[j];
             }
-
         }
         if(msg->sensor[i].name=="Acc_Pelvis_IMU"){
             for(int j=0;j<3;j++){
@@ -122,11 +122,21 @@ void mujoco_interface::sensorStateCallback(const mujoco_ros_msgs::SensorStateCon
             }
 
         }
-
     }
 
-   left_foot_ft_ = DyrosMath::lowPassFilter<6>(left_foot_ft, left_foot_ft_, 1.0 / 200, 0.05);
-   right_foot_ft_ = DyrosMath::lowPassFilter<6>(right_foot_ft, right_foot_ft_, 1.0 / 200, 0.05);
+    if(mujoco_init_receive == false)
+    {
+      left_foot_ft_ = left_foot_ft;
+      right_foot_ft_ = right_foot_ft;
+      mujoco_init_receive = true;
+    }
+
+//    left_foot_ft_ = DyrosMath::lowPassFilter<6>(left_foot_ft, left_foot_ft_, 1.0 / 200, 0.05);
+//    right_foot_ft_ = DyrosMath::lowPassFilter<6>(right_foot_ft, right_foot_ft_, 1.0 / 200, 0.05);
+
+    left_foot_ft_ = left_foot_ft;
+    right_foot_ft_ = right_foot_ft;
+
 }
 
 void mujoco_interface::simCommandCallback(const std_msgs::StringConstPtr &msg)
@@ -194,6 +204,8 @@ void mujoco_interface::writeDevice()
      mujoco_sim_last_time = mujoco_sim_time;
   }
 }
+
+
 
 void mujoco_interface::wait()
 {

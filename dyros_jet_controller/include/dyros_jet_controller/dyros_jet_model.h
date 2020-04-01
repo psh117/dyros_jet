@@ -54,7 +54,7 @@ public:
   void updateKinematics(const Eigen::VectorXd &q, const Eigen::VectorXd &qdot);
   void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft);
 
-  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy);
+  void updateSensorData(const Eigen::Vector6d &r_ft, const Eigen::Vector6d &l_ft, const Eigen::Vector12d &q_ext, const Eigen::Vector3d &acc, const Eigen::Vector3d &angvel, const Eigen::Vector3d &grav_rpy, const  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint, const  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q_vjoint_dot);
 
   void updateSimCom(const Eigen::Vector3d &sim_com);
   void updateSimGyro(const Eigen::Vector3d &sim_gyro);
@@ -110,9 +110,11 @@ public:
   const Eigen::Vector3d& getImuAngvel() {return angvel_;}
   const Eigen::Vector3d& getImuGravityDirection() {return grav_rpy_;}
 
+ const  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>& getJoint(){return q;}
+  const  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>& getJointDot(){return qdot;}
 
-  const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
-  const Eigen::Matrix<double, 34, 34>& getFullInertia() { return full_inertia_mat_; }
+ const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
+ const Eigen::Matrix<double, 34, 34>& getFullInertia() { return full_inertia_mat_; }
 
 
 private:
@@ -121,6 +123,8 @@ private:
   Eigen::Vector28d q_;
   Eigen::Matrix<double, 34, 1> q_virtual_;
   Eigen::Matrix<double, 34, 1> q_virtual_dot_;
+  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> q;
+  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> qdot;
   Eigen::Vector12d q_ext_;
 
   bool extencoder_init_flag_;
