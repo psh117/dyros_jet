@@ -17,6 +17,7 @@ public:
   CQuadraticProgram();
   virtual ~CQuadraticProgram();
 
+<<<<<<< HEAD
   void InitializeProblemSize(const int &num_var, const int &num_cons);
   void QpOption();
   VectorXd SolveQPoases(const int &num_max_iter);
@@ -29,7 +30,14 @@ public:
 
 public:
  
+=======
+public:
+  void Initialize();
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 private:
+  int _num_var;
+  int _num_cons;
+  bool _bInitialized;
 
   bool _bInitialized;
   int _num_var, _num_cons;

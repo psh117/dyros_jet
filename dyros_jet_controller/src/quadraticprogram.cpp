@@ -7,6 +7,7 @@ CQuadraticProgram::CQuadraticProgram()
 CQuadraticProgram::~CQuadraticProgram()
 {
 }
+<<<<<<< HEAD
 
 void CQuadraticProgram::Initialize()
 {
@@ -209,3 +210,11 @@ VectorXd CQuadraticProgram::SolveQPoases(const int &num_max_iter)
 
     return Xopt;
 } 
+=======
+void CQuadraticProgram::Initialize()
+{
+  _bInitialized = false;
+  _num_var = 1;
+  _num_cons = 1;
+}
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03

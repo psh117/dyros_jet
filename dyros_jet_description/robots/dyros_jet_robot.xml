@@ -25,7 +25,11 @@
 
 	</default>
 	
+<<<<<<< HEAD
         <option timestep='0.0004' iterations="1000" tolerance="1e-6" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9"/>
+=======
+        <option timestep='0.0006' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 	
     <asset>
         <mesh name="base_link" file="base_link.stl" />
@@ -66,40 +70,69 @@
 	<light directional="true" cutoff="60" exponent="1" diffuse="1 1 1" specular=".1 .1 .1" pos="1 1 1.5" dir="-1 -1 -1.3"/>
 	
         <body name="base_link" pos="0 0 0.8027">
+<<<<<<< HEAD
             <joint type="free" limited='false' damping="100" stiffness="20" armature="0"/>
+=======
+            <joint type="free" limited='false' damping="250" stiffness="2" armature="0"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
             <inertial pos="0 0 0.08027" quat="0.707107 0.707107 0 0" mass="3.90994" diaginertia="0.027242 0.0239919 0.00634116" />
             <geom name = "Base" type="box" size="0.04 0.14 0.06" pos="0 0 0.085"/>
 			<geom name = "base_link" class="viz" mesh="base_link" />
 			<site name="Pelvis_IMU" type="cylinder" size="0.005 0.005" group="4" rgba=".1 .1 .9 1"/>
             <body name="L_HipYaw_Link" pos="0 0.105 -0.1119">
                 <inertial pos="-0.02955 0 0.06943" quat="0.676521 -0.205718 -0.205718 0.676521" mass="1.54216" diaginertia="0.00664372 0.00472109 0.00278374" />
+<<<<<<< HEAD
                 <joint name="L_HipYaw" pos="0 0 0" axis="0 0 -1" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
+=======
+                <joint name="L_HipYaw" pos="0 0 0" axis="0 0 -1" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
                 <geom name = "L_HipYaw" type="box" size="0.071 0.031 0.08" pos="0 0 0.05" />
 				<geom name = "L_HipYaw_Link" class="viz" mesh="hip_yaw" />
                 <body name="L_HipRoll_Link" pos="0 0 0">
                     <inertial pos="0.00513 -0.00119 0" quat="0.497367 0.502619 -0.497367 0.502619" mass="1.16907" diaginertia="0.00199196 0.00180688 0.000879624" />
+<<<<<<< HEAD
                     <joint name="L_HipRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
                     <geom name="L_HipRoll_Link" class="viz" mesh="hip_roll" />
                     <body name="L_HipPitch_Link" pos="0 0 0">
                         <inertial pos="0.12203 0.00306 -0.23316" quat="0.950942 -0.0241305 0.218858 -0.21732" mass="3.28269" diaginertia="0.0478721 0.0423822 0.0109838" />
                         <joint name="L_HipPitch" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
+=======
+                    <joint name="L_HipRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+                    <geom name="L_HipRoll_Link" class="viz" mesh="hip_roll" />
+                    <body name="L_HipPitch_Link" pos="0 0 0">
+                        <inertial pos="0.12203 0.00306 -0.23316" quat="0.950942 -0.0241305 0.218858 -0.21732" mass="3.28269" diaginertia="0.0478721 0.0423822 0.0109838" />
+                        <joint name="L_HipPitch" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 						<geom name = "L_HipPitch1"  type="box" size="0.04 0.06 0.15" pos="0.15 0 -0.22"/>
 						<geom name = "L_HipPitch2" type="box" size="0.04 0.06 0.07" pos="0.075 0 -0.14"/>
                         <geom name="L_HipPitch_Link" class="viz" mesh="hip_pitch" />
                          <body name="L_KneePitch_Link" pos="0.1515 0 -0.339">
                             <inertial pos="0.05276 -0.01856 -0.22635" quat="0.96774 0.110027 0.0714849 -0.215087" mass="2.04524" diaginertia="0.03639 0.0322497 0.00477484" />
+<<<<<<< HEAD
                             <joint name="L_KneePitch" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
+=======
+                            <joint name="L_KneePitch" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping = "110" stiffness="80"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 							<geom name = "L_KneePitch" type="box" size="0.04 0.06 0.15 " pos=" 0.05 -0.005 -0.22" quat="0 0 0 -0.215087"/>
 					<geom name="L_KneePitch_Link" class="viz" mesh="left_shin" />
                                 
                              <body name="L_AnklePitch_Link" pos="0.06 0 -0.368">
                                 <inertial pos="-0.01035 0.00568 0" quat="0.0259795 0.706629 -0.0259795 0.706629" mass="1.1845" diaginertia="0.00206163 0.00185663 0.000905687" />
+<<<<<<< HEAD
                                 <joint name="L_AnklePitch" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
                                 <geom name="L_AnklePitch_Link" class="viz" mesh="left_ankle_pitch" />
                                 <body name="L_AnkleRoll_Link" pos="0 0 0">
                                     <inertial pos="-0.00989 0 0.07224" quat="0 0.650639 0 0.759387" mass="1.42541" diaginertia="0.00909009 0.00816768 0.0033577" />
                                     <joint name="L_AnkleRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
 									<geom name="L_AnkleRoll" type="box" size="0.15 0.085 0.01" pos="0.01 0 -0.095"/>
+=======
+                                <joint name="L_AnklePitch" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+                                <geom name="L_AnklePitch_Link" class="viz" mesh="left_ankle_pitch" />
+                                <body name="L_AnkleRoll_Link" pos="0 0 0">
+                                    <inertial pos="-0.00989 0 0.07224" quat="0 0.650639 0 0.759387" mass="1.42541" diaginertia="0.00909009 0.00816768 0.0033577" />
+                                    <joint name="L_AnkleRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+									<geom name="L_AnkleRoll" type="box" size="0.15 0.085 0.01" friction="1.0 0.005 0.0001" pos="0.01 0 -0.095"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
                                     <geom name="L_AnkleRoll_Link" class="viz" mesh="ankle_roll" />
 		     		    <site class="FTsensor" name="L_FT" pos="0 0 0"/>
                                 </body>
@@ -110,32 +143,57 @@
             </body>
              <body name="R_HipYaw_Link" pos="0 -0.105 -0.1119">
                 <inertial pos="-0.02955 0 0.06943" quat="0.676521 -0.205718 -0.205718 0.676521" mass="1.54216" diaginertia="0.00664372 0.00472109 0.00278374" />
+<<<<<<< HEAD
                 <joint name="R_HipYaw" pos="0 0 0" axis="0 0 -1" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
+=======
+                <joint name="R_HipYaw" pos="0 0 0" axis="0 0 -1" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
                 <geom name="R_HipYaw" type="box" size="0.071 0.031 0.08" pos="0.0 0 0.05" />
 				<geom name="R_HipYaw_Link" class="viz" mesh="hip_yaw" />
                 <body name="R_HipRoll_Link" pos="0 0 0">
                     <inertial pos="0.00513 0.00119 0" quat="0.502619 0.497367 -0.502619 0.497367" mass="1.16907" diaginertia="0.00199196 0.00180688 0.000879624" />
+<<<<<<< HEAD
                     <joint name="R_HipRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
                     <geom name="R_HipRoll_Link" class="viz" mesh="hip_roll" />
                     <body name="R_HipPitch_Link" pos="0 0 0">
                         <inertial pos="0.11203 -0.00306 -0.23316" quat="0.950944 0.0241325 0.218858 0.217311" mass="3.28269" diaginertia="0.047872 0.0423822 0.0109839" />
                         <joint name="R_HipPitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
+=======
+                    <joint name="R_HipRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping = "250" stiffness="80"/>
+                    <geom name="R_HipRoll_Link" class="viz" mesh="hip_roll" />
+                    <body name="R_HipPitch_Link" pos="0 0 0">
+                        <inertial pos="0.11203 -0.00306 -0.23316" quat="0.950944 0.0241325 0.218858 0.217311" mass="3.28269" diaginertia="0.047872 0.0423822 0.0109839" />
+                        <joint name="R_HipPitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 						<geom name="R_HipPitch1" type="box" size="0.04 0.06 0.15" pos="0.15 0 -0.22"/>
 						<geom name="R_HipPitch2" type="box" size="0.04 0.06 0.07" pos="0.075 0 -0.14"/>
                         <geom name="R_HipPitch_Link" class="viz" mesh="hip_pitch" />
                          <body name="R_KneePitch_Link" pos="0.1515 0 -0.339">
                             <inertial pos="0.05276 0.01856 -0.22635" quat="0.96797 -0.109968 0.0713641 0.214123" mass="2.04524" diaginertia="0.0364097 0.0322608 0.00479686" />
+<<<<<<< HEAD
                             <joint name="R_KneePitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
+=======
+                            <joint name="R_KneePitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping = "250" stiffness="80"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 							<geom name="R_KneePitch" type="box" size="0.04 0.06 0.15 " pos=" 0.05 0.01 -0.22" quat="0 0 0.2588 0"/>
                             <geom name="R_KneePitch_Link" class="viz" mesh="right_shin" />
                             <body name="R_AnklePitch_Link" pos="0.06 0 -0.368">
                                 <inertial pos="-0.01035 0.00568 0" quat="-0.0259621 0.70663 0.0259621 0.70663" mass="1.1845" diaginertia="0.00206165 0.0018566 0.000905652" />
+<<<<<<< HEAD
                                 <joint name="R_AnklePitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
                                 <geom name="R_AnklePitch_Link" class="viz" mesh="right_ankle_pitch" />
                                  <body name="R_AnkleRoll_Link" pos="0 0 0">
                                     <inertial pos="-0.00989 0 0.07224" quat="0 0.648332 0 0.761358" mass="1.42541" diaginertia="0.00909009 0.00816768 0.0033577" />
                                     <joint name="R_AnkleRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="100" stiffness="20"/>
 									<geom name="R_AnkleRoll" type="box" size="0.15 0.085 0.01" pos="0.01 0 -0.095"/>
+=======
+                                <joint name="R_AnklePitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+                                <geom name="R_AnklePitch_Link" class="viz" mesh="right_ankle_pitch" />
+                                 <body name="R_AnkleRoll_Link" pos="0 0 0">
+                                    <inertial pos="-0.00989 0 0.07224" quat="0 0.648332 0 0.761358" mass="1.42541" diaginertia="0.00909009 0.00816768 0.0033577" />
+                                    <joint name="R_AnkleRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="250" stiffness="2"/>
+									<geom name="R_AnkleRoll" type="box" size="0.15 0.085 0.01" friction="1.0 0.005 0.0001" pos="0.01 0 -0.095"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
                                     <geom name="R_AnkleRoll_Link" class="viz" mesh="ankle_roll" />
 				    <site class="FTsensor" name="R_FT" pos="0 0 0"/>
                                 </body>
@@ -146,46 +204,82 @@
             </body>
             <body name="WaistPitch_Link" pos="0 0 0">
                 <inertial pos="0 0 0.14577" quat="0.707107 0 0 0.707107" mass="0.18235" diaginertia="0.004215 0.003844 0.000457" />
+<<<<<<< HEAD
                 <joint name="WaistPitch" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
                 <geom name="WaistPitch_Link" class="viz" mesh="WaistPitch_Link" />
                 <body name="WaistYaw_Link" pos="0 0 0.186">
                     <inertial pos="0.0038 -0.00415 0.11424" mass="14.0994" diaginertia="0.262766 0.242504 0.109346" />
                     <joint name="WaistYaw" pos="0 0 0" axis="-1 0 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
+=======
+                <joint name="WaistPitch" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14 3.14" damping="250"/>
+                <geom name="WaistPitch_Link" class="viz" mesh="WaistPitch_Link" />
+                <body name="WaistYaw_Link" pos="0 0 0.186">
+                    <inertial pos="0.0038 -0.00415 0.11424" mass="14.0994" diaginertia="0.262766 0.242504 0.109346" />
+                    <joint name="WaistYaw" pos="0 0 0" axis="-1 0 0" limited="true" range="-3.14 3.14" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 					<geom name="WaistYaw" size="0.045 0.1325 0.1125" pos="0 0 0.11" type="box" rgba="0.59216 0.61961 0.65098 1" />
                     <geom  name="WaistYaw_Link" class="viz" mesh="WaistYaw_Link" />
 					
                     <body name="L_ShoulderPitch_Link" pos="0 0.17 0.239" quat="0.965926 0.25882 0 0">
                         <inertial pos="-0.00159 -0.00092 0" quat="0 0.707107 0 0.707107" mass="0.92796" diaginertia="0.00156 0.0015422 0.000473" />
+<<<<<<< HEAD
                         <joint name="L_ShoulderPitch" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
                         <geom name="L_ShoulderPitch_Link" class="viz" mesh="L_ShoulderPitch_Link" />
                          <body name="L_ShoulderRoll_Link" pos="0 0 0">
                             <inertial pos="0 0.02958 -0.03197" quat="0.629924 0.321242 -0.321242 0.629924" mass="0.1124" diaginertia="0.00212121 0.001421 0.00130279" />
                             <joint name="L_ShoulderRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-2.1 -0.2" damping="100" stiffness="100"/>
+=======
+                        <joint name="L_ShoulderPitch" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="250"/>
+                        <geom name="L_ShoulderPitch_Link" class="viz" mesh="L_ShoulderPitch_Link" />
+                         <body name="L_ShoulderRoll_Link" pos="0 0 0">
+                            <inertial pos="0 0.02958 -0.03197" quat="0.629924 0.321242 -0.321242 0.629924" mass="0.1124" diaginertia="0.00212121 0.001421 0.00130279" />
+                            <joint name="L_ShoulderRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-2.1 -0.2" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
                             <geom name="L_ShoulderRoll_Link" class="viz" mesh="L_ShoulderRoll_Link" />
                            
                             <body name="L_ShoulderYaw_Link" pos="0 0 0.028856">
                                 <inertial pos="0.00022 0.0291 -0.20695" quat="0.500672 0.499327 -0.500672 0.499327" mass="1.75149" diaginertia="0.090836 0.0904196 0.00125935" />
+<<<<<<< HEAD
                                 <joint name="L_ShoulderYaw" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
+=======
+                                <joint name="L_ShoulderYaw" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 								<geom name="L_ShoulderYaw" type="box" size="0.03 0.03 0.1" pos="0 0.17 0" quat="0.70711 0.70711 0 0"/>
 								
                                 <geom name="L_ShoulderYaw_Link" class="viz" mesh="L_ShoulderYaw_Link" />
                                <body name="L_ElbowRoll_Link" pos="0 0.294 0">
                                     <inertial pos="0.00013 0.02766 0.06984" quat="0.978431 0.206326 0.00269168 -0.00972432" mass="0.83342" diaginertia="0.00592013 0.00562339 0.00105148" />
+<<<<<<< HEAD
                                     <joint name="L_ElbowRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-2.8 0.3" damping="100" stiffness="100"/>
+=======
+                                    <joint name="L_ElbowRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-2.8 0.3" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 									<geom name="L_ElbowRoll" type="box" size="0.03 0.015 0.05" pos="0 0.015 0.003" quat="0.70711 0 0.70711 0"/>
                                     <geom name="L_ElbowRoll_Link" class="viz" mesh="L_ElbowRoll_Link" />
                                     <body name="L_WristYaw_Link" pos="0 0 0.075">
                                         <inertial pos="-0.00052833 0.21354 0" quat="0.500738 0.499261 -0.500738 0.499261" mass="0.52391" diaginertia="0.026765 0.0266882 0.00026877" />
+<<<<<<< HEAD
                                         <joint name="L_WristYaw" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
+=======
+                                        <joint name="L_WristYaw" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 										<geom name="L_WristYaw" type="box" size="0.03 0.023 0.10" pos="0 0.16 0.002" quat="0.70711 0.70711 0 0"/>
                                         <geom name="L_WristYaw_Link" class="viz" mesh="L_WristYaw_Link" />
                                         <body name="L_WristRoll_Link" pos="-0.00015 0.3085 0">
                                             <inertial pos="0 0.029698 0" quat="0 0.707107 0 0.707107" mass="0.07856" diaginertia="0.000153 9.0005e-05 8.3e-05" />
+<<<<<<< HEAD
                                             <joint name="L_WristRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
                                             <geom name="L_WristRoll_Link" class="viz" mesh="L_WristRoll_Link" />
                                             <body name="L_HandYaw_Link" pos="0 0 0">
                                                 <inertial pos="0 0.20231 0.0031654" quat="0.503933 0.496036 -0.496036 0.503933" mass="1.2064" diaginertia="0.0557793 0.05396 0.00258773" />
                                                 <joint name="L_HandYaw" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
+=======
+                                            <joint name="L_WristRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14" damping="250"/>
+                                            <geom name="L_WristRoll_Link" class="viz" mesh="L_WristRoll_Link" />
+                                            <body name="L_HandYaw_Link" pos="0 0 0">
+                                                <inertial pos="0 0.20231 0.0031654" quat="0.503933 0.496036 -0.496036 0.503933" mass="1.2064" diaginertia="0.0557793 0.05396 0.00258773" />
+                                                <joint name="L_HandYaw" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
                                                 <geom name="L_HandYaw_Link" class="viz" mesh="L_HandYaw_Link" />
                                             </body>
                                         </body>
@@ -196,36 +290,64 @@
                     </body>
                     <body name="R_ShoulderPitch_Link" pos="0 -0.17 0.239" quat="0.965926 -0.25882 0 0">
                         <inertial pos="-0.00159 0.00092 0" quat="0 0.707107 0 0.707107" mass="0.92796" diaginertia="0.00156 0.0015422 0.000473" />
+<<<<<<< HEAD
                         <joint name="R_ShoulderPitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
                         <geom name="R_ShoulderPitch_Link" class="viz" mesh="R_ShoulderPitch_Link" />
                         <body name="R_ShoulderRoll_Link" pos="0 0 0">
                             <inertial pos="0 -0.02958 -0.03197" quat="0.321242 0.629924 -0.629924 0.321242" mass="0.1124" diaginertia="0.00212121 0.001421 0.00130279" />
                             <joint name="R_ShoulderRoll" pos="0 0 0" axis="1 0 0" limited="true" range="0.2 2.1" damping="100" stiffness="100"/>
+=======
+                        <joint name="R_ShoulderPitch" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="250"/>
+                        <geom name="R_ShoulderPitch_Link" class="viz" mesh="R_ShoulderPitch_Link" />
+                        <body name="R_ShoulderRoll_Link" pos="0 0 0">
+                            <inertial pos="0 -0.02958 -0.03197" quat="0.321242 0.629924 -0.629924 0.321242" mass="0.1124" diaginertia="0.00212121 0.001421 0.00130279" />
+                            <joint name="R_ShoulderRoll" pos="0 0 0" axis="1 0 0" limited="true" range="0.2 2.1" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
                             <geom name="R_ShoulderRoll_Link"  type="mesh" mesh="R_ShoulderRoll_Link" />
 
                             <body name="R_ShoulderYaw_Link" pos="0 0 0.028856">
                                 <inertial pos="0.00022 -0.291 -0.20695" quat="0.499327 0.500672 -0.499327 0.500672" mass="1.75149" diaginertia="0.090836 0.0904196 0.00125935" />
+<<<<<<< HEAD
                                 <joint name="R_ShoulderYaw" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
+=======
+                                <joint name="R_ShoulderYaw" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 								<geom name="R_ShoulderYaw" type="box" size="0.03 0.03 0.1" pos="0 -0.16 0" quat="0.70711 0.70711 0 0"/>
 								
                                 <geom name="R_ShoulderYaw_Link" class="viz" mesh="R_ShoulderYaw_Link" />
                                 <body name="R_ElbowRoll_Link" pos="0 -0.294 0">
                                     <inertial pos="0.00013 -0.02766 0.06984" quat="0.978431 -0.206326 0.00269168 0.00972432" mass="0.83342" diaginertia="0.00592013 0.00562339 0.00105148" />
+<<<<<<< HEAD
                                     <joint name="R_ElbowRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-0.3 2.8" damping="100" stiffness="100"/>
+=======
+                                    <joint name="R_ElbowRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-0.3 2.8" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 									<geom name="R_ElbowRoll" type="box" size="0.03 0.03 0.05" pos="0 -0.005 0" quat="0.70711 0 0.70711 0"/>
                                     <geom name="R_ElbowRoll_Link" class="viz" mesh="R_ElbowRoll_Link" />
                                     <body name="R_WristYaw_Link" pos="0 0 0.075">
                                         <inertial pos="-0.00052833 -0.21354 0" quat="0.499261 0.500738 -0.499261 0.500738" mass="0.52391" diaginertia="0.026765 0.0266882 0.00026877" />
+<<<<<<< HEAD
                                         <joint name="R_WristYaw" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
+=======
+                                        <joint name="R_WristYaw" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 										<geom name="R_WristYaw" type="box" size="0.03 0.020 0.12" pos="0 -0.16 .003" quat="0.70711 0.70711 0 0"/>
                                         <geom name="R_WristYaw_Link"  class="viz" mesh="R_WristYaw_Link" />
                                         <body name="R_WristRoll_Link" pos="-0.00015 -0.3085 0">
                                             <inertial pos="0 -0.029698 0" quat="0 0.707107 0 0.707107" mass="0.07856" diaginertia="0.000153 9e-05 8.3e-05" />
+<<<<<<< HEAD
                                             <joint name="R_WristRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-1.9 1.9" damping="100" stiffness="100"/>>
                                             <geom name="R_WristRoll" class="viz" mesh="R_WristRoll_Link" />
                                            <body name="R_HandYaw_Link" pos="0 0 0">
                                                 <inertial pos="0 -0.20231 0.0031654" quat="0.503933 0.496036 -0.496036 0.503933" mass="0.8064" diaginertia="0.0557793 0.05396 0.00258773" />
                                                 <joint name="R_HandYaw" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="100" stiffness="100"/>
+=======
+                                            <joint name="R_WristRoll" pos="0 0 0" axis="1 0 0" limited="true" range="-1.9 1.9" damping="250"/>>
+                                            <geom name="R_WristRoll" class="viz" mesh="R_WristRoll_Link" />
+                                           <body name="R_HandYaw_Link" pos="0 0 0">
+                                                <inertial pos="0 -0.20231 0.0031654" quat="0.503933 0.496036 -0.496036 0.503933" mass="0.8064" diaginertia="0.0557793 0.05396 0.00258773" />
+                                                <joint name="R_HandYaw" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14 3.14" damping="250"/>
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
                                                 <geom name="R_HandYaw"  class="viz" mesh="R_HandYaw_new" />
                                             </body>
                                         </body>

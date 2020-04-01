@@ -39,6 +39,7 @@ int main(int argc, char **argv)
     }
     else if(mode == "mujoco")
     {
+        nh.param<double>("control_frequency", Hz, 200.0);
         ROS_INFO("DYROS JET MAIN CONTROLLER - !!! MUJOCO SIMULATION MODE !!!");
         ctr_obj = new mujoco_interface(nh, Hz);
     }

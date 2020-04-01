@@ -49,9 +49,9 @@ void mujoco_interface::jointStateCallback(const sensor_msgs::JointStateConstPtr 
             if(DyrosJetModel::JOINT_NAME[i] == msg->name[j].data())
             {
                 q_(i) = msg->position[j];
-             //   q_virtual_(i+6) = msg->position[j];
+            //    q_virtual_(i+6) = msg->position[j];
                 q_dot_(i) = msg->velocity[j];
-             //   q_dot_virtual_(i+6) = msg->velocity[j];
+            //     q_dot_virtual_(i+6) = msg->velocity[j];
                 torque_(i) = msg->effort[j];
                 q_ext_(i) = msg->position[j];
              //   q_virtual_(i+6) = msg->position[j];
@@ -120,8 +120,8 @@ void mujoco_interface::sensorStateCallback(const mujoco_ros_msgs::SensorStateCon
             for(int j=0;j<3;j++){
             //    right_foot_ft(j+3) = msg->sensor[i].data[j];
             }
-
         }
+<<<<<<< HEAD
     }
 
     if(mujoco_init_receive == false)
@@ -137,6 +137,11 @@ void mujoco_interface::sensorStateCallback(const mujoco_ros_msgs::SensorStateCon
     left_foot_ft_ = left_foot_ft;
     right_foot_ft_ = right_foot_ft;
 
+=======
+    }
+   left_foot_ft_ = DyrosMath::lowPassFilter<6>(left_foot_ft, left_foot_ft_, 1.0 / 200, 0.05);
+   right_foot_ft_ = DyrosMath::lowPassFilter<6>(right_foot_ft, right_foot_ft_, 1.0 / 200, 0.05);
+>>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 }
 
 void mujoco_interface::simCommandCallback(const std_msgs::StringConstPtr &msg)

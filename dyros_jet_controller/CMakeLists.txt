@@ -66,6 +66,7 @@ file(GLOB CONTROLLER_SRC
     "src/joint_controller.cpp"
     "src/moveit_controller.cpp"
     "src/quadraticprogram.cpp"
+    "src/com_jacobian.cpp"
     )
 
 
