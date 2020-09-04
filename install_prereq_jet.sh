@@ -36,7 +36,9 @@ while true; do
               cd ../..
 
 	      echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib'>>~/.bashrc
+	      source ~/.bashrc
 	      sudo ldconfig
+	      
 
 	      rm -rf Temp
               
@@ -47,8 +49,7 @@ while true; do
               git clone https://github.com/psh117/rt_dynamixel_msgs
               git clone -b 3.6.0 https://github.com/ROBOTIS-GIT/DynamixelSDK.git
               git clone https://github.com/saga0619/mujoco_ros_sim.git
-	      cd ~/catkin_ws
-	      catkin_make
+	      cd ~/catkin_ws && catkin_make
 
               exit;;
 
@@ -75,6 +76,7 @@ while true; do
               cd ../..
 
 	      echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib'>>~/.bashrc
+	      source ~/.bashrc
 	      sudo ldconfig
 
               rm -rf Temp
@@ -86,7 +88,7 @@ while true; do
               git clone https://github.com/psh117/rt_dynamixel_msgs
               git clone -b 3.6.0 https://github.com/ROBOTIS-GIT/DynamixelSDK.git
               git clone https://github.com/saga0619/mujoco_ros_sim.git
-	      cd ~/catkin_ws
+	      cd ~/catkin_ws && catkin_make
 	      catkin_make
               exit;;
 
