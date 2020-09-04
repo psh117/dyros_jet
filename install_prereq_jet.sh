@@ -2,11 +2,6 @@
 
 echo "HUMANOID2020FALL Dyros Jet Auto Installer"
 
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
-fi
-
 while true; do
     echo "Select Installation method";
     echo "1 : Install all for UBUNTU16.04";
