@@ -17,7 +17,7 @@ while true; do
               mkdir Temp
               cd Temp
 
-              git clone https://github.com/saga0619/rbdl-jet
+              git clone https://github.com/saga0619/rbdl_jet
               cd rbdl-orb
               mkdir build
               cd build
@@ -56,7 +56,7 @@ while true; do
 
         [2]* ) echo "Starting Install ... all prerequistes for UBUNTU18.04";
         
-              git clone https://github.com/saga0619/rbdl-jet
+              git clone https://github.com/saga0619/rbdl_jet
               cd rbdl-orb
               mkdir build
               cd build
