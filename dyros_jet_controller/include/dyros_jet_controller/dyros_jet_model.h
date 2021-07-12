@@ -121,14 +121,11 @@ public:
   const Eigen::Vector3d& getImuAngvel() {return angvel_;}
   const Eigen::Vector3d& getImuGravityDirection() {return grav_rpy_;}
 
-<<<<<<< HEAD
- const  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>& getJoint(){return q;}
-  const  Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>& getJointDot(){return qdot;}
-=======
-  const Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1> motorQ() {return motor_q;}
-  const Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>  motorQdot() {return motor_qdot;}
+  const Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>& getJoint(){return q;}
+  const Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>& getJointDot(){return qdot;}
+  const Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>& motorQ() { return motor_q;}
+  const Eigen::Matrix<double, DyrosJetModel::MODEL_WITH_VIRTUAL_DOF, 1>& motorQdot() {return motor_qdot;}
 
->>>>>>> b22719c91c3d101d33a1f8e495aed81daf35be03
 
  const Eigen::Matrix<double, 18, 18>& getLegInertia() { return leg_inertia_mat_; }
  const Eigen::Matrix<double, 34, 34>& getFullInertia() { return full_inertia_mat_; }
